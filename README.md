@@ -1,18 +1,19 @@
 # vscoder_microservices
+
 vscoder microservices repository
 
 # Makefile
 
 ## Переменные
 
-| variable               | default                   | description                                                              |
-| ---------------------- | ------------------------- | ------------------------------------------------------------------------ |
-| BIN_DIR                | ~/bin                     | Путь для установки исполняемых файлов для целей `install_docker_machine` |
-| TEMP_DIR               | /tmp                      | Временная директория для загрузки файлов                                 |
-| DOCKER_MACHINE_VERSION | v0.16.0                   | Версия docker-machine                                                    |
-| DOCKER_MACHINE_OS      | $(shell uname -s)         | Название операционной системы                                            |
-| DOCKER_MACHINE_ARCH    | $(shell uname -m)         | Название архитектуры                                                     |
-| DOCKER_MACHINE         | ${BIN_DIR}/docker-machine | Путь к исполняемому файлу `docker-machine`                               |
+| variable               | default                    | description                                                              |
+| ---------------------- | -------------------------- | ------------------------------------------------------------------------ |
+| BIN_DIR                | ~/bin                      | Путь для установки исполняемых файлов для целей `install_docker_machine` |
+| TEMP_DIR               | /tmp                       | Временная директория для загрузки файлов                                 |
+| DOCKER_MACHINE_VERSION | v0.16.0                    | Версия docker-machine                                                    |
+| DOCKER_MACHINE_OS      | \$(shell uname -s)         | Название операционной системы                                            |
+| DOCKER_MACHINE_ARCH    | \$(shell uname -m)         | Название архитектуры                                                     |
+| DOCKER_MACHINE         | \${BIN_DIR}/docker-machine | Путь к исполняемому файлу `docker-machine`                               |
 
 ## Цели
 
@@ -28,26 +29,27 @@ vscoder microservices repository
 
 ### Подготовка проекта. Интеграции
 
-* Склонирован репозиторий [Otus-DevOps-2019-08/vscoder_microservices
-](https://github.com/Otus-DevOps-2019-08/vscoder_microservices)
-* Выполнена интеграция со slack:
-  * workspace `devops-team-otus.slack.com`
-  * В чате aleksey_koloskov выполнена команда `/github subscribe Otus-DevOps-2019-08/vscoder_microservices commits:all`
-* Настроены уведомления в slack от travis-ci
-  * В клиенте: _+ Add apps_ -> _Travis-CI_ -> _Settings_ -> _Add to Slack_
-  * В [.travis.yml](.travis.yml) настроены уведомления по инструкции с открывшейся страницы
+- Склонирован репозиторий [Otus-DevOps-2019-08/vscoder_microservices
+  ](https://github.com/Otus-DevOps-2019-08/vscoder_microservices)
+- Выполнена интеграция со slack:
+  - workspace `devops-team-otus.slack.com`
+  - В чате aleksey_koloskov выполнена команда `/github subscribe Otus-DevOps-2019-08/vscoder_microservices commits:all`
+- Настроены уведомления в slack от travis-ci
+  - В клиенте: _+ Add apps_ -> _Travis-CI_ -> _Settings_ -> _Add to Slack_
+  - В [.travis.yml](.travis.yml) настроены уведомления по инструкции с открывшейся страницы
     ```yaml
     notifications:
       slack: slackchannel:faketoken
     ```
-* Добавлен [.gitignore](.gitignore)
-* Добавлен Makefile. Цели:
-  * install_requirements
-  * install_docker_machine
+- Добавлен [.gitignore](.gitignore)
+- Добавлен Makefile. Цели:
+  - install_requirements
+  - install_docker_machine
 
 ### Установка docker
 
-* Установлен docker как описано в документации https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/
+- Установлен docker как описано в документации https://docs.docker.com/engine/installation/linux/docker-ce/ubuntu/
+
   <details><summary>docker version</summary>
   <p>
 
@@ -148,7 +150,7 @@ vscoder microservices repository
   ```
   Unable to find image 'hello-world:latest' locally
   latest: Pulling from library/hello-world
-  1b930d010525: Pull complete 
+  1b930d010525: Pull complete
   Digest: sha256:c3b4ada4687bbaa170745b3e4dd8ac3f194ca95b2d0518b417fb47e5879d9b5f
   Status: Downloaded newer image for hello-world:latest
 
@@ -176,18 +178,19 @@ vscoder microservices repository
 
   </p>
   </details>
-* Установлен docker-compose в [./venv](.venv)
+
+- Установлен docker-compose в [./venv](.venv)
   ```shell
   docker-compose version 1.24.1, build 4667896
   ```
-* Установлен бинарник `docker-machine`
+- Установлен бинарник `docker-machine`
   ```shell
   docker-machine version 0.16.0, build 702c267f
   ```
 
 ### Работа с docker
 
-* Список основных команд docker
+- Список основных команд docker
   | Команда                                                                       | Описание                                                                                                                                            |
   | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
   | docker ps                                                                     | Список запущенных контейнеров                                                                                                                       |
@@ -199,12 +202,123 @@ vscoder microservices repository
   | docker create                                                                 | Создать контейнер, не запуская его                                                                                                                  |
   | docker exec -it <u_container_id> bash                                         | Запустить новый процесс внутри контейнера                                                                                                           |
   | docker commit <u_container_id> yourname/ubuntu-tmp-file                       | Создать образ yourname/ubuntu-tmp-file из контейнера <u_container_id>. Контейнер при этом останется запущенным.                                     |
-* Примечание _docker run = docker create + docker start + docker attach*_
-  \* _docker attach_ выполняется при наличии опции `-i`
-* Основный опции
-  | Опция | Описание                                        |
-  | ----- | ----------------------------------------------- |
-  | -i    | запускает контейнер в foreground режиме (docker | attach) |
-  | -d    | запускает контейнер в background режиме         |
-  | -t    | создает TTY                                     |
-* После выполнения команд из ДЗ, список образов сохранён в [docker-monolith/docker-1.log](docker-monolith/docker-1.log) 
+- Примечание _docker run = docker create + docker start + docker attach\*_ \* _docker attach_ выполняется при наличии опции `-i`
+- Основный опции
+  | Опция        | Описание                                                   |
+  | ------------ | ---------------------------------------------------------- |
+  | -i           | запускает контейнер в foreground режиме (docker attach)    |
+  | -d           | запускает контейнер в background режиме                    |
+  | -t           | создает TTY                                                |
+  | --entrypoint | позволяет переопределить ENTRYPOINT при запуске контейнера |
+- После выполнения команд из ДЗ, список образов сохранён в [docker-monolith/docker-1.log](docker-monolith/docker-1.log)
+
+### Задание со \*: Отличия образа и контейнера
+
+* Сылки по теме:
+  * An Image is an ordered collection of root filesystem changes and the corresponding execution parameters for use within a container runtime.
+  * [Docker Image Specification v1.2.0. Image JSON Field Descriptions](https://github.com/docker/docker-ce/blob/master/components/engine/image/spec/v1.2.md)
+  * [Образы и контейнеры Docker в картинках](https://habr.com/en/post/272145/)
+  * [What to Inspect When You're Inspecting](https://www.ctl.io/developers/blog/post/what-to-inspect-when-youre-inspecting)
+* Произведён анализ результатов вывода команды `docker inspect <u_image_id>`.
+  <details><summary>Результаты</summary>
+  <p>
+
+  ```json
+  [
+    {
+      "Id": "sha256:5f2bf26e35249d8b47f002045c57b2ea9d8ba68704f45f3c209182a7a2a9ece5",  # SHA256 hash of its configuration JSON
+      "RepoTags": [  # Список тегов образа
+        "ubuntu:16.04"
+      ],
+      "RepoDigests": [  # Чексумма образа
+        "ubuntu@sha256:bb5b48c7750a6a8775c74bcb601f7e5399135d0a06de004d000e05fd25c1a71c"
+      ],
+      "Parent": "",  # ID вышестоящего слоя в хранилище образов. Пуст в связи с отсутствием родительских слоёв в локальном хранилище. Подробнее: https://stackoverflow.com/questions/45820905/docker-image-inspection-json-interpretation Документация: https://docs.docker.com/storage/storagedriver/
+      "Comment": "",  # Комментарий
+      "Created": "2019-10-31T22:21:29.640561379Z",  # Дата создания образа
+      "Container": "363288fa6924e2d1e1b00da6525ffde40bb0de65b1da6ce6e44e363df532614e",  # Временный идентификатор контейнера, созданного во время сборки образа. Docker will create a container during the image construction process, and this identifier is stored in the image data.
+      "ContainerConfig": {  # This data again is referring to the temporary container created when the Docker build command was executed
+        "Hostname": "363288fa6924",
+        "Domainname": "",
+        "User": "",
+        "AttachStdin": false,
+        "AttachStdout": false,
+        "AttachStderr": false,
+        "Tty": false,
+        "OpenStdin": false,
+        "StdinOnce": false,
+        "Env": [
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        ],
+        "Cmd": [
+          "/bin/sh",
+          "-c",
+          "#(nop) ",
+          "CMD [\"/bin/bash\"]"
+        ],
+        "ArgsEscaped": true,
+        "Image": "sha256:66d791e2304a4caa9fda9b56ad9fff2679e7b933c83d23fca8e3ec3b5595c4dc",
+        "Volumes": null,
+        "WorkingDir": "",
+        "Entrypoint": null,
+        "OnBuild": null,
+        "Labels": {}
+      },
+      "DockerVersion": "18.06.1-ce",  # Версия docker, используемая при сборке образа
+      "Author": "",  # Автор образа
+      "Config": {  # Конфигурационные параметры, которые должны быть взяты за основу при запуске контейнера на основе данного образа. Судя по документации, все эти параметры можно переопределить при создании контейнера
+        "Hostname": "",
+        "Domainname": "",
+        "User": "",  # Пользователь запускаемого контейнера по-умолчанию
+        "AttachStdin": false,
+        "AttachStdout": false,
+        "AttachStderr": false,
+        "Tty": false,
+        "OpenStdin": false,
+        "StdinOnce": false,
+        "Env": [  # Переменные окружения
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        ],
+        "Cmd": [  # CMD по умолчанию
+          "/bin/bash"
+        ],
+        "ArgsEscaped": true,
+        "Image": "sha256:66d791e2304a4caa9fda9b56ad9fff2679e7b933c83d23fca8e3ec3b5595c4dc",
+        "Volumes": null,  # Тома по-умолчанию
+        "WorkingDir": "",  # Рабочая директория по-умолчанию
+        "Entrypoint": null,  # ENTRYPOINT по-умолчанию
+        "OnBuild": null,
+        "Labels": null
+      },
+      "Architecture": "amd64",  # Архитектура, для которой созданы бинарные файлы образа [i386, amd64, arm]
+      "Os": "linux",  # Название ОС, в которой должен запускаться образ
+      "Size": 122564827,
+      "VirtualSize": 122564827,  # The size of the image reported in bytes
+      "GraphDriver": { # https://docs.docker.com/storage/storagedriver/select-storage-driver/
+        "Data": {  # https://stackoverflow.com/a/56551786/3488348
+          "LowerDir": "/var/lib/docker/overlay2/897edb9e383005a310bb7685eda9b259c5c0b7740d2d65e7d1c44f228dc73ce9/diff:/var/lib/docker/overlay2/bc1b6b3a839591c8870d5aa8ad328af83c5325b82a88163986a0186b11016921/diff:/var/lib/docker/overlay2/11810c8b5bbff1b9b14089bcef62d0029a39ae0686c51a5ce0e616e71f2573bf/diff",
+          "MergedDir": "/var/lib/docker/overlay2/8dac1ac5277e9c3bf4e3d7111d947bf2f4553dd85764077b0ed057d3e1b93022/merged",
+          "UpperDir": "/var/lib/docker/overlay2/8dac1ac5277e9c3bf4e3d7111d947bf2f4553dd85764077b0ed057d3e1b93022/diff",
+          "WorkDir": "/var/lib/docker/overlay2/8dac1ac5277e9c3bf4e3d7111d947bf2f4553dd85764077b0ed057d3e1b93022/work"
+        },
+        "Name": "overlay2"
+      },
+      "RootFS": {  # Ссылается на адреса содержимого слоёв, используемых образом
+        "Type": "layers",
+        "Layers": [
+          "sha256:788b17b748c23d38ec62e913e87b084b7e3efda49843b3c0809b1857559b553e",
+          "sha256:a5a5f8c62487121247923a4df970f2094725ac2fea8c1347236466c4a3265ae0",
+          "sha256:903669ee720750938f08f95f7c8f1022d7fd7c57602af847b316f0b39efbd01c",
+          "sha256:bc72fb2e7b7487b3b9f9135437319525feaf1fab6ba61dab7e2e961e5c1dbb8b"
+        ]
+      },
+      "Metadata": {  # Метаданные
+        "LastTagTime": "0001-01-01T00:00:00Z"
+      }
+    }
+  ]
+  
+  ```
+
+  </p>
+  </details>
