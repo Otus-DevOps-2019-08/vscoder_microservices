@@ -1,6 +1,28 @@
 # vscoder_microservices
 vscoder microservices repository
 
+# Makefile
+
+## Переменные
+
+| variable               | default | description                                                              |
+| ---------------------- | ------- | ------------------------------------------------------------------------ |
+| BIN_DIR                | ~/bin   | Путь для установки исполняемых файлов для целей `install_docker_machine` |
+| TEMP_DIR               | /tmp    | Временная директория для загрузки файлов                                 |
+| DOCKER_MACHINE_VERSION | v0.16.0 | Версия docker-machine                                                    |
+| DOCKER_MACHINE_BASEURL |
+| DOCKER_MACHINE_OS      |
+| DOCKER_MACHINE_ARCH    |
+| DOCKER_MACHINE         |
+
+## Цели
+
+| target                 | used variables | description |
+| ---------------------- | -------------- | ----------- |
+| debug                  |
+| install_requirements   |
+| install_docker_machine |
+
 # Домашние задания
 
 ## HomeWork 12: Технология контейнеризации. Введение в Docker
@@ -20,4 +42,10 @@ vscoder microservices repository
       slack: slackchannel:faketoken
     ```
 * Добавлен [.gitignore](.gitignore)
+* Добавлен Makefile. Цели:
+  * install_requirements
+  * install_docker_machine
+
+### Установка docker
+
 
