@@ -16,11 +16,11 @@ vscoder microservices repository
 
 ## Цели
 
-| target                 | used variables | description |
-| ---------------------- | -------------- | ----------- |
-| debug                  |
-| install_requirements   |
-| install_docker_machine |
+| target                 | used variables                                                    | description                                                                                        |
+| ---------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| debug                  | все                                                               | Показать значения всех переменных                                                                  |
+| install_requirements   | нет                                                               | Установить в python virualenv [./venv](./venv) зависимости из [requirements.txt](requirements.txt) |
+| install_docker_machine | DOCKER_MACHINE_BASEURL, DOCKER_MACHINE_VERSION, TEMP_DIR, BIN_DIR | Скачать и установить в `${BIN_DIR}` исполняемый файл `docker-machine`                              |
 
 # Домашние задания
 
