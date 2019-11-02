@@ -19,3 +19,5 @@ vscoder microservices repository
     notifications:
       slack: slackchannel:faketoken
     ```
+* Добавлен [.gitignore](.gitignore)
+
