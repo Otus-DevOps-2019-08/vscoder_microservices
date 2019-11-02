@@ -1,0 +1,40 @@
+####
+# IDE
+####
+.vscode/
+
+####
+# Packer
+####
+variables.json
+
+####
+# Terraform
+####
+*.tfstate
+*.tfstate.*.backup
+*.tfstate.backup
+*.tfvars
+.terraform/
+
+####
+# Python virtualenv
+####
+.venv
+venv
+
+####
+# Ansible
+####
+*.retry
+ansible/roles_imported/*
+
+####
+# Vagrant & molecule
+####
+.vagrant/
+*.log
+*.pyc
+.molecule
+.cache
+.pytest_cache
