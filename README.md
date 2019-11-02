@@ -5,15 +5,14 @@ vscoder microservices repository
 
 ## Переменные
 
-| variable               | default | description                                                              |
-| ---------------------- | ------- | ------------------------------------------------------------------------ |
-| BIN_DIR                | ~/bin   | Путь для установки исполняемых файлов для целей `install_docker_machine` |
-| TEMP_DIR               | /tmp    | Временная директория для загрузки файлов                                 |
-| DOCKER_MACHINE_VERSION | v0.16.0 | Версия docker-machine                                                    |
-| DOCKER_MACHINE_BASEURL |
-| DOCKER_MACHINE_OS      |
-| DOCKER_MACHINE_ARCH    |
-| DOCKER_MACHINE         |
+| variable               | default                   | description                                                              |
+| ---------------------- | ------------------------- | ------------------------------------------------------------------------ |
+| BIN_DIR                | ~/bin                     | Путь для установки исполняемых файлов для целей `install_docker_machine` |
+| TEMP_DIR               | /tmp                      | Временная директория для загрузки файлов                                 |
+| DOCKER_MACHINE_VERSION | v0.16.0                   | Версия docker-machine                                                    |
+| DOCKER_MACHINE_OS      | $(shell uname -s)         | Название операционной системы                                            |
+| DOCKER_MACHINE_ARCH    | $(shell uname -m)         | Название архитектуры                                                     |
+| DOCKER_MACHINE         | ${BIN_DIR}/docker-machine | Путь к исполняемому файлу `docker-machine`                               |
 
 ## Цели
 
