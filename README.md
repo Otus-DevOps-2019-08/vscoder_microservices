@@ -604,3 +604,15 @@ Deleted: sha256:fce289e99eb9bca977dae136fbe2a82b6b7d4c372474c9235adc1741675f587e
 Deleted: sha256:af0b15c8625bb1938f1d7b17081031f649fd14e6b233688eea3c5483994a66a3
 Error response from daemon: conflict: unable to delete 5f2bf26e3524 (cannot be forced) - image is being used by running container 03a9eea159ef
 ```
+
+
+### Docker контейнеры
+
+#### GCE
+
+* Создан новый проект _docker_ id `docker-257914`
+* gcloud SDK установлен ранее
+* Выполнен `gcloud init` с созданием новой конфигурации _otus-devops-docker_
+* Выполнен `gcloud auth application-default login` чтобы получить файл с авторизационными данными для docker-machine.
+  Файл сохранён по пути `/home/<myuser>/.config/gcloud/application_default_credentials.json`
+
