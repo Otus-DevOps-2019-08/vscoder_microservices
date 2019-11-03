@@ -1050,3 +1050,85 @@ Error response from daemon: conflict: unable to delete 5f2bf26e3524 (cannot be f
     </details>
     В результате видим преиодические запросы на 172.17.0.2.80 от 172.17.0.3, и ответы.
     Вывод: для диагностики может пригодиться такая возможность
+
+
+##### USER namespace
+
+Документация по теме https://docs.docker.com/engine/security/userns-remap/
+Известные ограничения https://docs.docker.com/engine/security/userns-remap/#user-namespace-known-limitations
+
+Одно из ограничений:
+This re-mapping is transparent to the container, but introduces some configuration complexity in situations where the container needs access to resources on the Docker host, such as bind mounts into areas of the filesystem that the system user cannot write to.
+
+Важно про RHEL/CentOS
+The way the namespace remapping is handled on the host is using two files, `/etc/subuid` and `/etc/subgid`. These files are typically managed automatically when you add or remove users or groups, but on a few distributions such as RHEL and CentOS 7.3, you may need to manage these files manually.
+
+Пример `/etc/subuid`:
+```
+testuser:231072:65536
+```
+This means that user-namespaced processes started by testuser are owned by host UID 231072 (which looks like UID 0 inside the namespace) through 296607 (231072 + 65536 - 1). These ranges should not overlap, to ensure that namespaced processes cannot access each other’s namespaces.
+
+Про достуа к ресурсам `/var/lib/docker`:
+Enabling userns-remap effectively masks existing image and container layers, as well as other Docker objects within /var/lib/docker/. This is because Docker needs to adjust the ownership of these resources and actually stores them in a subdirectory within /var/lib/docker/. It is best to enable this feature on a new Docker installation rather than an existing one.
+
+Along the same lines, if you disable userns-remap you can’t access any of the resources created while it was enabled.
+
+
+* В `/etc/docker/daemon.json` добавлен `userns-remap`
+  ```json
+  {
+    "userns-remap": "testuser"
+  }
+  ```
+* docker перезапущен `systemctl restart docker`
+* автоматически создан пользователь `dockremap`
+  ```shell
+  # id dockremap
+  uid=113(dockremap) gid=117(dockremap) groups=117(dockremap)
+  # grep dockremap /etc/subuid
+  dockremap:362144:65536
+  # grep dockremap /etc/subgid
+  dockremap:362144:65536
+  ```
+* ранее загруженные образы недоступны
+  ```shell
+  # docker image ls
+  REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+  ```
+* запущен контейнер `hello-world`
+  ```shell
+  # docker run hello-world
+  Unable to find image 'hello-world:latest' locally
+  latest: Pulling from library/hello-world
+  1b930d010525: Pull complete 
+  Digest: sha256:c3b4ada4687bbaa170745b3e4dd8ac3f194ca95b2d0518b417fb47e5879d9b5f
+  Status: Downloaded newer image for hello-world:latest
+  ...
+  ```
+  образ заново загружен
+* проверка наличия namspace-директории
+  ```shell
+  # sudo ls -ld /var/lib/docker/362144.362144/
+  drwx------ 14 362144 362144 4096 Nov  3 20:21 /var/lib/docker/362144.362144/
+  ```
+  и её содержимого
+  ```shell
+  # sudo ls -l /var/lib/docker/362144.362144/
+  total 48
+  drwx------ 2 root   root   4096 Nov  3 20:21 builder
+  drwx--x--x 4 root   root   4096 Nov  3 20:21 buildkit
+  drwx------ 3 362144 362144 4096 Nov  3 20:25 containers
+  drwx------ 3 root   root   4096 Nov  3 20:21 image
+  drwxr-x--- 3 root   root   4096 Nov  3 20:21 network
+  drwx------ 6 362144 362144 4096 Nov  3 20:25 overlay2
+  drwx------ 4 root   root   4096 Nov  3 20:21 plugins
+  drwx------ 2 root   root   4096 Nov  3 20:21 runtimes
+  drwx------ 2 root   root   4096 Nov  3 20:21 swarm
+  drwx------ 2 362144 362144 4096 Nov  3 20:25 tmp
+  drwx------ 2 root   root   4096 Nov  3 20:21 trust
+  drwx------ 2 362144 362144 4096 Nov  3 20:21 volumes
+  ```
+* Отключить user ns для контенйера: `--userns=host`
+  There is a side effect when using this flag: user remapping will not be enabled for that container but, because the read-only (image) layers are shared between containers, ownership of the the containers filesystem will still be remapped.
+  What this means is that the whole container filesystem will belong to the user specified in the `--userns-remap` daemon config (362144 in the example above). This can lead to unexpected behavior of programs inside the container. For instance sudo (which checks that its binaries belong to user 0) or binaries with a setuid flag.
