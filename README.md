@@ -533,8 +533,9 @@ vscoder microservices repository
   </details>
 * В файле [docker-monolith/docker-1.log](docker-monolith/docker-1.log) описаны различия между образом и контейнером
 
+### Больше docker-команд
 
-### Docker kill & stop
+#### Docker kill & stop
 
 Подробнее про [Сигналы в Linux](https://ru.wikipedia.org/wiki/Сигналы_(UNIX))
 
@@ -558,4 +559,18 @@ vscoder microservices repository
   ```shell
   03a9eea159ef
   ```
+
+#### docker system df
+
+* Отображает сколько дискового пространства занято образами, контейнерами и volume’ами
+* Отображает сколько из них не используется и возможно удалить
+
+`docker system df`
+```shell
+TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE
+Images              4                   3                   248.8MB             122.6MB (49%)
+Containers          5                   1                   15B                 9B (60%)
+Local Volumes       0                   0                   0B                  0B
+Build Cache         0                   0                   0B                  0B
+```
 
