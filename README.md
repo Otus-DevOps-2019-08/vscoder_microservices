@@ -547,16 +547,16 @@ vscoder microservices repository
 
 Практика:
 * `docker ps -q`
-  ```shell
+  ```log
   cc75429464ba
   03a9eea159ef
   ```
 * `docker kill cc75429464ba`
-  ```shell
+  ```log
   cc75429464ba
   ```
 * `docker ps -q` - остался один запущенный контейнер
-  ```shell
+  ```log
   03a9eea159ef
   ```
 
@@ -566,7 +566,7 @@ vscoder microservices repository
 * Отображает сколько из них не используется и возможно удалить
 
 `docker system df`
-```shell
+```log
 TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE
 Images              4                   3                   248.8MB             122.6MB (49%)
 Containers          5                   1                   15B                 9B (60%)
@@ -574,3 +574,33 @@ Local Volumes       0                   0                   0B                  
 Build Cache         0                   0                   0B                  0B
 ```
 
+#### Docker rm & rmi
+
+* rm удаляет контейнер, можно добавить флаг -f, чтобы удалялся работающий container(будет послан sigkill)
+* rmi удаляет image, если от него не зависят запущенные контейнеры
+
+`docker rm $(docker ps -a -q)` # удалит все незапущенные контейнеры
+```log
+cc75429464ba
+5d9a698c4c62
+2cf9183503e2
+89716fceca99
+Error response from daemon: You cannot remove a running container 03a9eea159ef6e417a2e67802c5fa021f4a8d0b634ba377cd0074d6ff5eef511. Stop the container before attempting removal or force remove
+```
+
+`docker rmi $(docker images -q)`
+```log
+Untagged: vscoder/ubuntu-tmp-file:latest
+Deleted: sha256:e63bb81dd3f064fb9fe854a1e66ca76e30c79fbc54eb9f09c5ab054a8d0d8cd3
+Untagged: nginx:latest
+Untagged: nginx@sha256:922c815aa4df050d4df476e92daed4231f466acc8ee90e0e774951b0fd7195a4
+Deleted: sha256:540a289bab6cb1bf880086a9b803cf0c4cefe38cbb5cdefa199b69614525199f
+Deleted: sha256:ab18af7cee69bfb22c1771e54d5e0e68b1a1bf57bb46516142da0380b1771f4a
+Deleted: sha256:02f7daf1e14541cd61a3dda1a61cc0f78fee8de2984d488b8ba5bbd3cbad9b57
+Deleted: sha256:b67d19e65ef653823ed62a5835399c610a40e8205c16f839c5cc567954fcf594
+Untagged: hello-world:latest
+Untagged: hello-world@sha256:c3b4ada4687bbaa170745b3e4dd8ac3f194ca95b2d0518b417fb47e5879d9b5f
+Deleted: sha256:fce289e99eb9bca977dae136fbe2a82b6b7d4c372474c9235adc1741675f587e
+Deleted: sha256:af0b15c8625bb1938f1d7b17081031f649fd14e6b233688eea3c5483994a66a3
+Error response from daemon: conflict: unable to delete 5f2bf26e3524 (cannot be forced) - image is being used by running container 03a9eea159ef
+```
