@@ -616,3 +616,52 @@ Error response from daemon: conflict: unable to delete 5f2bf26e3524 (cannot be f
 * Выполнен `gcloud auth application-default login` чтобы получить файл с авторизационными данными для docker-machine.
   Файл сохранён по пути `/home/<myuser>/.config/gcloud/application_default_credentials.json`
 
+#### Docker machine
+
+Установка в Linux https://docs.docker.com/machine/install-machine/
+
+* docker-machine - встроенный в докер инструмент для создания хостов и установки на них docker engine. Имеет поддержку облаков и систем виртуализации (Virtualbox, GCP и др.)
+* Команда создания - `docker-machine create <имя>`. Имен может быть много, переключение между ними через `eval $(docker-machine env <имя>)`. Переключение на локальный докер - `eval $(docker-machine env --unset)`. Удаление - `docker-machine rm <имя>`.
+* docker-machine создает хост для докер демона со указываемым образом в --googlemachine-image, в ДЗ используется ubuntu-16.04. Образы которые используются для построения докер контейнеров к этому никак не относятся.
+* Все докер команды, которые запускаются в той же консоли после `eval $(docker-machine env <имя>)` работают с удаленным докер демоном в GCP.
+
+* Создан файл [env](env) с переменными окружения, необходимыми для работы с docker-machine
+* Для проекта разрешено использование API как было сказано при первой попытке создать машину
+* Создана машина
+  ```shell
+  docker-machine create --driver google \
+  --google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+  --google-machine-type n1-standard-1 \
+  --google-zone europe-west1-b \
+  docker-host
+  ```
+  ```log
+  Running pre-create checks...
+  (docker-host) Check that the project exists
+  (docker-host) Check if the instance already exists
+  Creating machine...
+  (docker-host) Generating SSH Key
+  (docker-host) Creating host...
+  (docker-host) Opening firewall ports
+  (docker-host) Creating instance
+  (docker-host) Waiting for Instance
+  (docker-host) Uploading SSH Key
+  Waiting for machine to be running, this may take a few minutes...
+  Detecting operating system of created instance...
+  Waiting for SSH to be available...
+  Detecting the provisioner...
+  Provisioning with ubuntu(systemd)...
+  Installing Docker...
+  Copying certs to the local machine directory...
+  Copying certs to the remote machine...
+  Setting Docker configuration on the remote daemon...
+  Checking connection to Docker...
+  Docker is up and running!
+  To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: docker-machine env docker-host
+  ```
+* docker-machine успешно создана `docker-machine ls`
+  ```log
+  NAME          ACTIVE   DRIVER   STATE     URL                        SWARM   DOCKER     ERRORS
+  docker-host   -        google   Running   tcp://34.76.188.197:2376           v19.03.4
+  ```
+* Выполнено переключение на созданную машину `eval $(docker-machine env docker-host)`
