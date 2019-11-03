@@ -532,3 +532,30 @@ vscoder microservices repository
   </p>
   </details>
 * В файле [docker-monolith/docker-1.log](docker-monolith/docker-1.log) описаны различия между образом и контейнером
+
+
+### Docker kill & stop
+
+Подробнее про [Сигналы в Linux](https://ru.wikipedia.org/wiki/Сигналы_(UNIX))
+
+Описание:
+* kill сразу посылает SIGKILL
+* stop посылает SIGTERM, и через 10 секунд(настраивается) посылает SIGKILL
+* SIGTERM - сигнал остановки приложения
+* SIGKILL - безусловное завершение процесса
+
+Практика:
+* `docker ps -q`
+  ```shell
+  cc75429464ba
+  03a9eea159ef
+  ```
+* `docker kill cc75429464ba`
+  ```shell
+  cc75429464ba
+  ```
+* `docker ps -q` - остался один запущенный контейнер
+  ```shell
+  03a9eea159ef
+  ```
+
