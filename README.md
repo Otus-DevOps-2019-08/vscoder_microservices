@@ -219,6 +219,8 @@ vscoder microservices repository
   * [Docker Image Specification v1.2.0. Image JSON Field Descriptions](https://github.com/docker/docker-ce/blob/master/components/engine/image/spec/v1.2.md)
   * [Образы и контейнеры Docker в картинках](https://habr.com/en/post/272145/)
   * [What to Inspect When You're Inspecting](https://www.ctl.io/developers/blog/post/what-to-inspect-when-youre-inspecting)
+  * [Engine API v1.24](https://docs.docker.com/engine/api/v1.24/)
+  * [Подключение контейнера к нескольким сетям](https://success.docker.com/article/multiple-docker-networks)
 * Произведён анализ результатов вывода команды `docker inspect <u_image_id>`.
   <details><summary>Результаты</summary>
   <p>
@@ -318,6 +320,211 @@ vscoder microservices repository
     }
   ]
   
+  ```
+
+  </p>
+  </details>
+* Произведён анализ вывода команды `docker inspect <u_container_id>`
+  <details><summary>Результаты</summary>
+    <p>
+
+  ```json
+  [
+      {
+          "Id": "03a9eea159ef6e417a2e67802c5fa021f4a8d0b634ba377cd0074d6ff5eef511",
+          "Created": "2019-11-02T16:08:06.723203393Z",  # Дата создания контейнера
+          "Path": "bash",
+          "Args": [],
+          "State": {  # Описание статуса контейнера
+              "Status": "running",  # Текущее состояние
+              "Running": true,  # Запущен?
+              "Paused": false,  # Приостановлен?
+              "Restarting": false,  # Перезапускается?
+              "OOMKilled": false,  # Убит OOM-киллером?
+              "Dead": false,  # Упал (умер)?
+              "Pid": 25711,  # ID процесса контейнера в host os
+              "ExitCode": 0,  # Кот завершения (используется для перезапуска после падения)
+              "Error": "",  # Ошибка в случае падения
+              "StartedAt": "2019-11-02T16:08:07.16481008Z",  # Время запуска
+              "FinishedAt": "0001-01-01T00:00:00Z"  # Время завершения
+          },
+          "Image": "sha256:5f2bf26e35249d8b47f002045c57b2ea9d8ba68704f45f3c209182a7a2a9ece5",  # ID образа, на базе которого создан контейнер
+          "ResolvConfPath": "/var/lib/docker/containers/03a9eea159ef6e417a2e67802c5fa021f4a8d0b634ba377cd0074d6ff5eef511/resolv.conf",
+          "HostnamePath": "/var/lib/docker/containers/03a9eea159ef6e417a2e67802c5fa021f4a8d0b634ba377cd0074d6ff5eef511/hostname",
+          "HostsPath": "/var/lib/docker/containers/03a9eea159ef6e417a2e67802c5fa021f4a8d0b634ba377cd0074d6ff5eef511/hosts",
+          "LogPath": "/var/lib/docker/containers/03a9eea159ef6e417a2e67802c5fa021f4a8d0b634ba377cd0074d6ff5eef511/03a9eea159ef6e417a2e67802c5fa021f4a8d0b634ba377cd0074d6ff5eef511-json.log",
+          "Name": "/wonderful_blackwell",  # Имя контейнера. Генериться случайным образом, если не задано явно
+          "RestartCount": 0,  # Количество перезапусков. Используется для https://docs.docker.com/engine/reference/commandline/run/#restart-policies---restart
+          "Driver": "overlay2",
+          "Platform": "linux",
+          "MountLabel": "",
+          "ProcessLabel": "",
+          "AppArmorProfile": "docker-default",
+          "ExecIDs": null,
+          "HostConfig": {  # Конфигурация хост-системы
+              "Binds": null,
+              "ContainerIDFile": "",
+              "LogConfig": {  # Настройки логгирования
+                  "Type": "json-file",
+                  "Config": {}
+              },
+              "NetworkMode": "default",  # Sets the networking mode for the container. Supported standard values are: bridge, host, none, and container:<name|id>. Any other value is taken as a custom network’s name to which this container should connect to.
+              "PortBindings": {},  # Пробросы портов
+              "RestartPolicy": {  # Политика перезапуска https://docs.docker.com/engine/reference/commandline/run/#restart-policies---restart
+                  "Name": "no",
+                  "MaximumRetryCount": 0
+              },
+              "AutoRemove": false,  # Автоматически удалять контейнер после установки
+              "VolumeDriver": "",  # Driver that this container users to mount volumes.
+              "VolumesFrom": null,  # A list of volumes to inherit from another container. Specified in the form <container name>[:<ro|rw>]
+              "CapAdd": null,  # A list of kernel capabilities added to the container.
+              "CapDrop": null,  # A list of kernel capabilities dropped from the container.
+              "Capabilities": null,
+              "Dns": [],  # dns-сервера, используемые контейнером
+              "DnsOptions": [],
+              "DnsSearch": [],
+              "ExtraHosts": null,  # Дополнительные записи в /etc/hosts
+              "GroupAdd": null,  # A list of additional groups that the container process will run as
+              "IpcMode": "private",
+              "Cgroup": "",
+              "Links": null,  # A list of links for the container. Each link entry is in the form of container_name:alias.
+              "OomScoreAdj": 0,  # An integer value containing the score given to the container in order to tune OOM killer preferences.
+              "PidMode": "",  # Set the PID (Process) Namespace mode for the container; "container:<name|id>": joins another container’s PID namespace "host": use the host’s PID namespace inside the container
+              "Privileged": false,  # Контейнер запущен в привилегированном режиме https://docs.docker.com/engine/reference/run/#runtime-privilege-and-linux-capabilities
+              "PublishAllPorts": false,  # Allocates an ephemeral host port for all of a container’s exposed ports. Specified as a boolean value. Ports are de-allocated when the container stops and allocated when the container starts. The allocated port might be changed when restarting the container.
+              "ReadonlyRootfs": false,  # Файловая система контейнера смонтирована только для чтения
+              "SecurityOpt": null,  # A list of string values to customize labels for MLS systems, such as SELinux.
+              "UTSMode": "",
+              "UsernsMode": "",  # Sets the usernamespace mode for the container when usernamespace remapping option is enabled. supported values are: host.
+              "ShmSize": 67108864,  # Size of /dev/shm in bytes. The size must be greater than 0. If omitted the system uses 64MB.
+              "Runtime": "runc",  # Используемый рантайм
+              "ConsoleSize": [
+                  0,
+                  0
+              ],
+              "Isolation": "",  # isolation=(default	process	hyperv) (Windows daemon only)
+              "CpuShares": 0,  # An integer value containing the container’s CPU Shares (ie. the relative weight vs other containers).
+              "Memory": 0,  # Memory limit in bytes.
+              "NanoCpus": 0,
+              "CgroupParent": "",  # Path to cgroups under which the container’s cgroup is created. If the path is not absolute, the path is considered to be relative to the cgroups path of the init process. Cgroups are created if they do not already exist.
+              "BlkioWeight": 0,  # Block IO weight (relative weight) accepts a weight value between 10 and 1000.
+              "BlkioWeightDevice": [],
+              "BlkioDeviceReadBps": null,
+              "BlkioDeviceWriteBps": null,
+              "BlkioDeviceReadIOps": null,
+              "BlkioDeviceWriteIOps": null,
+              "CpuPeriod": 0,  # The length of a CPU period in microseconds.
+              "CpuQuota": 0,  # Microseconds of CPU time that the container can get in a CPU period.
+              "CpuRealtimePeriod": 0,
+              "CpuRealtimeRuntime": 0,
+              "CpusetCpus": "",  # String value containing the cgroups CpusetCpus to use.
+              "CpusetMems": "",  # Memory nodes (MEMs) in which to allow execution (0-3, 0,1). Only effective on NUMA systems.
+              "Devices": [],  # A list of devices to add to the container specified as a JSON object in the form { "PathOnHost": "/dev/deviceName", "PathInContainer": "/dev/deviceName", "CgroupPermissions": "mrw"}
+              "DeviceCgroupRules": null,
+              "DeviceRequests": null,
+              "KernelMemory": 0,  # Kernel memory limit in bytes.
+              "KernelMemoryTCP": 0,
+              "MemoryReservation": 0,  # Memory soft limit in bytes.
+              "MemorySwap": 0,  # Total memory limit (memory + swap); -1 is unlimited swap. You must use this with memory and make the swap value larger than memory.
+              "MemorySwappiness": null,  # Tune a container’s memory swappiness behavior. Integer between 0 and 100.
+              "OomKillDisable": false,  # Boolean value, whether to disable OOM Killer for the container or not.
+              "PidsLimit": null,  # A container’s pids limit. -1 if unlimited.
+              "Ulimits": null,  # A list of ulimits to set in the container, specified as { "Name": <name>, "Soft": <soft limit>, "Hard": <hard limit> }, for example: Ulimits: { "Name": "nofile", "Soft": 1024, "Hard": 2048 }
+              "CpuCount": 0,
+              "CpuPercent": 0,  # An integer value containing the usable percentage of the available CPUs. (Windows daemon only)
+              "IOMaximumIOps": 0,  # Maximum IO absolute rate in terms of bytes per second.
+              "IOMaximumBandwidth": 0,  # Maximum IO absolute rate in terms of IOps.
+              "MaskedPaths": [
+                  "/proc/asound",
+                  "/proc/acpi",
+                  "/proc/kcore",
+                  "/proc/keys",
+                  "/proc/latency_stats",
+                  "/proc/timer_list",
+                  "/proc/timer_stats",
+                  "/proc/sched_debug",
+                  "/proc/scsi",
+                  "/sys/firmware"
+              ],
+              "ReadonlyPaths": [
+                  "/proc/bus",
+                  "/proc/fs",
+                  "/proc/irq",
+                  "/proc/sys",
+                  "/proc/sysrq-trigger"
+              ]
+          },
+          "GraphDriver": {
+              "Data": {
+                  "LowerDir": "/var/lib/docker/overlay2/7ebf817bfc93f412448a4e804d2f149b25d4072c6985ab185216648194786889-init/diff:/var/lib/docker/overlay2/8dac1ac5277e9c3bf4e3d7111d947bf2f4553dd85764077b0ed057d3e1b93022/diff:/var/lib/docker/overlay2/897edb9e383005a310bb7685eda9b259c5c0b7740d2d65e7d1c44f228dc73ce9/diff:/var/lib/docker/overlay2/bc1b6b3a839591c8870d5aa8ad328af83c5325b82a88163986a0186b11016921/diff:/var/lib/docker/overlay2/11810c8b5bbff1b9b14089bcef62d0029a39ae0686c51a5ce0e616e71f2573bf/diff",
+                  "MergedDir": "/var/lib/docker/overlay2/7ebf817bfc93f412448a4e804d2f149b25d4072c6985ab185216648194786889/merged",
+                  "UpperDir": "/var/lib/docker/overlay2/7ebf817bfc93f412448a4e804d2f149b25d4072c6985ab185216648194786889/diff",
+                  "WorkDir": "/var/lib/docker/overlay2/7ebf817bfc93f412448a4e804d2f149b25d4072c6985ab185216648194786889/work"
+              },
+              "Name": "overlay2"
+          },
+          "Mounts": [],  # Specification for mounts that was added to containers created as part of the service.
+          "Config": {
+              "Hostname": "03a9eea159ef",  # Имя хоста
+              "Domainname": "",  # Домен
+              "User": "",  # Пользователь внутри контейнера
+              "AttachStdin": true,  # Attached to stdin
+              "AttachStdout": true,  # Attached to stdout
+              "AttachStderr": true,  # Attached to stderr
+              "Tty": true,  # Standart streams attached to tty
+              "OpenStdin": true,
+              "StdinOnce": true,
+              "Env": [  # A list of environment variables in the form of ["VAR=value", ...]
+                  "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+              ],
+              "Cmd": [  # CMD runned in container
+                  "bash"
+              ],
+              "Image": "ubuntu:16.04",  # Имя образа контейнера
+              "Volumes": null,  # An object mapping mount point paths (strings) inside the container to empty objects.
+              "WorkingDir": "",  #  string specifying the working directory for commands to run in.
+              "Entrypoint": null,  # ENTRYPOINT of a container
+              "OnBuild": null,
+              "Labels": {}  # A map of labels of a container
+          },
+          "NetworkSettings": {  # Настройки сети контейнера.
+              "Bridge": "",
+              "SandboxID": "b8b58bb4f3a477aca4a6d05ee397e6cb62859afa30d8806e64e8e8e130af9e05",
+              "HairpinMode": false,  # https://en.wikipedia.org/wiki/Hairpinning
+              "LinkLocalIPv6Address": "",
+              "LinkLocalIPv6PrefixLen": 0,
+              "Ports": {},  #  Mapped ports
+              "SandboxKey": "/var/run/docker/netns/b8b58bb4f3a4",
+              "SecondaryIPAddresses": null,
+              "SecondaryIPv6Addresses": null,
+              "EndpointID": "e7f60af3ade6a1ecba41456c0f3252f8edd502287c826a214c6318ef74f8efdf",
+              "Gateway": "172.17.0.1",  # Network gateway
+              "GlobalIPv6Address": "",
+              "GlobalIPv6PrefixLen": 0,
+              "IPAddress": "172.17.0.2",  # Container's ip address
+              "IPPrefixLen": 16,
+              "IPv6Gateway": "",
+              "MacAddress": "02:42:ac:11:00:02",  # mac-address
+              "Networks": {  # Сети и контейнера
+                  "bridge": {
+                      "IPAMConfig": null,
+                      "Links": null,
+                      "Aliases": null,
+                      "NetworkID": "156780e8135120a2650a4d34c2a0aee35cd4d3cde3d98fb0e3b1ebfd3a797bfd",
+                      "EndpointID": "e7f60af3ade6a1ecba41456c0f3252f8edd502287c826a214c6318ef74f8efdf",
+                      "Gateway": "172.17.0.1",
+                      "IPAddress": "172.17.0.2",
+                      "IPPrefixLen": 16,
+                      "IPv6Gateway": "",
+                      "GlobalIPv6Address": "",
+                      "GlobalIPv6PrefixLen": 0,
+                      "MacAddress": "02:42:ac:11:00:02",
+                      "DriverOpts": null
+                  }
+              }
+          }
+      }
+  ]
   ```
 
   </p>
