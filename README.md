@@ -216,6 +216,8 @@ vscoder microservices repository
 
 * Сылки по теме:
   * An Image is an ordered collection of root filesystem changes and the corresponding execution parameters for use within a container runtime.
+  * [About storage drivers](https://docs.docker.com/storage/storagedriver/)
+  * [How the overlay2 driver works](https://docs.docker.com/storage/storagedriver/overlayfs-driver/#how-the-overlay2-driver-works)
   * [Docker Image Specification v1.2.0. Image JSON Field Descriptions](https://github.com/docker/docker-ce/blob/master/components/engine/image/spec/v1.2.md)
   * [Образы и контейнеры Docker в картинках](https://habr.com/en/post/272145/)
   * [What to Inspect When You're Inspecting](https://www.ctl.io/developers/blog/post/what-to-inspect-when-youre-inspecting)
@@ -303,7 +305,7 @@ vscoder microservices repository
           "UpperDir": "/var/lib/docker/overlay2/8dac1ac5277e9c3bf4e3d7111d947bf2f4553dd85764077b0ed057d3e1b93022/diff",
           "WorkDir": "/var/lib/docker/overlay2/8dac1ac5277e9c3bf4e3d7111d947bf2f4553dd85764077b0ed057d3e1b93022/work"
         },
-        "Name": "overlay2"
+        "Name": "overlay2" # https://docs.docker.com/storage/storagedriver/overlayfs-driver/#how-the-overlay2-driver-works
       },
       "RootFS": {  # Ссылается на адреса содержимого слоёв, используемых образом
         "Type": "layers",
@@ -461,7 +463,7 @@ vscoder microservices repository
                   "UpperDir": "/var/lib/docker/overlay2/7ebf817bfc93f412448a4e804d2f149b25d4072c6985ab185216648194786889/diff",
                   "WorkDir": "/var/lib/docker/overlay2/7ebf817bfc93f412448a4e804d2f149b25d4072c6985ab185216648194786889/work"
               },
-              "Name": "overlay2"
+              "Name": "overlay2"  # https://docs.docker.com/storage/storagedriver/overlayfs-driver/#how-the-overlay2-driver-works
           },
           "Mounts": [],  # Specification for mounts that was added to containers created as part of the service.
           "Config": {
@@ -529,3 +531,4 @@ vscoder microservices repository
 
   </p>
   </details>
+* В файле [docker-monolith/docker-1.log](docker-monolith/docker-1.log) описаны различия между образом и контейнером
