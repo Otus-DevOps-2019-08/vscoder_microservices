@@ -1134,3 +1134,13 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 * Отключить user ns для контенйера: `--userns=host`
   There is a side effect when using this flag: user remapping will not be enabled for that container but, because the read-only (image) layers are shared between containers, ownership of the the containers filesystem will still be remapped.
   What this means is that the whole container filesystem will belong to the user specified in the `--userns-remap` daemon config (362144 in the example above). This can lead to unexpected behavior of programs inside the container. For instance sudo (which checks that its binaries belong to user 0) or binaries with a setuid flag.
+
+
+### Dockerfile
+
+#### Дополнительные файлы
+
+* Создан конфиг MongoDB [docker-monolith/mongod.conf](docker-monolith/mongod.conf)
+* Создан скрипт запуска приложения [docker-monolith/start.sh](docker-monolith/start.sh)
+* Создан скрипт с переменной окружения `DBATABASE_URL` [docker-monolith/db_config](docker-monolith/db_config)
+
