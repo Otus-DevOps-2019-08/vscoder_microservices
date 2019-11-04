@@ -1320,3 +1320,10 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 
 * Подготовлены необходимые цели в [Makefile](Makefile).
 * Создан [шаблон packer](docker-monolith/packer/docker.json) и [скрипт-обёртка](docker-monolith/packer/scripts/ansible-playbook.sh) для подготовки базового образа
+* Создан ansible-playbook [docker.yml](docker-monolith/ansible/playbooks/docker.yml) для провиженинга packer-образа.
+  Использована galaxy-роль `geerlingguy.docker`
+* Созданы необходимые для работы ansible файлы
+  * Обновлены зависимости в [requirements.txt](requirements.txt)
+  * Создана конфигурация [ansible.cfg](docker-monolith/ansible/ansible.cfg)
+  * Добавлен файл с внешними зависимостями ansible [requirements.yml](docker-monolith/ansible/inventory/requirements.yml)
+* Средствами packer подготовлен базовый образ `make monolith_packer_build`
