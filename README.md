@@ -1178,3 +1178,22 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
     ```dockerfile
     CMD ["/start.sh"]
     ```
+
+* В [Makefile](Makefile) добавлена цель, создающая инстанс docker-machine
+* Образ собран `cd docker-monolith && docker build -t reddit:latest .` (так же можно выполнить `docker build -t reddit:latest -f docker-monolith/Dockerfile ./docker-monolith` из корня репозитория)
+* Список всех образов (включая промежуточные)
+  ```shell
+  # docker images -a 
+  REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+  reddit              latest              0d1864425483        7 minutes ago       689MB
+  <none>              <none>              29597f97cbd2        7 minutes ago       689MB
+  <none>              <none>              6094762c8147        7 minutes ago       689MB
+  <none>              <none>              1030f7038c6a        8 minutes ago       645MB
+  <none>              <none>              1218af463fd2        8 minutes ago       645MB
+  <none>              <none>              8a7e652e5f9c        8 minutes ago       645MB
+  <none>              <none>              f3eeecf3fe0f        8 minutes ago       645MB
+  <none>              <none>              f7f5048a5c4c        8 minutes ago       645MB
+  <none>              <none>              6985497bf7cd        8 minutes ago       642MB
+  <none>              <none>              e08fb2f1ff85        9 minutes ago       148MB
+  ubuntu              16.04               5f2bf26e3524        3 days ago          123MB
+  ```
