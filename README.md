@@ -1345,6 +1345,8 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 
 #### Terraform
 
+##### Project-wide объекты
+
 * Добавлены необходимые цели в [Makefile](Makefile)
 * С помощью terraform:
   * Создан bucket для хранения состояния terraform
@@ -1352,3 +1354,26 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
     ```shell
     make monolith_terraform_apply ENV=""
     ```
+
+##### Модули
+
+* Создан модуль [instance](docker-monolith/terraform/modules/instance/), описывающий абстрактный Goocle Compute Instance
+
+Описание переменных:
+
+| Переменная          | Описание                    | Значение по умолчанию | Тип    |
+| ------------------- | --------------------------- | --------------------- |
+| project             | Project ID                  |                       | string |
+| region              | Region                      | europe-west1          | string |
+| zone                | Zone                        | europe-west1-d        | string |
+| instance_disk_image | Instance base disk image    |                       | string |
+| vpc_network_name    | Network name                | default               | string |
+| environment         | Environment name            |                       | string |
+| machine_type        | Machine type                | g1-small              | string |
+| tags                | Tags list                   | []                    | list   |
+| instance_count      | instances count             | 1                     | int    |
+| name_prefix         | Name prefix of instance     | instance              | strint |
+| tcp_ports           | TCP ports list to open list | []                    | list   |
+
+
+##### Stage-окружение
