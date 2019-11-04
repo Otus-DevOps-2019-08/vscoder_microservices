@@ -27,7 +27,7 @@ venv
 # Ansible
 ####
 *.retry
-ansible/roles_imported/*
+**/roles_imported/*
 
 ####
 # Vagrant & molecule
