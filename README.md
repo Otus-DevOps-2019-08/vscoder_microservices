@@ -1226,3 +1226,24 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 
 * Выполнен вход на https://hub.docker.com/
 * Выполнена авторизация docker на dockerhub `docker login`
+* docker-образ загружен на докер хаб
+  ```shell
+  # docker tag reddit:latest vscoder/otus-reddit:1.0
+  # docker push vscoder/otus-reddit:1.0
+
+  The push refers to repository [docker.io/vscoder/otus-reddit]
+  9c56f25ab809: Pushed 
+  9964405a2b79: Pushed 
+  f3e1d374270d: Pushed 
+  87badc7881a7: Pushed 
+  dcc1149e9964: Pushed 
+  bbeefc7b2d69: Pushed 
+  038504099637: Pushed 
+  28567395a615: Pushed 
+  3c326a42d554: Pushed 
+  bc72fb2e7b74: Mounted from library/ubuntu 
+  903669ee7207: Mounted from library/ubuntu 
+  a5a5f8c62487: Mounted from library/ubuntu 
+  788b17b748c2: Mounted from library/ubuntu 
+  1.0: digest: sha256:54828cee832eefa1a0379e4b128f7ce92ba0278c488686d8ba4ff3bdf2fc0c9d size: 3034
+  ```
