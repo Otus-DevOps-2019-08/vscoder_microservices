@@ -1319,3 +1319,4 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 ### Задание со \*: IaC с использованием docker
 
 * Подготовлены необходимые цели в [Makefile](Makefile).
+* Создан [шаблон packer](docker-monolith/packer/docker.json) и [скрипт-обёртка](docker-monolith/packer/scripts/ansible-playbook.sh) для подготовки базового образа
