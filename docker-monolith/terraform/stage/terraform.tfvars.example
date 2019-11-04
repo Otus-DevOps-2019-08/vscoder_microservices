@@ -1,0 +1,6 @@
+project                   = "project_id_here"
+environment               = "stage"
+docker_app_disk_image     = "reddit-docker-base"
+docker_app_instance_count = 1
+docker_app_tags           = ["reddit-docker-app"]
+docker_app_tcp_ports      = ["9292"]
