@@ -1,0 +1,5 @@
+project          = "project-name-here"
+region  = "europe-west1"
+ssh_keys = [
+  "someuser:ssh-rsa SomeSsHPUblickKey appuser"
+]
