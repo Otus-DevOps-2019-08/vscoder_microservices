@@ -1222,3 +1222,7 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
   ```
 * Попытка открыть сайт увенчалась успехом
 
+### Docker hub
+
+* Выполнен вход на https://hub.docker.com/
+* Выполнена авторизация docker на dockerhub `docker login`
