@@ -1247,3 +1247,61 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
   788b17b748c2: Mounted from library/ubuntu 
   1.0: digest: sha256:54828cee832eefa1a0379e4b128f7ce92ba0278c488686d8ba4ff3bdf2fc0c9d size: 3034
   ```
+* Выполнена попытка запустить образ на локальном докере
+  ```shell
+  docker run --name reddit -d -p 9292:9292 vscoder/otus-reddit:1.0
+  ```
+* Образ успешно скачался с docker hub и приложение запустилось
+  ```shell
+  curl 127.0.0.1:9292
+  ```
+* Выполнен ряд проверок
+  * `docker logs reddit -f` следить за логами контейнера
+  * `docker exec -it reddit bash` выполнить bash в запущенном контейнере
+    * `ps aux` список процессов
+    * `killall5 1` послать сигнал SIGHUP всем приложениям
+  * `docker start reddit` запустить ранее созданный контейнер с именем `reddit`
+  * `docker stop reddit && docker rm reddit` остановить и удалить контейнер `reddit`
+  * `docker run --name reddit --rm -it vscoder/otus-reddit:1.0 bash` скачать и запустить контейнер `vscoder/otus-reddit:1.0` из docker hub, удалить после остановки, в контейнере запустить `bash` вместо инструкции `CMD`
+    * `ps aux` список процессов
+    * `exit` выйти (с завершением `bash`)
+  * Проверка что контейнер остановлен и удалён
+    ```shell
+    # docker container ps -a
+    CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+    03a9eea159ef        ubuntu:16.04        "bash"              41 hours ago        Up 21 hours                             wonderful_blackwell
+    ```
+* И ещё
+  * `docker inspect vscoder/otus-reddit:1.0` посмотреть подробную информацию об образе
+  * `docker inspect vscoder/otus-reddit:1.0 -f '{{.ContainerConfig.Cmd}}'` команда по-умолчанию при старте контейнера (директива `CMD` Dockerfile)
+  * `docker run --name reddit -d -p 9292:9292 vscoder/otus-reddit:1.0` запустить контейнер
+  * `docker exec -it reddit bash` запустить bash в уже запущенном контейнере
+    * `mkdir /test1234` создать директорию /test1234 (внутри контейнера)
+    * `touch /test1234/testfile` создать файл /test1234/testfile
+    * `rmdir /opt` удалить лиректорию /opt
+    * `exit` выйти из контейнера
+  * `docker diff reddit` посмотреть изменения в перезаписываемом слое контейнера
+    ```shell
+    C /tmp
+    A /tmp/mongodb-27017.sock
+    C /var
+    C /var/log
+    A /var/log/mongod.log
+    C /var/lib
+    C /var/lib/mongodb
+    A /var/lib/mongodb/_tmp
+    A /var/lib/mongodb/journal
+    A /var/lib/mongodb/journal/j._0
+    A /var/lib/mongodb/local.0
+    A /var/lib/mongodb/local.ns
+    A /var/lib/mongodb/mongod.lock
+    C /root
+    A /root/.bash_history
+    A /test1234
+    A /test1234/testfile
+    D /opt
+    ```
+  * `docker stop reddit && docker rm reddit` остановить и удалить контейнер
+  * `docker run --name reddit --rm -it vscoder/otus-reddit:1.0 bash` снова запустить контейнер
+  * `ls /` посмотреть содержимое корневой директории.
+    Так как контейнер создан заново, /test1234 отсутствует, а /opt на месте
