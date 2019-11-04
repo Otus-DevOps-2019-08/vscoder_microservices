@@ -1144,3 +1144,33 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 * Создан скрипт запуска приложения [docker-monolith/start.sh](docker-monolith/start.sh)
 * Создан скрипт с переменной окружения `DBATABASE_URL` [docker-monolith/db_config](docker-monolith/db_config)
 
+* Создан [docker-monolith/Dockerfile](docker-monolith/Dockerfile)
+  * Основан на `ubuntu:16.04`
+    ```dockerfile
+    FROM ubuntu:16.04
+    ```
+  * Установка необходимых пакетов
+    ```dockerfile
+    RUN apt-get update
+    RUN apt-get install -y mongodb-server ruby-full ruby-dev build-essential git
+    RUN gem install bundler
+    ```
+  * Загрузка приложения
+    ```dockerfile
+    RUN git clone -b monolith https://github.com/express42/reddit.git
+    ```
+  * Копирование необходимых файлов в контейнер
+    ```dockerfile
+    COPY mongod.conf /etc/mongod.conf
+    COPY db_config /reddit/db_config
+    COPY start.sh /start.sh
+    ```
+  * Установка зависимостей приложения
+    ```dockerfile
+    RUN cd /reddit && bundle install
+    RUN chmod 0777 /start.sh
+    ```
+  * Запуск приложения
+    ```dockerfile
+    CMD ["/start.sh"]
+    ```
