@@ -14,14 +14,18 @@ vscoder microservices repository
 | DOCKER_MACHINE_OS      | \$(shell uname -s)         | Название операционной системы                                            |
 | DOCKER_MACHINE_ARCH    | \$(shell uname -m)         | Название архитектуры                                                     |
 | DOCKER_MACHINE         | \${BIN_DIR}/docker-machine | Путь к исполняемому файлу `docker-machine`                               |
+| DOCKER_MACHINE_NAME    | docker-host                | Имя инстанса                                                             |
+| DOCKER_MACHINE_TYPE    | n1-standard-1              | Тип инстанса                                                             |
+| DOCKER_MACHINE_REGION  | europe-west1-b             | Регион                                                                   |
 
 ## Цели
 
-| target                 | used variables                                                    | description                                                                                        |
-| ---------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| debug                  | все                                                               | Показать значения всех переменных                                                                  |
-| install_requirements   | нет                                                               | Установить в python virualenv [./venv](./venv) зависимости из [requirements.txt](requirements.txt) |
-| install_docker_machine | DOCKER_MACHINE_BASEURL, DOCKER_MACHINE_VERSION, TEMP_DIR, BIN_DIR | Скачать и установить в `${BIN_DIR}` исполняемый файл `docker-machine`                              |
+| target                 | used variables                                                               | description                                                                                        |
+| ---------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| debug                  | все                                                                          | Показать значения всех переменных                                                                  |
+| install_requirements   | нет                                                                          | Установить в python virualenv [./venv](./venv) зависимости из [requirements.txt](requirements.txt) |
+| install_docker_machine | DOCKER_MACHINE_BASEURL, DOCKER_MACHINE_VERSION, TEMP_DIR, BIN_DIR            | Скачать и установить в `${BIN_DIR}` исполняемый файл `docker-machine`                              |
+| docker_machine_create  | DOCKER_MACHINE,DOCKER_MACHINE_NAME,DOCKER_MACHINE_TYPE,DOCKER_MACHINE_REGION | Создать инстанс docker-machine в gce                                                               |
 
 # Домашние задания
 
