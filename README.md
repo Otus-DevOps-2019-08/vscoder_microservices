@@ -10,6 +10,7 @@ vscoder microservices repository
 | ---------------------- | -------------------------- | ------------------------------------------------------------------------ |
 | BIN_DIR                | ~/bin                      | Путь для установки исполняемых файлов для целей `install_docker_machine` |
 | TEMP_DIR               | /tmp                       | Временная директория для загрузки файлов                                 |
+| ENV                    | stage                      | Название окружения                                                       |
 | DOCKER_MACHINE_VERSION | v0.16.0                    | Версия docker-machine                                                    |
 | DOCKER_MACHINE_OS      | \$(shell uname -s)         | Название операционной системы                                            |
 | DOCKER_MACHINE_ARCH    | \$(shell uname -m)         | Название архитектуры                                                     |
@@ -20,20 +21,32 @@ vscoder microservices repository
 | PACKER_VERSION         | 1.4.4                      | Версия packer                                                            |
 | PACKER                 | ${BIN_DIR}/packer          | Путь к исполняемому файлу `packer`                                       |
 | ANSIBLE                | ../../.venv/bin/ansible    | Путь к исполняемому файлу `ansible`                                      |
+| TERRAFORM_VERSION      | 0.12.12                    | Версия terraform                                                         |
+| TERRAFORM              | ${BIN_DIR}/terraform       | Путь к исполняемому файлу `terraform`                                    |
+| TFLINT_VERSION         | 0.12.1                     | Версия tflist                                                            |
+| TFLINT                 | ${BIN_DIR}/tflint          | Путь к исполняемому файлу `tflint`                                       |
 
 ## Цели
 
-| target                                | used variables                                                                  | description                                                                                        |
-| ------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| debug                                 | все                                                                             | Показать значения всех переменных                                                                  |
-| install_requirements                  | нет                                                                             | Установить в python virualenv [./venv](./venv) зависимости из [requirements.txt](requirements.txt) |
-| install_docker_machine                | DOCKER_MACHINE_BASEURL, DOCKER_MACHINE_VERSION, TEMP_DIR, BIN_DIR               | Скачать и установить в `${BIN_DIR}` исполняемый файл `docker-machine`                              |
-| docker_machine_create                 | DOCKER_MACHINE, DOCKER_MACHINE_NAME, DOCKER_MACHINE_TYPE, DOCKER_MACHINE_REGION | Создать инстанс docker-machine в gce                                                               |
-| docker_machine_rm                     | DOCKER_MACHINE, DOCKER_MACHINE_NAME                                             | Удалить инстанс                                                                                    |
-| install_packer                        | TEMP_DIR, PACKER_VERSION, BIN_DIR                                               | Скачать и установить бинарник packer в ${BIN_DIR}                                                  |
-| monolith_packer_build                 | PACKER                                                                          | Собрать базовый образ из шаблона docker-monolith/packer/docker.json                                |
-| monolith_packer_validate              | PACKER                                                                          | Проверить корректность packer-шаблона docker-monolith/packer/docker.json                           |
-| monolith_ansible_install_requirements | ANSIBLE                                                                         | Установить внешние роли ansible из docker-monolith/ansible/inventory/requirements.yml              |
+| target                                | used variables                                                                  | description                                                                                                                      |
+| ------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| debug                                 | все                                                                             | Показать значения всех переменных                                                                                                |
+| install_requirements                  | нет                                                                             | Установить в python virualenv [./venv](./venv) зависимости из [requirements.txt](requirements.txt)                               |
+| install_docker_machine                | DOCKER_MACHINE_BASEURL, DOCKER_MACHINE_VERSION, TEMP_DIR, BIN_DIR               | Скачать и установить в `${BIN_DIR}` исполняемый файл `docker-machine`                                                            |
+| docker_machine_create                 | DOCKER_MACHINE, DOCKER_MACHINE_NAME, DOCKER_MACHINE_TYPE, DOCKER_MACHINE_REGION | Создать инстанс docker-machine в gce                                                                                             |
+| docker_machine_rm                     | DOCKER_MACHINE, DOCKER_MACHINE_NAME                                             | Удалить инстанс                                                                                                                  |
+| install_packer                        | TEMP_DIR, PACKER_VERSION, BIN_DIR                                               | Скачать и установить бинарник packer в ${BIN_DIR}                                                                                |
+| monolith_packer_build                 | PACKER                                                                          | Собрать базовый образ из шаблона docker-monolith/packer/docker.json                                                              |
+| monolith_packer_validate              | PACKER                                                                          | Проверить корректность packer-шаблона docker-monolith/packer/docker.json                                                         |
+| monolith_ansible_install_requirements | ANSIBLE                                                                         | Установить внешние роли ansible из docker-monolith/ansible/inventory/requirements.yml                                            |
+| install_terraform                     | TEMP_DIR, BIN_DIR, TERRAFORM_VERSION                                            | Установить terraform                                                                                                             |
+| install_tflint                        | TEMP_DIR, BIN_DIR, TFLINT_VERSION                                               | Установить tflint                                                                                                                |
+| monolith_terraform_init               | ENV, TERRAFORM                                                                  | Инициализировать terraform для окружения `${ENV}`                                                                                |
+| monolith_terraform_init_nobackend     | ENV, TERRAFORM                                                                  | Инициализировать terraform для окружения `${ENV}`, без инициализации remote backend. Используется в автоматизированных проверках |
+| monolith_terraform_validate           | TERRAFORM                                                                       | Выполнить валидацию всех окружений terraform                                                                                     |
+| monolith_terraform_tflint             | TFLINT                                                                          | Выполнить tflint для всех окружений terraform                                                                                    |
+| monolith_terraform_apply              | ENV, TERRAFORM                                                                  | Применить инфраструктуру terraform для окружения `${ENV}`                                                                        |
+| monolith_terraform_destroy            | ENV, TERRAFORM                                                                  | Уничтожить инфраструктуру terraform для окружения `${ENV}`                                                                       |
 
 
 # Домашние задания
@@ -1318,6 +1331,8 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 
 ### Задание со \*: IaC с использованием docker
 
+#### Packer
+
 * Подготовлены необходимые цели в [Makefile](Makefile).
 * Создан [шаблон packer](docker-monolith/packer/docker.json) и [скрипт-обёртка](docker-monolith/packer/scripts/ansible-playbook.sh) для подготовки базового образа
 * Создан ansible-playbook [docker.yml](docker-monolith/ansible/playbooks/docker.yml) для провиженинга packer-образа.
@@ -1327,3 +1342,12 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
   * Создана конфигурация [ansible.cfg](docker-monolith/ansible/ansible.cfg)
   * Добавлен файл с внешними зависимостями ansible [requirements.yml](docker-monolith/ansible/inventory/requirements.yml)
 * Средствами packer подготовлен базовый образ `make monolith_packer_build`
+
+#### Terraform
+
+* Добавлены необходимые цели в [Makefile](Makefile)
+* Создан bucket для хранения состояния terraform
+* Настроен projeckt-wide ssh ключ
+  ```shell
+  make monolith_terraform_apply ENV=""
+  ```
