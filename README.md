@@ -17,16 +17,24 @@ vscoder microservices repository
 | DOCKER_MACHINE_NAME    | docker-host                | Имя инстанса                                                             |
 | DOCKER_MACHINE_TYPE    | n1-standard-1              | Тип инстанса                                                             |
 | DOCKER_MACHINE_REGION  | europe-west1-b             | Регион                                                                   |
+| PACKER_VERSION         | 1.4.4                      | Версия packer                                                            |
+| PACKER                 | ${BIN_DIR}/packer          | Путь к исполняемому файлу `packer`                                       |
+| ANSIBLE                | ../../.venv/bin/ansible    | Путь к исполняемому файлу `ansible`                                      |
 
 ## Цели
 
-| target                 | used variables                                                                  | description                                                                                        |
-| ---------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| debug                  | все                                                                             | Показать значения всех переменных                                                                  |
-| install_requirements   | нет                                                                             | Установить в python virualenv [./venv](./venv) зависимости из [requirements.txt](requirements.txt) |
-| install_docker_machine | DOCKER_MACHINE_BASEURL, DOCKER_MACHINE_VERSION, TEMP_DIR, BIN_DIR               | Скачать и установить в `${BIN_DIR}` исполняемый файл `docker-machine`                              |
-| docker_machine_create  | DOCKER_MACHINE, DOCKER_MACHINE_NAME, DOCKER_MACHINE_TYPE, DOCKER_MACHINE_REGION | Создать инстанс docker-machine в gce                                                               |
-| docker_machine_rm      | DOCKER_MACHINE, DOCKER_MACHINE_NAME                                             | Удалить инстанс                                                                                    |
+| target                                | used variables                                                                  | description                                                                                        |
+| ------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| debug                                 | все                                                                             | Показать значения всех переменных                                                                  |
+| install_requirements                  | нет                                                                             | Установить в python virualenv [./venv](./venv) зависимости из [requirements.txt](requirements.txt) |
+| install_docker_machine                | DOCKER_MACHINE_BASEURL, DOCKER_MACHINE_VERSION, TEMP_DIR, BIN_DIR               | Скачать и установить в `${BIN_DIR}` исполняемый файл `docker-machine`                              |
+| docker_machine_create                 | DOCKER_MACHINE, DOCKER_MACHINE_NAME, DOCKER_MACHINE_TYPE, DOCKER_MACHINE_REGION | Создать инстанс docker-machine в gce                                                               |
+| docker_machine_rm                     | DOCKER_MACHINE, DOCKER_MACHINE_NAME                                             | Удалить инстанс                                                                                    |
+| install_packer                        | TEMP_DIR, PACKER_VERSION, BIN_DIR                                               | Скачать и установить бинарник packer в ${BIN_DIR}                                                  |
+| monolith_packer_build                 | PACKER                                                                          | Собрать базовый образ из шаблона docker-monolith/packer/docker.json                                |
+| monolith_packer_validate              | PACKER                                                                          | Проверить корректность packer-шаблона docker-monolith/packer/docker.json                           |
+| monolith_ansible_install_requirements | ANSIBLE                                                                         | Установить внешние роли ansible из docker-monolith/ansible/inventory/requirements.yml              |
+
 
 # Домашние задания
 
@@ -1306,3 +1314,8 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
   * `docker run --name reddit --rm -it vscoder/otus-reddit:1.0 bash` снова запустить контейнер
   * `ls /` посмотреть содержимое корневой директории.
     Так как контейнер создан заново, /test1234 отсутствует, а /opt на месте
+
+
+### Задание со \*: IaC с использованием docker
+
+* Подготовлены необходимые цели в [Makefile](Makefile).

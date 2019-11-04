@@ -11,6 +11,14 @@ DOCKER_MACHINE_NAME?=docker-host
 DOCKER_MACHINE_TYPE?=n1-standard-1
 DOCKER_MACHINE_REGION?=europe-west1-b
 
+# Packer-related variables
+PACKER_VERSION?=1.4.4
+PACKER_URL=https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip
+PACKER?=${BIN_DIR}/packer
+
+# Ansible-related variables
+## Relative to ./ansible subdir
+ANSIBLE?=../../.venv/bin/ansible
 
 debug:
 	echo BIN_DIR=${BIN_DIR}
@@ -33,6 +41,14 @@ install_docker_machine:
 	mv ${TEMP_DIR}/docker-machine ${BIN_DIR}/docker-machine && \
 	chmod +x ${BIN_DIR}/docker-machine
 
+install_packer:
+	wget ${PACKER_URL} -O ${TEMP_DIR}/packer-${PACKER_VERSION}.zip
+	unzip -o ${TEMP_DIR}/packer-${PACKER_VERSION}.zip -d ${TEMP_DIR}/
+	mv ${TEMP_DIR}/packer ${BIN_DIR}/packer-${PACKER_VERSION}
+	ln -sf packer-${PACKER_VERSION} ${BIN_DIR}/packer
+	${BIN_DIR}/packer --version && rm ${TEMP_DIR}/packer-${PACKER_VERSION}.zip
+
+
 docker_machine_create:
 	${DOCKER_MACHINE} create --driver google \
 		--google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
@@ -44,3 +60,15 @@ docker_machine_create:
 docker_machine_rm:
 	${DOCKER_MACHINE} rm ${DOCKER_MACHINE_NAME}
 	${DOCKER_MACHINE} env --unset
+
+
+monolith_packer_build:
+	${PACKER} build -var-file=docker-monolith/packer/variables.json docker-monolith/packer/docker.json
+
+monolith_packer_validate:
+	${PACKER} --version
+	${PACKER} validate -var-file=docker-monolith/packer/variables.json docker-monolith/packer/docker.json
+
+
+monolith_ansible_install_requirements:
+	cd ./docker-monolith/ansible && ${ANSIBLE}-galaxy install -r inventory/requirements.yml
