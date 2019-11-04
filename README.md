@@ -1140,9 +1140,7 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
   What this means is that the whole container filesystem will belong to the user specified in the `--userns-remap` daemon config (362144 in the example above). This can lead to unexpected behavior of programs inside the container. For instance sudo (which checks that its binaries belong to user 0) or binaries with a setuid flag.
 
 
-### Dockerfile
-
-#### Дополнительные файлы
+#### Dockerfile
 
 * Создан конфиг MongoDB [docker-monolith/mongod.conf](docker-monolith/mongod.conf)
 * Создан скрипт запуска приложения [docker-monolith/start.sh](docker-monolith/start.sh)
@@ -1197,3 +1195,30 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
   <none>              <none>              e08fb2f1ff85        9 minutes ago       148MB
   ubuntu              16.04               5f2bf26e3524        3 days ago          123MB
   ```
+
+#### Запуск контейнера
+
+* Запущен контейнер из образа reddit `docker run --name reddit -d --network=host reddit:latest`
+* Проверка доступности приложения
+  ```shell
+  # docker-machine ls
+  NAME          ACTIVE   DRIVER   STATE     URL                        SWARM   DOCKER     ERRORS
+  docker-host   *        google   Running   tcp://35.233.86.180:2376           v19.03.4
+  ```
+* При попытке зайти на [http://35.233.86.180:9292/](http://35.233.86.180:9292/) не удалось открыть страницу
+* Создано правило фаервола
+  ```shell
+  gcloud compute firewall-rules create reddit-app \
+   --allow tcp:9292 \
+   --target-tags=docker-machine \
+   --description="Allow PUMA connections" \
+   --direction=INGRESS
+  ```
+  ```log
+  Creating firewall...⠶Created [https://www.googleapis.com/compute/v1/projects/docker-257914/global/firewalls/reddit-app].
+  Creating firewall...done.
+  NAME        NETWORK  DIRECTION  PRIORITY  ALLOW     DENY  DISABLED
+  reddit-app  default  INGRESS    1000      tcp:9292        False
+  ```
+* Попытка открыть сайт увенчалась успехом
+
