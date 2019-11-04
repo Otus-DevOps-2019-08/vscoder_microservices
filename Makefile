@@ -39,3 +39,8 @@ docker_machine_create:
 		--google-machine-type ${DOCKER_MACHINE_TYPE} \
 		--google-zone ${DOCKER_MACHINE_REGION} \
 		${DOCKER_MACHINE_NAME}
+	${DOCKER_MACHINE} env ${DOCKER_MACHINE_NAME}
+
+docker_machine_rm:
+	${DOCKER_MACHINE} rm ${DOCKER_MACHINE_NAME}
+	${DOCKER_MACHINE} env --unset
