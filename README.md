@@ -191,6 +191,7 @@ vscoder microservices repository
 ### Работа с docker
 
 - Список основных команд docker
+  
   | Команда                                                                       | Описание                                                                                                                                            |
   | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
   | docker ps                                                                     | Список запущенных контейнеров                                                                                                                       |
@@ -202,6 +203,7 @@ vscoder microservices repository
   | docker create                                                                 | Создать контейнер, не запуская его                                                                                                                  |
   | docker exec -it <u_container_id> bash                                         | Запустить новый процесс внутри контейнера                                                                                                           |
   | docker commit <u_container_id> yourname/ubuntu-tmp-file                       | Создать образ yourname/ubuntu-tmp-file из контейнера <u_container_id>. Контейнер при этом останется запущенным.                                     |
+
 - Примечание _docker run = docker create + docker start + docker attach\*_ \* _docker attach_ выполняется при наличии опции `-i`
 - Основный опции
   | Опция        | Описание                                                   |
