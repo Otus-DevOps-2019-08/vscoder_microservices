@@ -1357,12 +1357,12 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 
 ##### Модули
 
-* Создан модуль [instance](docker-monolith/terraform/modules/instance/), описывающий абстрактный Goocle Compute Instance
+Создан модуль [instance](docker-monolith/terraform/modules/instance/), описывающий абстрактный Goocle Compute Instance
 
 Описание переменных:
 
 | Переменная          | Описание                    | Значение по умолчанию | Тип    |
-| ------------------- | --------------------------- | --------------------- |
+| ------------------- | --------------------------- | --------------------- | ------ |
 | project             | Project ID                  |                       | string |
 | region              | Region                      | europe-west1          | string |
 | zone                | Zone                        | europe-west1-d        | string |
@@ -1377,3 +1377,11 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 
 
 ##### Stage-окружение
+
+Создана stage-инфраструктура. Особенности:
+* Количество инстансов берётся из переменной `docker_app_instance_count`
+* Префикс имени инстанса `docker_app_name_prefix`
+* Список тегов `docker_app_tags`
+* Список tcp-портов для фаервола `docker_app_tcp_ports`
+
+Описание прочих переменных можно посмотреть в [variables.tf](docker-monolith/terraform/stage/variables.tf)

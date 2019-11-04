@@ -110,12 +110,12 @@ monolith_terraform_init_nobackend:
 monolith_terraform_validate:
 	${TERRAFORM} --version
 	cd ./docker-monolith/terraform && ${TERRAFORM} validate
-	# cd ./docker-monolith/terraform/stage && ${TERRAFORM} validate
+	cd ./docker-monolith/terraform/stage && ${TERRAFORM} validate
 	# cd ./docker-monolith/terraform/prod && ${TERRAFORM} validate
 
 monolith_terraform_tflint:
 	cd ./docker-monolith/terraform && ${TFLINT}
-	# cd ./docker-monolith/terraform/stage && ${TFLINT}
+	cd ./docker-monolith/terraform/stage && ${TFLINT}
 	# cd ./docker-monolith/terraform/prod && ${TFLINT}
 
 monolith_terraform_apply:
