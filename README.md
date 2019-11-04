@@ -1346,8 +1346,9 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 #### Terraform
 
 * Добавлены необходимые цели в [Makefile](Makefile)
-* Создан bucket для хранения состояния terraform
-* Настроен projeckt-wide ssh ключ
-  ```shell
-  make monolith_terraform_apply ENV=""
-  ```
+* С помощью terraform:
+  * Создан bucket для хранения состояния terraform
+  * Настроен projeckt-wide ssh ключ
+    ```shell
+    make monolith_terraform_apply ENV=""
+    ```
