@@ -1385,3 +1385,8 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 * Список tcp-портов для фаервола `docker_app_tcp_ports`
 
 Описание прочих переменных можно посмотреть в [variables.tf](docker-monolith/terraform/stage/variables.tf)
+
+#### Запуск контейнера средствами ansible
+
+* Создана роль [docker-monolith/ansible/roles/reddit-monolith-docker](docker-monolith/ansible/roles/reddit-monolith-docker)
+  Подробности в [docker-monolith/ansible/roles/reddit-monolith-docker/README.md](docker-monolith/ansible/roles/reddit-monolith-docker/README.md)
