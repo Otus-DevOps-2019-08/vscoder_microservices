@@ -22,6 +22,7 @@ variable vpc_network_name {
 
 variable environment {
   description = "Environment name"
+  default     = "stage"
 }
 
 variable machine_type {

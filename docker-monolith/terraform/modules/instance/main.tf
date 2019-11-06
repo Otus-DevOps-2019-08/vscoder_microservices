@@ -4,6 +4,9 @@ resource "google_compute_instance" "instance" {
   machine_type = var.machine_type
   zone         = var.zone
   tags         = var.tags
+  labels = {
+    env = var.environment
+  }
   boot_disk {
     initialize_params {
       image = var.instance_disk_image
