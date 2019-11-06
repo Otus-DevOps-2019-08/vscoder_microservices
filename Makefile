@@ -97,10 +97,6 @@ monolith_packer_validate:
 	${PACKER} validate -var-file=docker-monolith/packer/variables.json docker-monolith/packer/docker.json
 
 
-monolith_ansible_install_requirements:
-	cd ./docker-monolith/ansible && ${ANSIBLE}-galaxy install -r inventory/requirements.yml
-
-
 monolith_terraform_init:
 	cd ./docker-monolith/terraform/${ENV} && ${TERRAFORM} init
 
@@ -123,3 +119,18 @@ monolith_terraform_apply:
 
 monolith_terraform_destroy:
 	cd ./docker-monolith/terraform/${ENV} && ${TERRAFORM} destroy
+
+
+monolith_ansible_install_requirements:
+	cd ./docker-monolith/ansible && ${ANSIBLE}-galaxy install -r inventory/requirements.yml
+
+monolith_ansible_inventory_list:
+	cd ./docker-monolith/ansible && ${ANSIBLE}-inventory --list
+
+monolith_ansible_lint:
+	cd ./docker-monolith/ansible && ${ANSIBLE}-lint --version
+	cd ./docker-monolith/ansible && find playbooks -name "*.yml" -type f -print0 | xargs -0 -n1 ${ANSIBLE}-lint
+
+monolith_ansible_syntax:
+	cd ./docker-monolith/ansible && ${ANSIBLE}-playbook --version
+	cd ./docker-monolith/ansible && find playbooks -name "*.yml" -type f -print0 | xargs -0 -n1 ${ANSIBLE}-playbook -i environments/stage/inventory.gcp.yml --syntax-check

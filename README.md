@@ -38,7 +38,6 @@ vscoder microservices repository
 | install_packer                        | TEMP_DIR, PACKER_VERSION, BIN_DIR                                               | Скачать и установить бинарник packer в ${BIN_DIR}                                                                                |
 | monolith_packer_build                 | PACKER                                                                          | Собрать базовый образ из шаблона docker-monolith/packer/docker.json                                                              |
 | monolith_packer_validate              | PACKER                                                                          | Проверить корректность packer-шаблона docker-monolith/packer/docker.json                                                         |
-| monolith_ansible_install_requirements | ANSIBLE                                                                         | Установить внешние роли ansible из docker-monolith/ansible/inventory/requirements.yml                                            |
 | install_terraform                     | TEMP_DIR, BIN_DIR, TERRAFORM_VERSION                                            | Установить terraform                                                                                                             |
 | install_tflint                        | TEMP_DIR, BIN_DIR, TFLINT_VERSION                                               | Установить tflint                                                                                                                |
 | monolith_terraform_init               | ENV, TERRAFORM                                                                  | Инициализировать terraform для окружения `${ENV}`                                                                                |
@@ -47,6 +46,10 @@ vscoder microservices repository
 | monolith_terraform_tflint             | TFLINT                                                                          | Выполнить tflint для всех окружений terraform                                                                                    |
 | monolith_terraform_apply              | ENV, TERRAFORM                                                                  | Применить инфраструктуру terraform для окружения `${ENV}`                                                                        |
 | monolith_terraform_destroy            | ENV, TERRAFORM                                                                  | Уничтожить инфраструктуру terraform для окружения `${ENV}`                                                                       |
+| monolith_ansible_install_requirements | ANSIBLE                                                                         | Установить внешние роли ansible из [requirements.yml](docker-monolith/ansible/environments/stage/requirements.yml)               |
+| monolith_ansible_inventory_list       | ANSIBLE                                                                         | Показать содержимое ansible-inventory ввформате json                                                                             |
+| monolith_ansible_lint                 | ANSIBLE                                                                         | Выполнить ansible-lint для всех плейбуков                                                                                        |
+| monolith_ansible_syntax               | ANSIBLE                                                                         | Проверить синтаксис всех плейбуков                                                                                               |
 
 
 # Домашние задания
@@ -1394,3 +1397,9 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 * Зависимости `requirements.yml` перемещены в [docker-monolith/ansible/environments/stage/requirements.yml](docker-monolith/ansible/environments/stage/requirements.yml)
 * В [docker-monolith/terraform/modules/instance/main.tf](docker-monolith/terraform/modules/instance/main.tf) добавлены `labels` к `google_compute_instance`
 * Добавлен плейбук [reddit-app.yml](docker-monolith/ansible/playbooks/reddit-app.yml) для деплоя контейнера
+* Добавлены [Makefile](Makefile) цели
+  | Цель                            | Описание                                             |
+  | ------------------------------- | ---------------------------------------------------- |
+  | monolith_ansible_inventory_list | Показать содержимое ansible-inventory ввформате json |
+  | monolith_ansible_lint           | Выполнить ansible-lint для всех плейбуков            |
+  | monolith_ansible_syntax         | Проверить синтаксис всех плейбуков                   |
