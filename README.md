@@ -1393,4 +1393,4 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 * Ностроено использование динамического инвентори `gcp_compute`
 * Зависимости `requirements.yml` перемещены в [docker-monolith/ansible/environments/stage/requirements.yml](docker-monolith/ansible/environments/stage/requirements.yml)
 * В [docker-monolith/terraform/modules/instance/main.tf](docker-monolith/terraform/modules/instance/main.tf) добавлены `labels` к `google_compute_instance`
-
+* Добавлен плейбук [reddit-app.yml](docker-monolith/ansible/playbooks/reddit-app.yml) для деплоя контейнера
