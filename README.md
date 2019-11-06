@@ -1390,3 +1390,4 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 
 * Создана роль [docker-monolith/ansible/roles/reddit-monolith-docker](docker-monolith/ansible/roles/reddit-monolith-docker)
   Подробности в [docker-monolith/ansible/roles/reddit-monolith-docker/README.md](docker-monolith/ansible/roles/reddit-monolith-docker/README.md)
+* Ностроено использование динамического инвентори `gcp_compute`
