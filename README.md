@@ -1403,3 +1403,33 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
   | monolith_ansible_inventory_list | Показать содержимое ansible-inventory ввформате json |
   | monolith_ansible_lint           | Выполнить ansible-lint для всех плейбуков            |
   | monolith_ansible_syntax         | Проверить синтаксис всех плейбуков                   |
+
+### Вне ДЗ: безопасность
+
+https://habr.com/ru/company/flant/blog/474012/
+
+#### TODO:
+
+[Docker Security Benchmark](https://github.com/docker/docker-bench-security)
+- [ ] ОС хоста
+- [ ] Правила аудита
+- [ ] Режим FIPS
+- [ ] [Docker Secrets](https://docs.docker.com/engine/swarm/secrets/)
+- [ ] Файл конфигурации Docker'а
+- [ ] Безопасность транспортного уровня
+- [ ] [Плагины авторизации](https://docs.docker.com/engine/extend/plugins_authorization/)
+- [ ] Параметры демона
+- [ ] [Seccomp](https://docs.docker.com/engine/security/seccomp/)
+
+Конфигурация контейнеров и файлов сборки
+- [ ] Создание пользователя
+- [ ] Удаленный доступ
+- [ ] Изолируйте пространство имен пользователя
+- [ ] Healthcheck'и
+- [ ] SELinux (AppArmor)
+- [ ] Сетевые интерфейсы
+- [ ] Кэшированные версии образов
+- [ ] Сетевой мост
+- [ ] Предупреждение о сокете Docker'а
+
+[ресурсе Play with Docker](https://training.play-with-docker.com/ops-stage2/) — см. секцию «Security».
