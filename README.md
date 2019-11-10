@@ -1417,7 +1417,7 @@ https://habr.com/ru/company/flant/blog/474012/
 - [ ] Режим FIPS
 - [ ] [Docker Secrets](https://docs.docker.com/engine/swarm/secrets/)
 - [ ] !Файл конфигурации Docker'а (логирование на удалённый сервер) фича в рамках отдельной роли
-- [ ] Безопасность транспортного уровня
+- [ ] Безопасность транспортного уровня (TLS при доступе к API снаружи)
 - [ ] [Плагины авторизации](https://docs.docker.com/engine/extend/plugins_authorization/)
 - [ ] !Параметры демона -- проверить наличие при запуске
   - [ ] `--live-restore`
@@ -1428,7 +1428,7 @@ https://habr.com/ru/company/flant/blog/474012/
 
 Конфигурация контейнеров и файлов сборки
 - [ ] !Создание пользователя
-- [ ] Удаленный доступ
+- [ ] Удаленный доступ (запретить доступ снаружи или защитить сервтификатами)
 - [ ] !Изолируйте пространство имен пользователя
 - [ ] !Healthcheck'и
 - [ ] ?SELinux (AppArmor)
@@ -1439,6 +1439,7 @@ https://habr.com/ru/company/flant/blog/474012/
 
 [ресурсе Play with Docker](https://training.play-with-docker.com/ops-stage2/) — см. секцию «Security».
 Нашёл роль на ansible-galaxy [haxorof.docker_ce](https://galaxy.ansible.com/haxorof/docker_ce). Рассмотреть!
+Ещё статья про [запуск контейнера под текущим пользователем](https://medium.com/redbubble/running-a-docker-container-as-a-non-root-user-7d2e00f8ee15)
 
 #### Docker Security Benchmark
 
