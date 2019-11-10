@@ -1459,6 +1459,10 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 * В [README.md](README.md) добавлено оглавление
 * В [README.md](README.md) добавлен статус тестов на travis-ci
 
+**ВАЖНО!!!** В файл `.travis.yml` Был закоммичен token для уведомлений в slack. Для предотвращения спам-уведомлений в чат, был перегенерирован slack-токен и запиисан в `.travis.yml` в зашифрованом виде, как сказано в [инструкции](https://docs.travis-ci.com/user/notifications#configuring-slack-notifications)
+```shell
+travis encrypt "<account>:<token>" --add notifications.slack.rooms
+```
 
 ### Вне ДЗ: безопасность
 
