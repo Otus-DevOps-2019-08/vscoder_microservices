@@ -1463,6 +1463,48 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 ```shell
 travis encrypt "<account>:<token>" --add notifications.slack.rooms
 ```
+Так же были почищены все коммиты бренча с помощью `git filter-branch`
+```shell
+# git filter-branch --tree-filter "sed -e's#slackchannel:slacktoken#faketoken#' -i .travis.yml" HEAD
+### Got error, cuz in 1st commit .travis.yml does not exist!
+Rewrite 9339a0dd5666e037f747c991df6436dfb4ae6ee5 (1/59) (0 seconds passed, remaining 0 predicted)    sed: невозможно прочитать .travis.yml: Нет такого файла или каталога
+tree filter failed: sed -e's#slackchannel:slacktoken#faketoken#' -i .travis.yml
+# git filter-branch --tree-filter "sed -e's#slackchannel:slacktoken#faketoken#' -i .travis.yml || true" HEAD
+### It WORKS!
+Rewrite 9339a0dd5666e037f747c991df6436dfb4ae6ee5 (1/59) (0 seconds passed, remaining 0 predicted)    sed: невозможно прочитать .travis.yml: Нет такого файла или каталога
+Rewrite 4eb535e678dc189fb7fc8d6f0a0e967e2db2853d (59/59) (3 seconds passed, remaining 0 predicted)    
+Ref 'refs/heads/docker-2' was rewritten
+# git filter-branch --tree-filter "sed -e's#slackchannel:slacktoken#slackchannel:faketoken#' -i README.md || true" HEAD  
+### Got error!
+Cannot create a new backup.
+A previous backup already exists in refs/original/
+Force overwriting the backup with -f
+# git filter-branch -f --tree-filter "sed -e's#slackchannel:slacktoken#slackchannel:faketoken#' -i README.md || true" HEAD
+### It WORKS!
+Rewrite 72dd8d0f6648a3432c086c0e803ade075c62d862 (53/59) (3 seconds passed, remaining 0 predicted)    
+Ref 'refs/heads/docker-2' was rewritten
+# git reflog expire --expire=now --all && git gc --prune=now --aggressive 
+Подсчет объектов: 569, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (547/547), готово.
+Запись объектов: 100% (569/569), готово.
+Total 569 (delta 323), reused 3 (delta 0)
+# git push origin --force --all
+Подсчет объектов: 289, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (188/188), готово.
+Запись объектов: 100% (289/289), 68.17 KiB | 22.72 MiB/s, готово.
+Total 289 (delta 140), reused 223 (delta 79)
+remote: Resolving deltas: 100% (140/140), done.
+To github.com:Otus-DevOps-2019-08/vscoder_microservices.git
+ + 4eb535e...5503b94 docker-2 -> docker-2 (forced update)
+```
+
+Ссылки по теме:
+- https://git-scm.com/docs/git-filter-branch
+- https://habr.com/ru/post/76084/
+- https://pro-prof.com/forums/topic/git-%D1%83%D0%B4%D0%B0%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5-%D1%84%D0%B0%D0%B9%D0%BB%D0%BE%D0%B2-%D0%B8%D0%B7-%D0%B2%D1%81%D0%B5%D1%85-%D0%BA%D0%BE%D0%BC%D0%BC%D0%B8%D1%82%D0%BE%D0%B2
+
 
 ### Вне ДЗ: безопасность
 
