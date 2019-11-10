@@ -1450,9 +1450,9 @@ https://habr.com/ru/company/flant/blog/474012/
 - [ ] !Сетевой мост
 - [ ] !Предупреждение о сокете Docker'а
 
-[ресурсе Play with Docker](https://training.play-with-docker.com/ops-stage2/) — см. секцию «Security».
-Нашёл роль на ansible-galaxy [haxorof.docker_ce](https://galaxy.ansible.com/haxorof/docker_ce). Рассмотреть!
-Ещё статья про [запуск контейнера под текущим пользователем](https://medium.com/redbubble/running-a-docker-container-as-a-non-root-user-7d2e00f8ee15)
+- [ресурсе Play with Docker](https://training.play-with-docker.com/ops-stage2/) — см. секцию «Security».
+- Нашёл роль на ansible-galaxy [haxorof.docker_ce](https://galaxy.ansible.com/haxorof/docker_ce). Рассмотреть!
+- Ещё статья про [запуск контейнера под текущим пользователем](https://medium.com/redbubble/running-a-docker-container-as-a-non-root-user-7d2e00f8ee15)
 
 #### Docker Security Benchmark
 
