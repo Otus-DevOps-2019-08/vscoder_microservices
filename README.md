@@ -274,13 +274,13 @@ vscoder microservices repository
   | docker commit <u_container_id> yourname/ubuntu-tmp-file                       | Создать образ yourname/ubuntu-tmp-file из контейнера <u_container_id>. Контейнер при этом останется запущенным.                                     |
 
 - Примечание _docker run = docker create + docker start + docker attach\*_ \* _docker attach_ выполняется при наличии опции `-i`
-- Основный опции
-  | Опция        | Описание                                                   |
-  | ------------ | ---------------------------------------------------------- |
-  | -i           | запускает контейнер в foreground режиме (docker attach)    |
-  | -d           | запускает контейнер в background режиме                    |
-  | -t           | создает TTY                                                |
-  | --entrypoint | позволяет переопределить ENTRYPOINT при запуске контейнера |
+- Основные опции
+| Опция        | Описание                                                   |
+| ------------ | ---------------------------------------------------------- |
+| -i           | запускает контейнер в foreground режиме (docker attach)    |
+| -d           | запускает контейнер в background режиме                    |
+| -t           | создает TTY                                                |
+| --entrypoint | позволяет переопределить ENTRYPOINT при запуске контейнера |
 - После выполнения команд из ДЗ, список образов сохранён в [docker-monolith/docker-1.log](docker-monolith/docker-1.log)
 
 ### Задание со \*: Отличия образа и контейнера
@@ -1438,20 +1438,20 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
 * В [docker-monolith/terraform/modules/instance/main.tf](docker-monolith/terraform/modules/instance/main.tf) добавлены `labels` к `google_compute_instance`
 * Добавлен плейбук [reddit-app.yml](docker-monolith/ansible/playbooks/reddit-app.yml) для деплоя контейнера
 * Добавлены [Makefile](Makefile) цели
-  | Цель                            | Описание                                             |
-  | ------------------------------- | ---------------------------------------------------- |
-  | monolith_ansible_inventory_list | Показать содержимое ansible-inventory ввформате json |
-  | monolith_ansible_lint           | Выполнить ansible-lint для всех плейбуков            |
-  | monolith_ansible_syntax         | Проверить синтаксис всех плейбуков                   |
+| Цель                            | Описание                                             |
+| ------------------------------- | ---------------------------------------------------- |
+| monolith_ansible_inventory_list | Показать содержимое ansible-inventory ввформате json |
+| monolith_ansible_lint           | Выполнить ansible-lint для всех плейбуков            |
+| monolith_ansible_syntax         | Проверить синтаксис всех плейбуков                   |
 * Добавлена [Makefile](Makefile) цель
-  | Цель                        | Описание     |
-  | --------------------------- | ------------ |
-  | monolith_ansible_reddit_app | ANSIBLE, ENV | Развернуть reddit-app в контейнере |
+| Цель                        | Описание                           |
+| --------------------------- | ---------------------------------- |
+| monolith_ansible_reddit_app | Развернуть reddit-app в контейнере |
 * Добавлены [Makefile](Makefile) цели
-  | Цель                    | Описание                                                                      |
-  | ----------------------- | ----------------------------------------------------------------------------- |
-  | monolith_docker_build   | Собрать контейнер из [docker-monolith/Dockerfile](docker-monolith/Dockerfile) |
-  | monolith_docker_publish | Загрузить образ `vscoder/otus-reddit:${IMAGE_VERSION}` на docker-hub          |
+| Цель                    | Описание                                                                      |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| monolith_docker_build   | Собрать контейнер из [docker-monolith/Dockerfile](docker-monolith/Dockerfile) |
+| monolith_docker_publish | Загрузить образ `vscoder/otus-reddit:${IMAGE_VERSION}` на docker-hub          |
 * В [README.md](README.md) добавлено оглавление
 * В [README.md](README.md) добавлен статус тестов на travis-ci
 
