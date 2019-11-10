@@ -1,5 +1,7 @@
 # vscoder_microservices
 
+[![Build Status](https://travis-ci.com/Otus-DevOps-2019-08/vscoder_microservices.svg?branch=master)](https://travis-ci.com/Otus-DevOps-2019-08/vscoder_microservices)
+
 vscoder microservices repository
 
 - [vscoder_microservices](#vscodermicroservices)
@@ -1451,6 +1453,7 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
   | monolith_docker_build   | Собрать контейнер из [docker-monolith/Dockerfile](docker-monolith/Dockerfile) |
   | monolith_docker_publish | Загрузить образ `vscoder/otus-reddit:${IMAGE_VERSION}` на docker-hub          |
 * В [README.md](README.md) добавлено оглавление
+* В [README.md](README.md) добавлен статус тестов на travis-ci
 
 
 ### Вне ДЗ: безопасность
