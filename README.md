@@ -25,6 +25,7 @@ vscoder microservices repository
 | TERRAFORM              | ${BIN_DIR}/terraform       | Путь к исполняемому файлу `terraform`                                    |
 | TFLINT_VERSION         | 0.12.1                     | Версия tflist                                                            |
 | TFLINT                 | ${BIN_DIR}/tflint          | Путь к исполняемому файлу `tflint`                                       |
+| IMAGE_VERSION          | 1.0                        | Версия docker-образа vscoder/otus-reddit для отправки на docker-hub      |
 
 ## Цели
 
@@ -51,7 +52,8 @@ vscoder microservices repository
 | monolith_ansible_lint                 | ANSIBLE                                                                         | Выполнить ansible-lint для всех плейбуков                                                                                        |
 | monolith_ansible_syntax               | ANSIBLE                                                                         | Проверить синтаксис всех плейбуков                                                                                               |
 | monolith_ansible_reddit_app           | ANSIBLE, ENV                                                                    | Развернуть reddit-app в контейнере                                                                                               |
-
+| monolith_docker_build                 |                                                                                 | Собрать контейнер из [docker-monolith/Dockerfile](docker-monolith/Dockerfile)                                                    |
+| monolith_docker_publish               | IMAGE_VERSION                                                                   | Загрузить образ `vscoder/otus-reddit:${IMAGE_VERSION}` на docker-hub                                                             |
 
 # Домашние задания
 
@@ -1404,6 +1406,16 @@ Along the same lines, if you disable userns-remap you can’t access any of the 
   | monolith_ansible_inventory_list | Показать содержимое ansible-inventory ввформате json |
   | monolith_ansible_lint           | Выполнить ansible-lint для всех плейбуков            |
   | monolith_ansible_syntax         | Проверить синтаксис всех плейбуков                   |
+* Добавлена [Makefile](Makefile) цель
+  | Цель                        | Описание     |
+  | --------------------------- | ------------ |
+  | monolith_ansible_reddit_app | ANSIBLE, ENV | Развернуть reddit-app в контейнере |
+* Добавлены [Makefile](Makefile) цели
+  | Цель                    | Описание                                                                      |
+  | ----------------------- | ----------------------------------------------------------------------------- |
+  | monolith_docker_build   | Собрать контейнер из [docker-monolith/Dockerfile](docker-monolith/Dockerfile) |
+  | monolith_docker_publish | Загрузить образ `vscoder/otus-reddit:${IMAGE_VERSION}` на docker-hub          |
+
 
 ### Вне ДЗ: безопасность
 

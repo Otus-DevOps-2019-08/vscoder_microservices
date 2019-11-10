@@ -4,6 +4,9 @@ TEMP_DIR?=/tmp
 # Environment name
 ENV?=stage
 
+# Application image version
+IMAGE_VERSION?=1.0
+
 # Docker-machine
 DOCKER_MACHINE_VERSION?=v0.16.0
 DOCKER_MACHINE_BASEURL=https://github.com/docker/machine/releases/download
@@ -32,7 +35,6 @@ TERRAFORM?=${BIN_DIR}/terraform
 TFLINT_VERSION?=0.12.1
 TFLINT_URL=https://github.com/wata727/tflint/releases/download/v${TFLINT_VERSION}/tflint_linux_amd64.zip
 TFLINT?=${BIN_DIR}/tflint
-
 
 debug:
 	echo BIN_DIR=${BIN_DIR}
@@ -137,3 +139,12 @@ monolith_ansible_syntax:
 
 monolith_ansible_reddit_app:
 	cd ./docker-monolith/ansible && ${ANSIBLE}-playbook -i environments/${ENV}/inventory.gcp.yml playbooks/reddit-app.yml
+
+
+monolith_docker_build:
+	docker build -t reddit:latest -f docker-monolith/Dockerfile ./docker-monolith
+
+monolith_docker_publish:
+	echo Do not forget to login on docker hub `docker login`
+	docker tag reddit:latest vscoder/otus-reddit:${IMAGE_VERSION}
+	docker push vscoder/otus-reddit:${IMAGE_VERSION}
