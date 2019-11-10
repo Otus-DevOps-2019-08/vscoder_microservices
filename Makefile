@@ -134,3 +134,6 @@ monolith_ansible_lint:
 monolith_ansible_syntax:
 	cd ./docker-monolith/ansible && ${ANSIBLE}-playbook --version
 	cd ./docker-monolith/ansible && find playbooks -name "*.yml" -type f -print0 | xargs -0 -n1 ${ANSIBLE}-playbook -i environments/stage/inventory.gcp.yml --syntax-check
+
+monolith_ansible_reddit_app:
+	cd ./docker-monolith/ansible && ${ANSIBLE}-playbook -i environments/${ENV}/inventory.gcp.yml playbooks/reddit-app.yml
