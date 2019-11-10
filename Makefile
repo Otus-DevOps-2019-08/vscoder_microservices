@@ -100,6 +100,7 @@ monolith_packer_validate:
 
 
 monolith_terraform_init:
+	cd ./docker-monolith/terraform && ${TERRAFORM} init
 	cd ./docker-monolith/terraform/${ENV} && ${TERRAFORM} init
 
 monolith_terraform_init_nobackend:
