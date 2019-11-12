@@ -1501,6 +1501,97 @@ remote: Resolving deltas: 100% (140/140), done.
 To github.com:Otus-DevOps-2019-08/vscoder_microservices.git
  + 4eb535e...5503b94 docker-2 -> docker-2 (forced update)
 ```
+После этого, при попытке создать PR в master, github выдал ошибку There isn’t anything to compare. **master** and **docker-2** are entirely different commit histories.
+Для исправления ошибки, в ветке **docker-2** был выполнен `git rebase master`
+<details><summary>результат</summary>
+<p>
+
+```log
+First, rewinding head to replay your work on top of it...
+Applying: Add PR template and travis checks
+Applying: Update README.md. Add slack-integration description
+Applying: Provide travis-ci notifications to slack
+Applying: Add .gitignore
+Applying: Add Makefile
+Applying: Update README.md. Describe docker installation
+Applying: Update README.md. Add variables descrioption
+Applying: Update README.md. Add Makefile targets description
+Applying: Describe some useful docker commands
+Applying: Add output of dokcer inspect commands
+Applying: Update README.md. Describe results docker inspect image
+Applying: Update README.md. Describe dockker inspect container output
+Applying: Describe image and container differences
+Applying: Update README.md. Describe docker kill
+Applying: Update README.md. Describe docker system df
+Applying: Update README.md. Describe docker rm and rmi
+Applying: Update README.md. Describe GCE initialisation
+Applying: Update README.md. Describe docker-machine
+Applying: Update README.md Describe PID and NET namespaces
+Applying: Update README.md. Describe tcpdump
+Applying: Update README.md. Describe USER namespaces
+Applying: Fix README.md syntax
+Applying: Move example json output files to examples/
+Applying: Add files, necessary to Dockerfile
+Applying: Add Dockerfile
+Applying: Update Makefile. Add target docker_machine_create
+Applying: Update README.md. Describe docker image creation
+Applying: Update README.md. Describe container run
+Applying: Update README.md. Describe log in to docker hub
+Applying: Update DEADME.md. Push image to docker hub
+Applying: Update README.md. Describe some checks
+Applying: Update MAkefile. Add target docker_machine_rm
+Applying: Update .gitignore. Ignore all imported roles
+Applying: Add packer-related Makefile targets
+Applying: Add packer json template
+Applying: Add ansible playbook to provision packer image
+Applying: Add terraform-related Makefile targets
+Applying: Add project-wide terraform infra
+Applying: Add terraform module instance
+Applying: Add terraform stage environment
+Applying: Add role dreddit-monolith-docker
+Applying: Use dynamic inventory gcp_plugin
+Applying: Move requirements.yml
+Applying: Add labels to terraform-created instances
+Applying: Add playbook reddit-app.yml
+Applying: Add ansible-related Makefile targets
+Applying: Update README.md. Add security TODO
+Applying: Update READEM.md. Docker bench security
+Applying: Update README.md. Add useful link
+Applying: Add Makefile target monolith_ansible_reddit_app
+Applying: Add Makefile targets monolith_docker_build and monolith_docker_publish
+Applying: Fix README.md syntax
+Applying: Add TOC to README.md
+Applying: Add travis-ci badger to README.md
+Applying: Fix README.md syntax
+Applying: Fix README.md syntax
+Applying: Update Makefile target monolith_terraform_init
+Applying: Regenerate and encrypt slack's travis-ci token
+Applying: Update README.md. Describe git filter-branch
+Applying: Add Makefile target install_requirements_dev
+Applying: Add Makefile target install_requirements_virtualenv
+Applying: Fix Makefile target install_requirements_virtualenv
+Applying: Fix requirements.txt Install latest versions of docker-compose and ansible-lint
+Applying: Add packer variables example
+Applying: Add travis-ci tests
+```
+
+</p>
+</details>
+
+Затем снова `git push --force`
+
+```log
+Counting objects: 311, done.
+Delta compression using up to 8 threads.
+Compressing objects: 100% (147/147), done.
+Writing objects: 100% (311/311), 73.70 KiB | 10.53 MiB/s, done.
+Total 311 (delta 156), reused 221 (delta 141)
+remote: Resolving deltas: 100% (156/156), done.
+To github.com:Otus-DevOps-2019-08/vscoder_microservices.git
+ + 557c2fa...a1dbeab docker-2 -> docker-2 (forced update)
+```
+
+После этого удалось создать PR
 
 Ссылки по теме:
 - https://git-scm.com/docs/git-filter-branch
