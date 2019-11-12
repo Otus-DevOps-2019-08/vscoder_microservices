@@ -57,7 +57,7 @@ install_requirements_dev: install_requirements
 
 install_requirements_virtualenv:
 	test -d ./.venv || virtualenv ./.venv
-	./.venv/bin/pip install -r ansible/requirements.txt
+	./.venv/bin/pip install -r requirements.txt
 
 install_docker_machine:
 	curl -L ${DOCKER_MACHINE_BASEURL}/${DOCKER_MACHINE_VERSION}/docker-machine-${DOCKER_MACHINE_OS}-${DOCKER_MACHINE_ARCH} >${TEMP_DIR}/docker-machine && \
