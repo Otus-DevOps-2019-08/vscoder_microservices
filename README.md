@@ -38,6 +38,8 @@ vscoder microservices repository
     - [Вне ДЗ: безопасность](#%d0%92%d0%bd%d0%b5-%d0%94%d0%97-%d0%b1%d0%b5%d0%b7%d0%be%d0%bf%d0%b0%d1%81%d0%bd%d0%be%d1%81%d1%82%d1%8c)
       - [TODO:](#todo)
       - [Docker Security Benchmark](#docker-security-benchmark)
+  - [HomeWork 13: Docker-образы и Микросервисы](#homework-13-docker-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d1%8b-%d0%b8-%d0%9c%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d1%8b)
+    - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0)
 
 # Makefile
 
@@ -62,6 +64,8 @@ vscoder microservices repository
 | TERRAFORM              | ${BIN_DIR}/terraform       | Путь к исполняемому файлу `terraform`                                    |
 | TFLINT_VERSION         | 0.12.1                     | Версия tflist                                                            |
 | TFLINT                 | ${BIN_DIR}/tflint          | Путь к исполняемому файлу `tflint`                                       |
+| HADOLINT_VERSION       | 1.17.2                     | Версия hadolint (linter для Dockerfile)                                  |
+| HADOLINT               | ${BIN_DIR}/hadolint        | Путь к исполняемому файлу `hadolint`                                     |
 | IMAGE_VERSION          | 1.0                        | Версия docker-образа vscoder/otus-reddit для отправки на docker-hub      |
 
 ## Цели
@@ -80,6 +84,7 @@ vscoder microservices repository
 | monolith_packer_validate              | PACKER                                                                          | Проверить корректность packer-шаблона docker-monolith/packer/docker.json                                                                    |
 | install_terraform                     | TEMP_DIR, BIN_DIR, TERRAFORM_VERSION                                            | Установить terraform                                                                                                                        |
 | install_tflint                        | TEMP_DIR, BIN_DIR, TFLINT_VERSION                                               | Установить tflint                                                                                                                           |
+| install_hadolint                      | TEMP_DIR, BIN_DIR, HADOLINT_VERSION, HADOLINT                                   | Установить hadolint                                                                                                                         |
 | monolith_terraform_init               | ENV, TERRAFORM                                                                  | Инициализировать terraform для базового окружения `${ENV}` окружения                                                                        |
 | monolith_terraform_init_nobackend     | ENV, TERRAFORM                                                                  | Инициализировать terraform для окружения `${ENV}`, без инициализации remote backend. Используется в автоматизированных проверках            |
 | monolith_terraform_validate           | TERRAFORM                                                                       | Выполнить валидацию всех окружений terraform                                                                                                |
@@ -1815,3 +1820,9 @@ appuser@reddit-docker-stage-001:~$
 
 </p>
 </details>
+
+## HomeWork 13: Docker-образы и Микросервисы
+
+### Подготовка
+
+- Создам Makefile target `install_hadolint`
