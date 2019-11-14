@@ -53,7 +53,10 @@ vscoder microservices repository
         - [USER](#user)
         - [WORKDIR](#workdir)
         - [ONBUILD](#onbuild)
-      - [](#)
+      - [Новая структура приложения](#%d0%9d%d0%be%d0%b2%d0%b0%d1%8f-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+    - [src/Makefile](#srcmakefile)
+      - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
+      - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
 
 # Makefile
 
@@ -2007,7 +2010,7 @@ Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-on
 </p>
 </details>
 
-#### 
+#### Новая структура приложения
 
 - Скачан и распакован архив [microservices.zip](https://github.com/express42/reddit/archive/microservices.zip)
   ```shell
@@ -2023,3 +2026,29 @@ Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-on
 - В файле [src/post-py/Dockerfile](src/post-py/Dockerfile) рабочий каталог параметризирован
 - Создан файл [src/comment/Dockerfile](src/comment/Dockerfile)
 - Создан файл [src/ui/Dockerfile](src/ui/Dockerfile)
+- Скачан последний образ MongoDB
+  ```shell
+  docker pull mongo:latest
+  ```
+- Подготовлен [Makefile](src/Makefile) с набороми часто используемых действий
+
+
+### src/Makefile
+
+#### Переменные
+
+| переменная      | значение по-умолчанию | описание                |
+| --------------- | --------------------- | ----------------------- |
+| DOCKERHUB_LOGIN | vscoder               | логин на hub.docker.com |
+| POST_VERSION    | 1.0                   | версия сервиса post-py  |
+| COMMENT_VERSION | 1.0                   | версия сервиса comment  |
+| UI_VERSION      | 1.0                   | версия сервиса ui       |
+
+#### Цели
+
+| цель          | описание                                                             |
+| ------------- | -------------------------------------------------------------------- |
+| build_post    | собирает контейнер post:${POST_VERSION} из контекста ./post-py       |
+| build_comment | собирает контейнер comment:${COMMENT_VERSION} из контекста ./comment |
+| build_ui      | собирает контейнер ui:${UI_VERSION} из контекста ./ui                |
+| build_all     | собрать все контейнеры                                               |
