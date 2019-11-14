@@ -53,6 +53,7 @@ vscoder microservices repository
         - [USER](#user)
         - [WORKDIR](#workdir)
         - [ONBUILD](#onbuild)
+      - [](#)
 
 # Makefile
 
@@ -2005,3 +2006,16 @@ Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-on
 
 </p>
 </details>
+
+#### 
+
+- Скачан и распакован архив [microservices.zip](https://github.com/express42/reddit/archive/microservices.zip)
+  ```shell
+  wget https://github.com/express42/reddit/archive/microservices.zip && \
+    unzip microservices.zip && \
+    rm microservices.zip
+  ```
+- Каталог `reddit-microservices` переименован в `src`
+  ```shell
+  mv reddit-microservices src
+  ```
