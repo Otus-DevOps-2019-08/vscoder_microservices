@@ -2022,3 +2022,4 @@ Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-on
 - Создан файл [src/post-py/Dockerfile](src/post-py/Dockerfile)
 - В файле [src/post-py/Dockerfile](src/post-py/Dockerfile) рабочий каталог параметризирован
 - Создан файл [src/comment/Dockerfile](src/comment/Dockerfile)
+- Создан файл [src/ui/Dockerfile](src/ui/Dockerfile)
