@@ -40,6 +40,19 @@ vscoder microservices repository
       - [Docker Security Benchmark](#docker-security-benchmark)
   - [HomeWork 13: Docker-образы и Микросервисы](#homework-13-docker-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d1%8b-%d0%b8-%d0%9c%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d1%8b)
     - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0)
+      - [Dockerfile best practices (collapsed)](#dockerfile-best-practices-collapsed)
+        - [FROM](#from)
+        - [LABEL](#label)
+        - [RUN](#run)
+        - [CMD](#cmd)
+        - [EXPOSE](#expose)
+        - [ENV](#env)
+        - [ADD or COPY](#add-or-copy)
+        - [ENTRYPOINT](#entrypoint)
+        - [VOLUME](#volume)
+        - [USER](#user)
+        - [WORKDIR](#workdir)
+        - [ONBUILD](#onbuild)
 
 # Makefile
 
@@ -1825,4 +1838,170 @@ appuser@reddit-docker-stage-001:~$
 
 ### Подготовка
 
-- Создам Makefile target `install_hadolint`
+- Создан Makefile target `install_hadolint`
+
+#### Dockerfile best practices (collapsed)
+
+<details><summary>Dockerfile best practices</summary>
+<p>
+
+https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
+
+##### FROM
+
+https://docs.docker.com/develop/develop-images/#from
+
+We recommend the Alpine image as it is tightly controlled and small in size (currently under 5 MB), while still being a full Linux distribution.
+
+##### LABEL
+
+https://docs.docker.com/develop/develop-images/#label
+
+For each label, add a line beginning with LABEL and with one or more key-value pairs.
+
+##### RUN
+
+https://docs.docker.com/develop/develop-images/#run
+
+Always combine RUN apt-get update with apt-get install in the same RUN statement. For example:
+```Dockerfile
+RUN apt-get update && apt-get install -y \
+    package-bar \
+    package-baz \
+    package-foo
+```
+
+You can also achieve cache-busting by specifying a package version. This is known as version pinning, for example:
+```Dockerfile
+RUN apt-get update && apt-get install -y \
+    package-bar \
+    package-baz \
+    package-foo=1.3.*
+```
+
+If you want the command to fail due to an error at any stage in the pipe, prepend set -o pipefail && to ensure that an unexpected error prevents the build from inadvertently succeeding. For example:
+```Dockerfile
+RUN set -o pipefail && wget -O - https://some.site | wc -l > /number
+```
+
+##### CMD
+
+https://docs.docker.com/develop/develop-images/#cmd
+
+`CMD` should almost always be used in the form of `CMD ["executable", "param1", "param2"…]`. Thus, if the image is for a service, such as Apache and Rails, you would run something like `CMD ["apache2","-DFOREGROUND"]`.
+
+`CMD` should rarely be used in the manner of `CMD ["param", "param"]` in conjunction with `ENTRYPOINT`.
+
+##### EXPOSE
+
+https://docs.docker.com/develop/develop-images/#expose
+
+you should use the common, traditional port for your application
+For example, an image containing the Apache web server would use `EXPOSE 80`, while an image containing MongoDB would use `EXPOSE 27017` and so on.
+For container linking, Docker provides environment variables for the path from the recipient container back to the source (ie, `MYSQL_PORT_3306_TCP`).
+
+
+##### ENV
+
+https://docs.docker.com/develop/develop-images/#env
+
+For example, `ENV PATH /usr/local/nginx/bin:$PATH` ensures that `CMD ["nginx"]` just works.
+
+The `ENV` instruction is also useful for providing required environment variables specific to services you wish to containerize, such as Postgres’s `PGDATA`.
+
+Lastly, `ENV` can also be used to set commonly used version numbers so that version bumps are easier to maintain. Similar to having constant variables in a program (as opposed to hard-coding values), this approach lets you change a single ENV instruction to auto-magically bump the version of the software in your container.
+
+Each `ENV` line creates a new intermediate layer, just like `RUN` commands. This means that even if you unset the environment variable in a future layer, it still persists in this layer and its value can be dumped. To prevent this, and really unset the environment variable, use a RUN command with shell commands.
+
+##### ADD or COPY
+
+https://docs.docker.com/develop/develop-images/#add-or-copy
+
+Although `ADD` and `COPY` are functionally similar, generally speaking, `COPY` is preferred. That’s because it’s more transparent than ADD. COPY only supports the basic copying of local files into the container, while ADD has some features (like local-only tar extraction and remote URL support) that are not immediately obvious. 
+Consequently, the best use for ADD is local tar file auto-extraction into the image, as in `ADD rootfs.tar.xz /`.
+
+If you have multiple `Dockerfile` steps that use different files from your context, `COPY` them individually, rather than all at once.
+For example:
+```Dockerfile
+COPY requirements.txt /tmp/
+RUN pip install --requirement /tmp/requirements.txt
+COPY . /tmp/
+```
+Results in fewer cache invalidations for the `RUN` step, than if you put the `COPY . /tmp/` before it.
+
+Because image size matters, using ADD to fetch packages from remote URLs is strongly discouraged; you should use curl or wget instead. That way you can delete the files you no longer need after they’ve been extracted and you don’t have to add another layer in your image.
+do something like:
+```Dockerfile
+RUN mkdir -p /usr/src/things \
+    && curl -SL http://example.com/big.tar.xz \
+    | tar -xJC /usr/src/things \
+    && make -C /usr/src/things all
+```
+
+##### ENTRYPOINT
+
+https://docs.docker.com/develop/develop-images/#entrypoint
+
+The best use for ENTRYPOINT is to set the image’s main command, allowing that image to be run as though it was that command (and then use CMD as the default flags).
+```Dockerfile
+ENTRYPOINT ["s3cmd"]
+CMD ["--help"]
+```
+
+Postgres official image `ENTRYPOINT`
+```shell
+#!/bin/bash
+set -e
+
+if [ "$1" = 'postgres' ]; then
+    chown -R postgres "$PGDATA"
+
+    if [ -z "$(ls -A "$PGDATA")" ]; then
+        gosu postgres initdb
+    fi
+
+    exec gosu postgres "$@"
+fi
+
+exec "$@"
+```
+
+Configure app as PID 1
+This script uses [the `exec` Bash command](http://wiki.bash-hackers.org/commands/builtin/exec) so that the final running application becomes the container’s `PID 1`. This allows the application to receive any Unix signals sent to the container. For more, see the [`ENTRYPOINT` reference](https://docs.docker.com/engine/reference/builder/#entrypoint).
+
+##### VOLUME
+
+https://docs.docker.com/develop/develop-images/#volume
+
+The VOLUME instruction should be used to expose any database storage area, configuration storage, or files/folders created by your docker container. You are strongly encouraged to use VOLUME for any mutable and/or user-serviceable parts of your image.
+
+##### USER
+
+https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user
+
+If a service can run without privileges, use `USER` to change to a non-root user. Start by creating the user and group in the Dockerfile with something like 
+```Dockerfile
+RUN groupadd -r postgres && useradd --no-log-init -r -g postgres postgres
+```
+
+WARNING: [unresolved bug](https://github.com/golang/go/issues/13548)
+
+Avoid installing or using `sudo` as it has unpredictable TTY and signal-forwarding behavior that can cause problems. If you absolutely need functionality similar to `sudo`, such as initializing the daemon as root but running it as non-root, consider using `“gosu”`.
+
+##### WORKDIR
+
+https://docs.docker.com/develop/develop-images/#workdir
+
+For clarity and reliability, you should always use absolute paths for your `WORKDIR`. Also, you should use `WORKDIR` instead of proliferating instructions like `RUN cd … && do-something`, which are hard to read, troubleshoot, and maintain.
+
+##### ONBUILD
+
+https://docs.docker.com/develop/develop-images/#onbuild
+
+An `ONBUILD` command executes after the current `Dockerfile` build completes. `ONBUILD` executes in any child image derived FROM the current image. Think of the `ONBUILD` command as an instruction the parent `Dockerfile` gives to the child `Dockerfile`.
+`ONBUILD` is useful for images that are going to be built `FROM` a given image.
+[Ruby’s ONBUILD variants](https://github.com/docker-library/ruby/blob/c43fef8a60cea31eb9e7d960a076d633cb62ba8d/2.4/jessie/onbuild/Dockerfile)
+Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-onbuild` or `ruby:2.0-onbuild`.
+
+</p>
+</details>
