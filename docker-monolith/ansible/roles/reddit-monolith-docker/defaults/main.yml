@@ -1,0 +1,20 @@
+---
+# defaults file for reddit-monolith-docker
+app_docker_debug: no
+
+app_container_name: reddit-app
+app_image_url: vscoder/otus-reddit
+app_image_tag: 1.0
+app_container_labels:
+  role: reddit-monolith
+
+app_recreate: no
+app_network_mode: bridge
+app_ports:
+  - "9292"
+app_restart: no
+app_pull: yes
+
+# limits
+app_memory: "{{ ansible_memtotal_mb * 0.8 }}M"
+app_memory_swap: "{{ ansible_memtotal_mb * 0.8 }}M"

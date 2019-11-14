@@ -1,0 +1,6 @@
+---
+- name: Install docker on all hosts
+  hosts: reddit_docker_app
+  become: true
+  roles:
+    - role: reddit-monolith-docker

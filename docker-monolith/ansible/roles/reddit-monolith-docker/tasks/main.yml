@@ -1,0 +1,4 @@
+---
+- import_tasks: app_container.yml
+  tags:
+    - reddit_monolith_docker_app_container

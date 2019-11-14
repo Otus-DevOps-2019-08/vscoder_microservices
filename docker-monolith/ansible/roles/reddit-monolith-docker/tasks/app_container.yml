@@ -1,0 +1,43 @@
+---
+- name: Install pip
+  apt:
+    name: python-pip
+
+- name: Install python Dokcer SDK
+  pip:
+    name: docker
+
+- name: Run app container
+  docker_container:
+    state: started
+
+    name: "{{ app_container_name }}"
+    image: "{{ app_image_url }}:{{ app_image_tag }}"
+    labels: "{{ app_container_labels }}"
+
+    memory_swap: "{{ app_memory_swap }}"
+    memory: "{{ app_memory }}"
+    oom_score_adj: "{{ app_oom_score_adj | default(omit) }}"
+
+    network_mode: "{{ app_network_mode }}"
+    published_ports: "{{ app_ports }}"
+
+    keep_volumes: yes
+
+    pull: "{{ app_pull }}"
+    restart_policy: unless-stopped
+    recreate: "{{ app_recreate }}"
+    restart: "{{ app_restart }}"
+
+    debug: "{{ app_docker_debug }}"
+
+    privileged: no
+    trust_image_content: no
+    #read_only: yes
+    #user: undefined # not required. Sets the username or UID used and optionally the groupname or GID for the specified command.,Can be [ user | user:group | uid | uid:gid | user:gid | uid:group ]
+    #groups: undefined # not required. List of additional group names and/or IDs that the container process will run as.
+    #userns_mode: undefined # not required. User namespace to use
+    #purge_networks: no # not required. Remove the container from ALL networks not included in C(networks) parameter.,Any default networks such as I(bridge), if not found in C(networks), will be removed as well.
+    #volumes: undefined # not required. List of volumes to mount within the container.,Use docker CLI-style syntax: C(/host:/container[:mode]),You can specify a read mode for the mount with either C(ro) or C(rw).,SELinux hosts can additionally use C(z) or C(Z) to use a shared or private label for the volume.
+    #env_file: undefined # not required. Path to a file, present on the target, containing environment variables I(FOO=BAR).,If variable also present in C(env), then C(env) value will override.
+    #env: undefined # not required. Dictionary of key,value pairs.
