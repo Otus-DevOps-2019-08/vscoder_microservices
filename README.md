@@ -2020,3 +2020,4 @@ Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-on
   mv reddit-microservices src
   ```
 - Создан файл [src/post-py/Dockerfile](src/post-py/Dockerfile)
+- В файле [src/post-py/Dockerfile](src/post-py/Dockerfile) рабочий каталог параметризирован
