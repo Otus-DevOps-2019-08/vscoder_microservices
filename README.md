@@ -54,6 +54,7 @@ vscoder microservices repository
         - [WORKDIR](#workdir)
         - [ONBUILD](#onbuild)
       - [Новая структура приложения](#%d0%9d%d0%be%d0%b2%d0%b0%d1%8f-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+      - [Сборка образов](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
     - [src/Makefile](#srcmakefile)
       - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
       - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
@@ -2032,6 +2033,17 @@ Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-on
   ```
 - Подготовлен [Makefile](src/Makefile) с набороми часто используемых действий
 
+#### Сборка образов
+
+- Сборка образа `post-py` завершилась ошибкой
+  ```log
+  unable to execute 'gcc': No such file or directory
+  error: command 'gcc' failed with exit status 1
+  ```
+- Собран образ comment `make build_comment`
+- Собран образ ui `make build_ui`
+
+TODO: решить проблему сборки `post-py`
 
 ### src/Makefile
 
