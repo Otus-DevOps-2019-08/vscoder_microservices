@@ -2043,7 +2043,13 @@ Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-on
 - Собран образ comment `make build_comment`
 - Собран образ ui `make build_ui`
 
-TODO: решить проблему сборки `post-py`
+- Проблема с `post-py` решена следующим образом
+  ```Dockerfile
+  RUN apk add --no-cache --virtual .build-deps build-base \
+    && pip install -r $APP_HOME/requirements.txt \
+    && apk del .build-deps
+  ```
+  Перед установкой `requirements.txt`, ставится пакет `build-base`. После установки `requirements.txt`, все необходимые для сборки пакеты удаляются. Это всё происходит в рамках одной инструкции `RUN`, чтобы не создавать лишний слой с установленными зависимостями.
 
 ### src/Makefile
 

@@ -9,7 +9,9 @@ WORKDIR $APP_HOME
 
 # Install requiremets (fat layer)
 COPY requirements.txt $APP_HOME
-RUN pip install -r $APP_HOME/requirements.txt
+RUN apk add --no-cache --virtual .build-deps build-base \
+    && pip install -r $APP_HOME/requirements.txt \
+    && apk del .build-deps
 
 # Application (frequently changing layer)
 COPY . $APP_HOME
