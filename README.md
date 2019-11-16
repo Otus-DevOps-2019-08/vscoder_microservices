@@ -53,9 +53,13 @@ vscoder microservices repository
         - [USER](#user)
         - [WORKDIR](#workdir)
         - [ONBUILD](#onbuild)
+    - [Запуск](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba)
       - [Новая структура приложения](#%d0%9d%d0%be%d0%b2%d0%b0%d1%8f-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
       - [Сборка образов](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
       - [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+    - [Задание со \*: Переопределение сетевых алиасов](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9f%d0%b5%d1%80%d0%b5%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%82%d0%b5%d0%b2%d1%8b%d1%85-%d0%b0%d0%bb%d0%b8%d0%b0%d1%81%d0%be%d0%b2)
+      - [Теория](#%d0%a2%d0%b5%d0%be%d1%80%d0%b8%d1%8f)
+      - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f)
     - [src/Makefile](#srcmakefile)
       - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
       - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
@@ -2012,6 +2016,8 @@ Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-on
 </p>
 </details>
 
+### Запуск
+
 #### Новая структура приложения
 
 - Скачан и распакован архив [microservices.zip](https://github.com/express42/reddit/archive/microservices.zip)
@@ -2073,6 +2079,68 @@ Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-on
 - Зайти на http://127.0.0.1:9292 удалось
 - Написать пост удалось
 - Всё убито `make kill_all`
+
+### Задание со \*: Переопределение сетевых алиасов
+
+#### Теория
+
+https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file
+
+Use the `-e`, `--env`, and `--env-file` flags to set simple (non-array) environment variables in the container you’re running, or overwrite variables that are defined in the Dockerfile of the image you’re running.
+
+```shell
+$ docker run --env VAR1=value1 --env VAR2=value2 ubuntu env | grep VAR
+VAR1=value1
+VAR2=value2
+```
+
+```shell
+export VAR1=value1
+export VAR2=value2
+
+$ docker run --env VAR1 --env VAR2 ubuntu env | grep VAR
+VAR1=value1
+VAR2=value2
+```
+
+```shell
+$ cat env.list
+# This is a comment
+VAR1=value1
+VAR2=value2
+USER
+
+$ docker run --env-file env.list ubuntu env | grep VAR
+VAR1=value1
+VAR2=value2
+USER=denis
+```
+
+#### Реализация
+
+Создание сети и запуск контейнеров с другими алиасами и переопределением переменных
+```shell
+docker network create reddit
+docker run -d --network=reddit \
+  --network-alias=posts_db1 \
+  --network-alias=comment_db1 \
+  mongo:latest
+docker run -d --network=reddit \
+  --network-alias=post1 \
+  --env POST_DATABASE_HOST=posts_db1 \
+  vscoder/post:1.0
+docker run -d --network=reddit \
+  --network-alias=comment1 \
+  --env COMMENT_DATABASE_HOST=comment_db1 \
+  vscoder/comment:1.0
+docker run -d --network=reddit \
+  --env POST_SERVICE_HOST=post1 \
+  --env COMMENT_SERVICE_HOST=comment1 \
+  -p 9292:9292 \
+  vscoder/ui:1.0
+```
+
+Сеть создана, контейнеры запущены. Работоспособность приложения проверена.
 
 ### src/Makefile
 

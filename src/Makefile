@@ -31,5 +31,5 @@ run_all:
 kill_all:
 	docker ps
 	echo -n "\nWARNING: This command kill all running containers! You have 5 seconds to CTRL+C...\n" && sleep 5
-	docker ps -q | xargs docker kill
-	docker network rm ${REDDIT_NETWORK_NAME}
+	docker ps -q | xargs docker kill \
+	; docker network rm ${REDDIT_NETWORK_NAME}
