@@ -63,6 +63,8 @@ vscoder microservices repository
     - [Образы](#%d0%9e%d0%b1%d1%80%d0%b0%d0%b7%d1%8b)
     - [Задание со \*: Уменьшаем размер образа](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%a3%d0%bc%d0%b5%d0%bd%d1%8c%d1%88%d0%b0%d0%b5%d0%bc-%d1%80%d0%b0%d0%b7%d0%bc%d0%b5%d1%80-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
       - [Сборка на основе alpine linux](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bd%d0%b0-%d0%be%d1%81%d0%bd%d0%be%d0%b2%d0%b5-alpine-linux)
+        - [ui](#ui)
+        - [comment](#comment)
     - [src/Makefile](#srcmakefile)
       - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
       - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
@@ -2191,7 +2193,7 @@ python                3.6.0-alpine        cb178ebbf0f2        2 years ago       
 - [Официальная wiki](https://wiki.alpinelinux.org/wiki)
 - [Статья на habr](https://habr.com/ru/company/digdes/blog/415279/)
 
-Сборка:
+##### ui
 
 - Образ пересобран на базе `ruby:2.2-alpine`. Установка зависимостей потребовала установки `build-base`. Установка `build-base`, установка зависимостей и удаление `build-base` выполняется одниой инструкцией `RUN`, чтобы избежать создания лишних образов.
 ```Dockerfile
@@ -2220,6 +2222,37 @@ CMD ["puma"]
 vscoder/ui            3.0                 25f038173527        13 minutes ago      158MB
 vscoder/ui            2.0                 ebb79fd1384f        4 hours ago         458MB
 vscoder/ui            1.0                 aacf973cbc5d        6 hours ago         772MB
+```
+
+##### comment
+
+- Dockerfile
+```Dockerfile
+FROM ruby:2.2-alpine
+
+ENV COMMENT_DATABASE_HOST comment_db
+ENV COMMENT_DATABASE comments
+ENV APP_HOME /app
+
+RUN mkdir $APP_HOME
+WORKDIR $APP_HOME
+
+# Application requiremets (fat layer)
+COPY Gemfile* $APP_HOME/
+RUN apk add --no-cache --virtual .build-deps build-base \
+    && bundle install \
+    && apk del .build-deps
+
+# Application (frequently changing layer)
+COPY . $APP_HOME
+
+CMD ["puma"]
+```
+
+- Размер `docker images | grep vscoder/comment`
+```log
+vscoder/comment       2.0                 a85ccabc510d        15 seconds ago      156MB
+vscoder/comment       1.0                 188232c05d67        6 hours ago         770MB
 ```
 
 ### src/Makefile
