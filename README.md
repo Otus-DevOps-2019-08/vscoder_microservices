@@ -55,6 +55,7 @@ vscoder microservices repository
         - [ONBUILD](#onbuild)
       - [Новая структура приложения](#%d0%9d%d0%be%d0%b2%d0%b0%d1%8f-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
       - [Сборка образов](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
+      - [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
     - [src/Makefile](#srcmakefile)
       - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
       - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
@@ -2051,16 +2052,39 @@ Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-on
   ```
   Перед установкой `requirements.txt`, ставится пакет `build-base`. После установки `requirements.txt`, все необходимые для сборки пакеты удаляются. Это всё происходит в рамках одной инструкции `RUN`, чтобы не создавать лишний слой с установленными зависимостями.
 
+Сборка `ui` началась не с первого шага, потому что слой с установленным пакетом `build-essential` уже был создан на этапе сборки `comment`, а сейчас был взят из build-cache вместо ссборки с нуля.
+
+#### Запуск приложения
+
+Работа ведётся в директории [src/](src/)
+
+- Собраны все образы `make build_all`
+- В [Makefile](src/Makefile) добавлена цель `run_all`, которая
+  - Создаёт сеть `${REDDIT_NETWORK_NAME}`
+  - Запускает контейнеры в сети `${REDDIT_NETWORK_NAME}` из образов
+    - `mongodb:latest`
+    - `${DOCKERHUB_LOGIN}/post:${POST_VERSION}`
+    - `${DOCKERHUB_LOGIN}/comment:${COMMENT_VERSION}`
+    - `${DOCKERHUB_LOGIN}/ui:${UI_VERSION}`
+- В [Makefile](src/Makefile) добавлена цель `kill_all`, которая
+  - Убивает все запущенные контейнеры (**ВНИМАНИЕ**: вообще все! О чём выдаётся предупреждение с возможностью отмены.)
+  - Удаляет сеть `${REDDIT_NETWORK_NAME}`
+- Создана сеть и запущены контейнеры `make run_all`
+- Зайти на http://127.0.0.1:9292 удалось
+- Написать пост удалось
+- Всё убито `make kill_all`
+
 ### src/Makefile
 
 #### Переменные
 
-| переменная      | значение по-умолчанию | описание                |
-| --------------- | --------------------- | ----------------------- |
-| DOCKERHUB_LOGIN | vscoder               | логин на hub.docker.com |
-| POST_VERSION    | 1.0                   | версия сервиса post-py  |
-| COMMENT_VERSION | 1.0                   | версия сервиса comment  |
-| UI_VERSION      | 1.0                   | версия сервиса ui       |
+| переменная          | значение по-умолчанию | описание                |
+| ------------------- | --------------------- | ----------------------- |
+| DOCKERHUB_LOGIN     | vscoder               | логин на hub.docker.com |
+| POST_VERSION        | 1.0                   | версия сервиса post-py  |
+| COMMENT_VERSION     | 1.0                   | версия сервиса comment  |
+| UI_VERSION          | 1.0                   | версия сервиса ui       |
+| REDDIT_NETWORK_NAME | reddit                | Имя docker-сети         |
 
 #### Цели
 
@@ -2070,3 +2094,5 @@ Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-on
 | build_comment | собирает контейнер comment:${COMMENT_VERSION} из контекста ./comment |
 | build_ui      | собирает контейнер ui:${UI_VERSION} из контекста ./ui                |
 | build_all     | собрать все контейнеры                                               |
+| run_all       | запустить контейнеры из образов mongodb и 3х наших сервисов          |
+| kill_all      | Убить **все запущенные** контейнеры и удалить сеть                   |
