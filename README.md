@@ -60,6 +60,7 @@ vscoder microservices repository
     - [Задание со \*: Переопределение сетевых алиасов](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9f%d0%b5%d1%80%d0%b5%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%82%d0%b5%d0%b2%d1%8b%d1%85-%d0%b0%d0%bb%d0%b8%d0%b0%d1%81%d0%be%d0%b2)
       - [Теория](#%d0%a2%d0%b5%d0%be%d1%80%d0%b8%d1%8f)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f)
+    - [Образы](#%d0%9e%d0%b1%d1%80%d0%b0%d0%b7%d1%8b)
     - [src/Makefile](#srcmakefile)
       - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
       - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
@@ -2141,6 +2142,43 @@ docker run -d --network=reddit \
 ```
 
 Сеть создана, контейнеры запущены. Работоспособность приложения проверена.
+
+### Образы
+
+Список образов `docker images`
+
+```shell
+REPOSITORY            TAG                 IMAGE ID            CREATED             SIZE
+vscoder/ui            1.0                 aacf973cbc5d        About an hour ago   772MB
+vscoder/comment       1.0                 188232c05d67        About an hour ago   770MB
+vscoder/post          1.0                 f22acc632909        About an hour ago   109MB
+reddit                latest              fce89963a387        5 days ago          691MB
+vscoder/otus-reddit   1.0                 fce89963a387        5 days ago          691MB
+mongo                 latest              965553e202a4        2 weeks ago         363MB
+ubuntu                16.04               5f2bf26e3524        2 weeks ago         123MB
+ruby                  2.2                 6c8e6f9667b2        18 months ago       715MB
+python                3.6.0-alpine        cb178ebbf0f2        2 years ago         88.6MB
+```
+
+- Уменьшен убраз `ui`, засчёт пересборки его на основе `ubuntu:16.04`. Новый [Dockerfile](src/ui/Dockerfile)
+- В [Makefile](src/Makefile) изменена версия ui на 2.0
+- Образ пересобран `make build_ui`
+
+Список образов `docker images`
+
+```shell
+REPOSITORY            TAG                 IMAGE ID            CREATED             SIZE
+vscoder/ui            2.0                 ebb79fd1384f        2 minutes ago       458MB
+vscoder/ui            1.0                 aacf973cbc5d        About an hour ago   772MB
+vscoder/comment       1.0                 188232c05d67        About an hour ago   770MB
+vscoder/post          1.0                 f22acc632909        About an hour ago   109MB
+reddit                latest              fce89963a387        5 days ago          691MB
+vscoder/otus-reddit   1.0                 fce89963a387        5 days ago          691MB
+mongo                 latest              965553e202a4        2 weeks ago         363MB
+ubuntu                16.04               5f2bf26e3524        2 weeks ago         123MB
+ruby                  2.2                 6c8e6f9667b2        18 months ago       715MB
+python                3.6.0-alpine        cb178ebbf0f2        2 years ago         88.6MB
+```
 
 ### src/Makefile
 
