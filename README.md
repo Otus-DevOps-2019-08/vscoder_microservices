@@ -61,6 +61,8 @@ vscoder microservices repository
       - [Теория](#%d0%a2%d0%b5%d0%be%d1%80%d0%b8%d1%8f)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f)
     - [Образы](#%d0%9e%d0%b1%d1%80%d0%b0%d0%b7%d1%8b)
+    - [Задание со \*: Уменьшаем размер образа](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%a3%d0%bc%d0%b5%d0%bd%d1%8c%d1%88%d0%b0%d0%b5%d0%bc-%d1%80%d0%b0%d0%b7%d0%bc%d0%b5%d1%80-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
+      - [Сборка на основе alpine linux](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bd%d0%b0-%d0%be%d1%81%d0%bd%d0%be%d0%b2%d0%b5-alpine-linux)
     - [src/Makefile](#srcmakefile)
       - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
       - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
@@ -2178,6 +2180,46 @@ mongo                 latest              965553e202a4        2 weeks ago       
 ubuntu                16.04               5f2bf26e3524        2 weeks ago         123MB
 ruby                  2.2                 6c8e6f9667b2        18 months ago       715MB
 python                3.6.0-alpine        cb178ebbf0f2        2 years ago         88.6MB
+```
+
+### Задание со \*: Уменьшаем размер образа
+
+#### Сборка на основе alpine linux
+
+Ссылки:
+
+- [Официальная wiki](https://wiki.alpinelinux.org/wiki)
+- [Статья на habr](https://habr.com/ru/company/digdes/blog/415279/)
+
+Сборка:
+
+- Образ пересобран на базе `ruby:2.2-alpine`. Установка зависимостей потребовала установки `build-base`. Установка `build-base`, установка зависимостей и удаление `build-base` выполняется одниой инструкцией `RUN`, чтобы избежать создания лишних образов.
+```Dockerfile
+FROM ruby:2.2-alpine
+
+ENV POST_SERVICE_HOST post
+ENV POST_SERVICE_PORT 5000
+ENV COMMENT_SERVICE_HOST comment
+ENV COMMENT_SERVICE_PORT 9292
+ENV APP_HOME /app
+
+RUN mkdir $APP_HOME
+WORKDIR $APP_HOME
+COPY Gemfile* $APP_HOME/
+
+RUN apk add --no-cache --virtual .build-deps build-base \
+    && bundle install \
+    && apk del .build-deps
+
+COPY . $APP_HOME
+
+CMD ["puma"]
+```
+- Занимаемый объём уменьшился `docker images | grep vscoder/ui`
+```log
+vscoder/ui            3.0                 25f038173527        13 minutes ago      158MB
+vscoder/ui            2.0                 ebb79fd1384f        4 hours ago         458MB
+vscoder/ui            1.0                 aacf973cbc5d        6 hours ago         772MB
 ```
 
 ### src/Makefile
