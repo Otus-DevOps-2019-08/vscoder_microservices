@@ -98,6 +98,7 @@ install_hadolint:
 	${BIN_DIR}/hadolint --version
 
 docker_machine_create:
+	. ./env && \
 	${DOCKER_MACHINE} create --driver google \
 		--google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
 		--google-machine-type ${DOCKER_MACHINE_TYPE} \
