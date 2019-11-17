@@ -2700,6 +2700,7 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
 	docker run -d --network=${REDDIT_NETWORK_NAME} \
 		-p 9292:9292 ${DOCKERHUB_LOGIN}/ui:${UI_VERSION}
   ```
+- Работоспособность проверена
 
 ### src/Makefile
 
