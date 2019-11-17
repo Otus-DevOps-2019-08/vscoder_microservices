@@ -62,9 +62,12 @@ vscoder microservices repository
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f)
     - [Образы](#%d0%9e%d0%b1%d1%80%d0%b0%d0%b7%d1%8b)
     - [Задание со \*: Уменьшаем размер образа](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%a3%d0%bc%d0%b5%d0%bd%d1%8c%d1%88%d0%b0%d0%b5%d0%bc-%d1%80%d0%b0%d0%b7%d0%bc%d0%b5%d1%80-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
+      - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7)
       - [Сборка на основе alpine linux](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bd%d0%b0-%d0%be%d1%81%d0%bd%d0%be%d0%b2%d0%b5-alpine-linux)
         - [ui](#ui)
         - [comment](#comment)
+        - [post](#post)
+      - [Прочие действия](#%d0%9f%d1%80%d0%be%d1%87%d0%b8%d0%b5-%d0%b4%d0%b5%d0%b9%d1%81%d1%82%d0%b2%d0%b8%d1%8f)
     - [src/Makefile](#srcmakefile)
       - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
       - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
@@ -2186,12 +2189,48 @@ python                3.6.0-alpine        cb178ebbf0f2        2 years ago       
 
 ### Задание со \*: Уменьшаем размер образа
 
-#### Сборка на основе alpine linux
+#### Анализ
 
 Ссылки:
 
 - [Официальная wiki](https://wiki.alpinelinux.org/wiki)
 - [Статья на habr](https://habr.com/ru/company/digdes/blog/415279/)
+- [Статья на habr](https://habr.com/ru/company/digdes/blog/440658/)
+- [Получаем максимум от Docker. Микроконтейнеры и Alpine Linux](https://youtu.be/ClX9jbiVLaY)
+- Утилита по исследованию образов [dive](https://github.com/wagoodman/dive)
+  Пример использования:
+  - Для интерактивного анализа
+    ```shell
+    docker run --rm -it \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      wagoodman/dive:latest <ui image id>
+    ```
+  - Для интеграции с CI
+    ```shell
+    docker run --rm -it \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -e CI=true \
+      wagoodman/dive:latest <ui image id>
+    ```
+
+Варианты решения:
+
+- Образы на основе alpine-linux. 
+  - '+' Очень эффективно (результаты далее) за счёт минималистичного базового образа.
+  - '-' Могут возникнуть сложности при отсутствии каких-либо пакетов в репозитории.
+- Образы на основе [scratch](https://hub.docker.com/_/scratch), то есть на основе пустого образа
+  - '+' На несколько мегабайт эффективнее чем alpine-linux.
+  - '-' Очень сильно усложняет обслуживание образов.
+- Использование промежуточных образов, Многоступенчатая сборка.
+  - '+' Позволяет все зависимости, необходимые для сборки исполняемого файла, иметь в отдельном образе. В основном используется для компиляции исполняемых файлов с последующим копированием их в итоговый образ.
+  - '-' Усложняет обслуживание. Сложно применимо в ряде случаев (например для интерпретируемых языков).
+  - Для используемых образов (python и ruby) можно в промежуточном образе установить зависимости, необходимые для компиляции, установить зависимости приложения (`pip` или `bundle`), получить с помощью `dive` добавленные файлы и скопировать их в итоговый образ. Но это **чрезмерно** усложнит обслуживание образа, что делает возможную выгоду несущественной.
+
+Выводы:
+
+Наиболее эффективным решением быдет использование для приложений образов на основе alpine-linux
+
+#### Сборка на основе alpine linux
 
 ##### ui
 
@@ -2223,6 +2262,153 @@ vscoder/ui            3.0                 25f038173527        13 minutes ago    
 vscoder/ui            2.0                 ebb79fd1384f        4 hours ago         458MB
 vscoder/ui            1.0                 aacf973cbc5d        6 hours ago         772MB
 ```
+- Результат работы `dive`
+  ```shell
+  make dive_ui
+  docker run --rm -it \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -e CI=true \
+          wagoodman/dive:latest $(docker images -q vscoder/ui:3.0)
+  ```
+
+<details><summary>результат</summary>
+<p>
+
+```log
+Image Source: docker://7d3825b1f360
+Fetching image... (this can take a while for large images)
+Analyzing image...
+  efficiency: 99.4482 %
+
+  wastedBytes: 892115 bytes (892 kB)
+
+  userWastedPercent: 0.5820 %
+
+Inefficient Files:
+Count  Wasted Space  File Path
+    3        324 kB  /lib/apk/db/installed
+    2        113 kB  /bin/ps
+    2         83 kB  /usr/bin/top
+    2         70 kB  /usr/bin/bunzip2
+    2         70 kB  /usr/bin/bzip2
+    2         70 kB  /usr/bin/bzcat
+    3         32 kB  /lib/apk/db/scripts.tar
+    2         26 kB  /usr/bin/pmap
+    2         22 kB  /usr/bin/pgrep
+    2         22 kB  /usr/bin/pkill
+    2         18 kB  /sbin/sysctl
+    2         14 kB  /usr/bin/free
+    2         10 kB  /usr/bin/uptime
+    2        9.9 kB  /usr/bin/pwdx
+    2        3.7 kB  /app/Gemfile.lock
+    3         500 B  /lib/apk/db/triggers
+    2         474 B  /app/Gemfile
+    3         181 B  /etc/apk/world
+    2           0 B  /usr/bin/sort
+    2           0 B  /usr/bin/test
+    2           0 B  /usr/bin/fold
+    2           0 B  /usr/bin/tail
+    2           0 B  /usr/bin/tac
+    2           0 B  /usr/bin/sum
+    3           0 B  /usr/bin/strings
+    2           0 B  /usr/bin/split
+    2           0 B  /usr/bin/timeout
+    2           0 B  /usr/bin/shuf
+    2           0 B  /usr/bin/sha512sum
+    2           0 B  /usr/bin/sha256sum
+    2           0 B  /usr/bin/sha1sum
+    2           0 B  /usr/bin/seq
+    2           0 B  /usr/bin/realpath
+    2           0 B  /usr/bin/readlink
+    2           0 B  /usr/bin/tr
+    2           0 B  /usr/bin/printf
+    2           0 B  /usr/bin/truncate
+    2           0 B  /usr/bin/tty
+    2           0 B  /usr/bin/unexpand
+    2           0 B  /usr/bin/od
+    2           0 B  /usr/bin/nohup
+    2           0 B  /usr/bin/mkfifo
+    2           0 B  /usr/bin/md5sum
+    2           0 B  /usr/bin/lzma
+    2           0 B  /usr/bin/lzcat
+    2           0 B  /usr/bin/install
+    2           0 B  /usr/bin/id
+    2           0 B  /usr/bin/hostid
+    2           0 B  /usr/bin/head
+    2           0 B  /usr/bin/groups
+    2           0 B  /usr/bin/uniq
+    2           0 B  /usr/bin/tee
+    2           0 B  /usr/bin/expr
+    2           0 B  /usr/bin/expand
+    2           0 B  /usr/bin/env
+    2           0 B  /usr/bin/du
+    2           0 B  /usr/bin/dirname
+    2           0 B  /usr/bin/cut
+    2           0 B  /usr/bin/comm
+    2           0 B  /usr/bin/cksum
+    2           0 B  /usr/bin/unlink
+    2           0 B  /usr/bin/unlzma
+    2           0 B  /usr/bin/unxz
+    2           0 B  /usr/bin/basename
+    2           0 B  /usr/bin/[
+    3           0 B  /tmp
+    2           0 B  /usr/bin/wc
+    2           0 B  /root
+    2           0 B  /usr/bin/whoami
+    2           0 B  /usr/bin/xzcat
+    3           0 B  /lib/apk/db/lock
+    2           0 B  /usr/bin/yes
+    2           0 B  /usr/sbin/chroot
+    2           0 B  /bin/uname
+    2           0 B  /bin/true
+    2           0 B  /bin/touch
+    2           0 B  /bin/tar
+    2           0 B  /bin/sync
+    2           0 B  /bin/stty
+    2           0 B  /bin/stat
+    2           0 B  /bin/sleep
+    2           0 B  /bin/rmdir
+    2           0 B  /bin/rm
+    2           0 B  /bin/pwd
+    3           0 B  /var/cache/misc
+    2           0 B  /bin/printenv
+    2           0 B  /bin/nice
+    2           0 B  /bin/mv
+    2           0 B  /bin/mktemp
+    2           0 B  /bin/mknod
+    2           0 B  /bin/mkdir
+    2           0 B  /bin/ls
+    2           0 B  /bin/ln
+    2           0 B  /bin/false
+    2           0 B  /bin/echo
+    2           0 B  /bin/df
+    2           0 B  /bin/dd
+    2           0 B  /bin/date
+    2           0 B  /bin/cp
+    2           0 B  /bin/chown
+    2           0 B  /bin/chmod
+    2           0 B  /bin/chgrp
+    2           0 B  /bin/cat
+    2           0 B  /bin/base64
+Results:
+  PASS: highestUserWastedPercent
+  SKIP: highestWastedBytes: rule disabled
+  PASS: lowestEfficiency
+Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
+```
+
+</p>
+</details>
+
+- На шаге установки зависимостей, была добавлена очистка кеша `bundle clean`, что позволило уменьшить итоговый образ на 1Мб.
+  ```shell
+  # docker images vscoder/ui  
+  REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+  vscoder/ui          3.0-alpine          f54689080dbe        17 minutes ago      157MB
+  vscoder/ui          3.0                 7d3825b1f360        2 hours ago         158MB
+  vscoder/ui          2.0                 ebb79fd1384f        26 hours ago        458MB
+  vscoder/ui          1.0                 aacf973cbc5d        28 hours ago        772MB
+  ```
 
 ##### comment
 
@@ -2254,6 +2440,234 @@ CMD ["puma"]
 vscoder/comment       2.0                 a85ccabc510d        15 seconds ago      156MB
 vscoder/comment       1.0                 188232c05d67        6 hours ago         770MB
 ```
+- Результат работы `dive`
+  ```shell
+  # make dive_comment 
+  docker run --rm -it \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -e CI=true \
+          wagoodman/dive:latest $(docker images -q vscoder/comment:2.0)
+  ```
+<details><summary>результат</summary>
+<p>
+
+```log
+  Using default CI config
+Image Source: docker://a85ccabc510d
+Fetching image... (this can take a while for large images)
+Analyzing image...
+  efficiency: 99.4405 %
+
+  wastedBytes: 890157 bytes (890 kB)
+
+  userWastedPercent: 0.5898 %
+
+Inefficient Files:
+Count  Wasted Space  File Path
+    3        324 kB  /lib/apk/db/installed
+    2        113 kB  /bin/ps
+    2         83 kB  /usr/bin/top
+    2         70 kB  /usr/bin/bunzip2
+    2         70 kB  /usr/bin/bzip2
+    2         70 kB  /usr/bin/bzcat
+    3         32 kB  /lib/apk/db/scripts.tar
+    2         26 kB  /usr/bin/pmap
+    2         22 kB  /usr/bin/pgrep
+    2         22 kB  /usr/bin/pkill
+    2         18 kB  /sbin/sysctl
+    2         14 kB  /usr/bin/free
+    2         10 kB  /usr/bin/uptime
+    2        9.9 kB  /usr/bin/pwdx
+    2        1.8 kB  /app/Gemfile.lock
+    3         500 B  /lib/apk/db/triggers
+    2         364 B  /app/Gemfile
+    3         181 B  /etc/apk/world
+    2           0 B  /usr/bin/sort
+    2           0 B  /usr/bin/test
+    2           0 B  /usr/bin/fold
+    2           0 B  /usr/bin/tail
+    2           0 B  /usr/bin/tac
+    2           0 B  /usr/bin/sum
+    3           0 B  /usr/bin/strings
+    2           0 B  /usr/bin/split
+    2           0 B  /usr/bin/timeout
+    2           0 B  /usr/bin/shuf
+    2           0 B  /usr/bin/sha512sum
+    2           0 B  /usr/bin/sha256sum
+    2           0 B  /usr/bin/sha1sum
+    2           0 B  /usr/bin/seq
+    2           0 B  /usr/bin/realpath
+    2           0 B  /usr/bin/readlink
+    2           0 B  /usr/bin/tr
+    2           0 B  /usr/bin/printf
+    2           0 B  /usr/bin/truncate
+    2           0 B  /usr/bin/tty
+    2           0 B  /usr/bin/unexpand
+    2           0 B  /usr/bin/od
+    2           0 B  /usr/bin/nohup
+    2           0 B  /usr/bin/mkfifo
+    2           0 B  /usr/bin/md5sum
+    2           0 B  /usr/bin/lzma
+    2           0 B  /usr/bin/lzcat
+    2           0 B  /usr/bin/install
+    2           0 B  /usr/bin/id
+    2           0 B  /usr/bin/hostid
+    2           0 B  /usr/bin/head
+    2           0 B  /usr/bin/groups
+    2           0 B  /usr/bin/uniq
+    2           0 B  /usr/bin/tee
+    2           0 B  /usr/bin/expr
+    2           0 B  /usr/bin/expand
+    2           0 B  /usr/bin/env
+    2           0 B  /usr/bin/du
+    2           0 B  /usr/bin/dirname
+    2           0 B  /usr/bin/cut
+    2           0 B  /usr/bin/comm
+    2           0 B  /usr/bin/cksum
+    2           0 B  /usr/bin/unlink
+    2           0 B  /usr/bin/unlzma
+    2           0 B  /usr/bin/unxz
+    2           0 B  /usr/bin/basename
+    2           0 B  /usr/bin/[
+    3           0 B  /tmp
+    2           0 B  /usr/bin/wc
+    2           0 B  /root
+    2           0 B  /usr/bin/whoami
+    2           0 B  /usr/bin/xzcat
+    3           0 B  /lib/apk/db/lock
+    2           0 B  /usr/bin/yes
+    2           0 B  /usr/sbin/chroot
+    2           0 B  /bin/uname
+    2           0 B  /bin/true
+    2           0 B  /bin/touch
+    2           0 B  /bin/tar
+    2           0 B  /bin/sync
+    2           0 B  /bin/stty
+    2           0 B  /bin/stat
+    2           0 B  /bin/sleep
+    2           0 B  /bin/rmdir
+    2           0 B  /bin/rm
+    2           0 B  /bin/pwd
+    3           0 B  /var/cache/misc
+    2           0 B  /bin/printenv
+    2           0 B  /bin/nice
+    2           0 B  /bin/mv
+    2           0 B  /bin/mktemp
+    2           0 B  /bin/mknod
+    2           0 B  /bin/mkdir
+    2           0 B  /bin/ls
+    2           0 B  /bin/ln
+    2           0 B  /bin/false
+    2           0 B  /bin/echo
+    2           0 B  /bin/df
+    2           0 B  /bin/dd
+    2           0 B  /bin/date
+    2           0 B  /bin/cp
+    2           0 B  /bin/chown
+    2           0 B  /bin/chmod
+    2           0 B  /bin/chgrp
+    2           0 B  /bin/cat
+    2           0 B  /bin/base64
+Results:
+  PASS: highestUserWastedPercent
+  SKIP: highestWastedBytes: rule disabled
+  PASS: lowestEfficiency
+Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
+```
+
+</p>
+</details>
+
+- На шаге установки зависимостей, была добавлена очистка кеша `bundle clean`, что позволило уменьшить итоговый образ на 1Мб.
+  ```shell
+  # docker images vscoder/comment
+  REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+  vscoder/comment     2.0-alpine          333b8da781a5        17 minutes ago      156MB
+  vscoder/comment     2.0                 a85ccabc510d        22 hours ago        156MB
+  vscoder/comment     1.0                 188232c05d67        28 hours ago        770MB
+  ```
+
+##### post
+
+- Образ post изначально бдыл основан на alpine, в связи с этим модификация не потребовалась.
+  ```shell
+  # docker images vscoder/post
+  REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+  vscoder/post        1.0                 f22acc632909        27 hours ago        109MB
+  ```
+- Результат работы `dive`
+  ```shell
+  make dive_post 
+  docker run --rm -it \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -e CI=true \
+          wagoodman/dive:latest $(docker images -q vscoder/post:1.0)
+  ```
+<details><summary>результат</summary>
+<p>
+
+```log
+  Using default CI config
+Image Source: docker://f22acc632909
+Fetching image... (this can take a while for large images)
+Analyzing image...
+  efficiency: 98.7017 %
+
+  wastedBytes: 2357680 bytes (2.4 MB)
+
+  userWastedPercent: 2.2600 %
+
+Inefficient Files:
+Count  Wasted Space  File Path
+    2        1.1 MB  /lib/ld-musl-x86_64.so.1
+    2        549 kB  /etc/ssl/certs/ca-certificates.crt
+    4        465 kB  /lib/apk/db/installed
+    2         73 kB  /usr/bin/getent
+    2         63 kB  /usr/bin/getconf
+    4         45 kB  /lib/apk/db/scripts.tar
+    2         41 kB  /usr/bin/iconv
+    4         812 B  /lib/apk/db/triggers
+    2         786 B  /sbin/ldconfig
+    4         284 B  /etc/apk/world
+    2         216 B  /app/requirements.txt
+    2           0 B  /usr/bin/unlzma
+    3           0 B  /usr/bin/strings
+    2           0 B  /usr/bin/lzma
+    2           0 B  /usr/bin/lzcat
+    3           0 B  /tmp
+    2           0 B  /root
+    2           0 B  /usr/bin/xzcat
+    2           0 B  /bin/tar
+    4           0 B  /var/cache/misc
+    2           0 B  /lib/apk/db/lock
+    2           0 B  /lib/libc.musl-x86_64.so.1
+    2           0 B  /usr/bin/ldd
+    2           0 B  /usr/bin/unxz
+Results:
+  PASS: highestUserWastedPercent
+  SKIP: highestWastedBytes: rule disabled
+  PASS: lowestEfficiency
+Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
+```
+
+</p>
+</details>
+
+- При установке зависимостей была добавлена опция `--no-cache-dir` к `pip`, что позволило уменьшить итоговый образ на 3Мб
+  ```shell
+  # docker images vscoder/post
+  REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+  vscoder/post        2.0-alpine          6cadaa2065a7        2 minutes ago       106MB
+  vscoder/post        1.0                 f22acc632909        28 hours ago        109MB
+  ```
+
+#### Прочие действия
+
+- К тегам образов добавлен суффикс `-alpine`
+- Пересобраны все образы `make build_all`
+- Остановлены ранее запущенные инстансы `make kill_all`
+- Контейнеры запущены заново на основе свежих образов `make run_all`
+- Работоспособность проверена. Пост создан успешно. Ранее созданный пост не сохоанился.
 
 ### src/Makefile
 
@@ -2269,11 +2683,14 @@ vscoder/comment       1.0                 188232c05d67        6 hours ago       
 
 #### Цели
 
-| цель          | описание                                                             |
-| ------------- | -------------------------------------------------------------------- |
-| build_post    | собирает контейнер post:${POST_VERSION} из контекста ./post-py       |
-| build_comment | собирает контейнер comment:${COMMENT_VERSION} из контекста ./comment |
-| build_ui      | собирает контейнер ui:${UI_VERSION} из контекста ./ui                |
-| build_all     | собрать все контейнеры                                               |
-| run_all       | запустить контейнеры из образов mongodb и 3х наших сервисов          |
-| kill_all      | Убить **все запущенные** контейнеры и удалить сеть                   |
+| цель          | описание                                                                    |
+| ------------- | --------------------------------------------------------------------------- |
+| build_post    | собирает контейнер post:${POST_VERSION} из контекста ./post-py              |
+| dive_post     | анализ образа post:${POST_VERSION} на эффективность средствами `dive`       |
+| build_comment | собирает контейнер comment:${COMMENT_VERSION} из контекста ./comment        |
+| dive_comment  | анализ образа comment:${COMMENT_VERSION} на эффективность средствами `dive` |
+| build_ui      | собирает контейнер ui:${UI_VERSION} из контекста ./ui                       |
+| dive_ui       | анализ образа ui:${UI_VERSION} на эффективность средствами `dive`           |
+| build_all     | собрать все контейнеры                                                      |
+| run_all       | запустить контейнеры из образов mongodb и 3х наших сервисов                 |
+| kill_all      | Убить **все запущенные** контейнеры и удалить сеть                          |

@@ -12,6 +12,7 @@ COPY Gemfile* $APP_HOME/
 
 RUN apk add --no-cache --virtual .build-deps build-base \
     && bundle install \
+    && bundle clean \
     && apk del .build-deps
 
 COPY . $APP_HOME

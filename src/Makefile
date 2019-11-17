@@ -1,19 +1,37 @@
 DOCKERHUB_LOGIN?=vscoder
 
-POST_VERSION?=1.0
-COMMENT_VERSION?=2.0
-UI_VERSION?=3.0
+POST_VERSION?=2.0-alpine
+COMMENT_VERSION?=2.0-alpine
+UI_VERSION?=3.0-alpine
 
 REDDIT_NETWORK_NAME?=reddit
 
 build_post:
 	docker build -t ${DOCKERHUB_LOGIN}/post:${POST_VERSION} ./post-py
 
+dive_post:
+	docker run --rm -it \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-e CI=true \
+		wagoodman/dive:latest $$(docker images -q ${DOCKERHUB_LOGIN}/post:${POST_VERSION})
+
 build_comment:
 	docker build -t ${DOCKERHUB_LOGIN}/comment:${COMMENT_VERSION} ./comment
 
+dive_comment:
+	docker run --rm -it \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-e CI=true \
+		wagoodman/dive:latest $$(docker images -q ${DOCKERHUB_LOGIN}/comment:${COMMENT_VERSION})
+
 build_ui:
 	docker build -t ${DOCKERHUB_LOGIN}/ui:${UI_VERSION} ./ui
+
+dive_ui:
+	docker run --rm -it \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-e CI=true \
+		wagoodman/dive:latest $$(docker images -q ${DOCKERHUB_LOGIN}/ui:${UI_VERSION})
 
 build_all: build_post build_comment build_ui
 

@@ -11,6 +11,7 @@ WORKDIR $APP_HOME
 COPY Gemfile* $APP_HOME/
 RUN apk add --no-cache --virtual .build-deps build-base \
     && bundle install \
+    && bundle clean \
     && apk del .build-deps
 
 # Application (frequently changing layer)
