@@ -73,6 +73,14 @@ vscoder microservices repository
     - [src/Makefile](#srcmakefile)
       - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
       - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
+  - [HomeWork 14: Docker: сети, docker-compose](#homework-14-docker-%d1%81%d0%b5%d1%82%d0%b8-docker-compose)
+    - [Работа с сетями в Docker](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d1%81%d0%b5%d1%82%d1%8f%d0%bc%d0%b8-%d0%b2-docker)
+      - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-1)
+      - [Работа с сетью в Docker](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d1%81%d0%b5%d1%82%d1%8c%d1%8e-%d0%b2-docker)
+        - [none](#none)
+        - [host](#host)
+        - [bridge](#bridge)
+    - [Использование docker-compose](#%d0%98%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-docker-compose)
 
 # Makefile
 
@@ -2728,3 +2736,33 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
 | build_all     | собрать все контейнеры                                                                           |
 | run_all       | запустить контейнеры из образов mongodb и 3х наших сервисов                                      |
 | kill_all      | Убить **все запущенные** контейнеры и удалить сеть (том `${REDDIT_DB_VOLUME_NAME}` не удаляется) |
+
+
+## HomeWork 14: Docker: сети, docker-compose
+
+### Работа с сетями в Docker
+
+#### Подготовка
+
+- Создаём новый docker-machine и подключаемся к нему
+  ```shell
+  make docker_machine_create
+  docker-machine ls
+  ```
+  ```log
+  NAME          ACTIVE   DRIVER   STATE     URL                        SWARM   DOCKER     ERRORS
+  docker-host   -        google   Running   tcp://35.241.253.37:2376           v19.03.5
+  ```
+  ```shell
+  eval $(docker-machine env docker-host)
+  ```
+
+#### Работа с сетью в Docker
+
+##### none
+
+##### host
+
+##### bridge
+
+### Использование docker-compose
