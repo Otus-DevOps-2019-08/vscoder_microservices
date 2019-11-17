@@ -37,19 +37,33 @@ dive_ui:
 build_all: build_post build_comment build_ui
 
 run_all:
-	docker network inspect ${REDDIT_NETWORK_NAME} 1>/dev/null || docker network create ${REDDIT_NETWORK_NAME}
+	docker network inspect ${REDDIT_NETWORK_NAME}_back 1>/dev/null || docker network create ${REDDIT_NETWORK_NAME}_back
+	docker network inspect ${REDDIT_NETWORK_NAME}_front 1>/dev/null || docker network create ${REDDIT_NETWORK_NAME}_front
 	docker volume inspect ${REDDIT_DB_VOLUME_NAME} 1>/dev/null || docker volume create ${REDDIT_DB_VOLUME_NAME}
-	docker run -d --network=${REDDIT_NETWORK_NAME} \
+	docker run -d \
+		--name mongo_db \
+		--network=${REDDIT_NETWORK_NAME}_back \
 		--network-alias=post_db \
 		--network-alias=comment_db \
 		-v reddit_db:/data/db \
 		mongo:latest
-	docker run -d --network=${REDDIT_NETWORK_NAME} \
-		--network-alias=post ${DOCKERHUB_LOGIN}/post:${POST_VERSION}
-	docker run -d --network=${REDDIT_NETWORK_NAME} \
-		--network-alias=comment ${DOCKERHUB_LOGIN}/comment:${COMMENT_VERSION}
-	docker run -d --network=${REDDIT_NETWORK_NAME} \
-		-p 9292:9292 ${DOCKERHUB_LOGIN}/ui:${UI_VERSION}
+	docker run -d \
+		--name post \
+		--network=${REDDIT_NETWORK_NAME}_back \
+		--network-alias=post \
+		${DOCKERHUB_LOGIN}/post:${POST_VERSION}
+	docker network connect ${REDDIT_NETWORK_NAME}_front post
+	docker run -d \
+		--name comment \
+		--network=${REDDIT_NETWORK_NAME}_back \
+		--network-alias=comment \
+		${DOCKERHUB_LOGIN}/comment:${COMMENT_VERSION}
+	docker network connect ${REDDIT_NETWORK_NAME}_front comment
+	docker run -d \
+		--name ui \
+		--network=${REDDIT_NETWORK_NAME}_front \
+		-p 9292:9292 \
+		${DOCKERHUB_LOGIN}/ui:${UI_VERSION}
 
 kill_all:
 	docker ps
