@@ -79,6 +79,7 @@ vscoder microservices repository
       - [Работа с сетью в Docker](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d1%81%d0%b5%d1%82%d1%8c%d1%8e-%d0%b2-docker)
         - [none](#none)
         - [host](#host)
+          - [network namespaces](#network-namespaces)
         - [bridge](#bridge)
     - [Использование docker-compose](#%d0%98%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-docker-compose)
 
@@ -2787,7 +2788,156 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
 
 ##### host
 
+- Запуск контейнера в сетевом пространстве имён хоста
+  ```shell
+  docker run -ti --rm --network host joffotron/docker-net-tools -c ifconfig
 
+  docker0   Link encap:Ethernet  HWaddr 02:42:34:B5:56:3D  
+            inet addr:172.17.0.1  Bcast:172.17.255.255  Mask:255.255.0.0
+            UP BROADCAST MULTICAST  MTU:1500  Metric:1
+            RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:0 
+            RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+  ens4      Link encap:Ethernet  HWaddr 42:01:0A:84:00:14  
+            inet addr:10.132.0.20  Bcast:10.132.0.20  Mask:255.255.255.255
+            inet6 addr: fe80::4001:aff:fe84:14%32617/64 Scope:Link
+            UP BROADCAST RUNNING MULTICAST  MTU:1460  Metric:1
+            RX packets:5504 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:4356 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:1000 
+            RX bytes:108677168 (103.6 MiB)  TX bytes:447776 (437.2 KiB)
+
+  lo        Link encap:Local Loopback  
+            inet addr:127.0.0.1  Mask:255.0.0.0
+            inet6 addr: ::1%32617/128 Scope:Host
+            UP LOOPBACK RUNNING  MTU:65536  Metric:1
+            RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:1000 
+            RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+   ```
+- Для сравнения, `ifconfig` на хосте docker-machine
+  ```shell
+  docker0   Link encap:Ethernet  HWaddr 02:42:34:b5:56:3d  
+            inet addr:172.17.0.1  Bcast:172.17.255.255  Mask:255.255.0.0
+            UP BROADCAST MULTICAST  MTU:1500  Metric:1
+            RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:0 
+            RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+  ens4      Link encap:Ethernet  HWaddr 42:01:0a:84:00:14  
+            inet addr:10.132.0.20  Bcast:10.132.0.20  Mask:255.255.255.255
+            inet6 addr: fe80::4001:aff:fe84:14/64 Scope:Link
+            UP BROADCAST RUNNING MULTICAST  MTU:1460  Metric:1
+            RX packets:5779 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:4570 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:1000 
+            RX bytes:108738036 (108.7 MB)  TX bytes:480943 (480.9 KB)
+  lo        Link encap:Local Loopback  
+            inet addr:127.0.0.1  Mask:255.0.0.0
+            inet6 addr: ::1/128 Scope:Host
+            UP LOOPBACK RUNNING  MTU:65536  Metric:1
+            RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:1000 
+            RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+  ```
+- Видим, что они идентичны
+- docker machine host пересоздан из за проблем подулючения по ssh
+- запущен nginx
+  ```shell
+  docker run --network host -d nginx
+  ...
+  docker ps
+  
+  CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+  faa0e86c423f        nginx               "nginx -g 'daemon of…"   6 seconds ago       Up 3 seconds                            distracted_bell
+  ```
+- запущен ещё один nginx (и ещё, и ещё), результат всегда одинаков
+  ```shell
+  docker ps
+
+  CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+  faa0e86c423f        nginx               "nginx -g 'daemon of…"   5 minutes ago       Up 5 minutes                            distracted_bell
+  ```
+- попытка запуска с анализом логов
+  ```shell
+  docker run --network host -d nginx; docker logs $(docker ps -q | head -n1)
+  ```
+  ```log
+  0d82882d485d9678ad273ea048d2b4631652f3feb1bfb5443efb6ffee6bd8fa0
+  2019/11/17 13:01:30 [emerg] 1#1: bind() to 0.0.0.0:80 failed (98: Address already in use)
+  nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+  2019/11/17 13:01:30 [emerg] 1#1: bind() to 0.0.0.0:80 failed (98: Address already in use)
+  nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+  ```
+  Из лога видно, что причина падения -- уже занятый порт 80 в неймспейсе хоста.
+- все запущенные контейнеры остановлены
+  ```shell
+  docker kill $(docker ps -q)
+  ```
+
+###### network namespaces
+
+- на docker-host создан симлинк, позволяющий видеть неймспейсы командой `sudo ip netns`
+  ```shell
+  sudo ln -s /var/run/docker/netns /var/run/netns
+  ```
+- список неймспейсов без запущенных контейнеров
+  ```shell
+  $ sudo ip netns
+  default
+  ```
+- список неймспейсов при запущенном контейнере с сетью `none`
+  ```shell
+  docker run --network none -d nginx
+  docker ps
+  CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+  d227262ccf99        nginx               "nginx -g 'daemon of…"   6 seconds ago       Up 5 seconds                            zen_mclean
+  ```
+  на docker-machine
+  ```shell
+  $ sudo ip netns
+  743e31b95726
+  default
+  ```
+  видим, появился новый namespace. Запускаем ещё один контейнер
+  ```shell
+  docker run --network none -d nginx
+
+  160ca7fec220c182d05a522a1a74143b0114af78220d9ef0370f2bf7be7290c6
+  ```
+  ```shell
+  docker ps                         
+
+  CONTAINER ID        IMAGE               COMMAND                  CREATED              STATUS              PORTS               NAMES
+  160ca7fec220        nginx               "nginx -g 'daemon of…"   2 seconds ago        Up 1 second                             crazy_bardeen
+  d227262ccf99        nginx               "nginx -g 'daemon of…"   About a minute ago   Up About a minute                       zen_mclean
+  ```
+  на docker-machine
+  ```shell
+  $ sudo ip netns
+  73f504acb923
+  743e31b95726
+  default
+  ```
+  видим 2 неймспейса
+- убили все контейнеры `docker kill $(docker ps -q)`
+- используем сеть `host`
+  ```shell
+  docker run --network host -d nginx
+
+  7eda8485e28a626e507d310aecaf6e45bc5aa053266ef8338b196f90df93955c
+  ```
+  на docker-machine
+  ```shell
+  $ sudo ip netns
+
+  default
+  ```
+  неймспейсов создано не было. Вывод - используется неймспейс хоста))
 
 ##### bridge
 
