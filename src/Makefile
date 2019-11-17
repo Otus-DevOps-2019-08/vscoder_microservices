@@ -5,6 +5,7 @@ COMMENT_VERSION?=2.0-alpine
 UI_VERSION?=3.0-alpine
 
 REDDIT_NETWORK_NAME?=reddit
+REDDIT_DB_VOLUME_NAME?=reddit_db
 
 build_post:
 	docker build -t ${DOCKERHUB_LOGIN}/post:${POST_VERSION} ./post-py
@@ -36,9 +37,13 @@ dive_ui:
 build_all: build_post build_comment build_ui
 
 run_all:
-	docker network create ${REDDIT_NETWORK_NAME}
+	docker network inspect ${REDDIT_NETWORK_NAME} 1>/dev/null || docker network create ${REDDIT_NETWORK_NAME}
+	docker volume inspect ${REDDIT_DB_VOLUME_NAME} 1>/dev/null || docker volume create ${REDDIT_DB_VOLUME_NAME}
 	docker run -d --network=${REDDIT_NETWORK_NAME} \
-		--network-alias=post_db --network-alias=comment_db mongo:latest
+		--network-alias=post_db \
+		--network-alias=comment_db \
+		-v reddit_db:/data/db \
+		mongo:latest
 	docker run -d --network=${REDDIT_NETWORK_NAME} \
 		--network-alias=post ${DOCKERHUB_LOGIN}/post:${POST_VERSION}
 	docker run -d --network=${REDDIT_NETWORK_NAME} \

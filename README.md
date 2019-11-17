@@ -67,7 +67,9 @@ vscoder microservices repository
         - [ui](#ui)
         - [comment](#comment)
         - [post](#post)
-      - [Прочие действия](#%d0%9f%d1%80%d0%be%d1%87%d0%b8%d0%b5-%d0%b4%d0%b5%d0%b9%d1%81%d1%82%d0%b2%d0%b8%d1%8f)
+    - [Дальнейшие действия](#%d0%94%d0%b0%d0%bb%d1%8c%d0%bd%d0%b5%d0%b9%d1%88%d0%b8%d0%b5-%d0%b4%d0%b5%d0%b9%d1%81%d1%82%d0%b2%d0%b8%d1%8f)
+      - [Проверка работоспособности](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%be%d1%81%d0%bf%d0%be%d1%81%d0%be%d0%b1%d0%bd%d0%be%d1%81%d1%82%d0%b8)
+      - [Создание volume для MongoDB](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-volume-%d0%b4%d0%bb%d1%8f-mongodb)
     - [src/Makefile](#srcmakefile)
       - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
       - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
@@ -2661,7 +2663,9 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
   vscoder/post        1.0                 f22acc632909        28 hours ago        109MB
   ```
 
-#### Прочие действия
+### Дальнейшие действия
+
+#### Проверка работоспособности
 
 - К тегам образов добавлен суффикс `-alpine`
 - Пересобраны все образы `make build_all`
@@ -2669,28 +2673,57 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
 - Контейнеры запущены заново на основе свежих образов `make run_all`
 - Работоспособность проверена. Пост создан успешно. Ранее созданный пост не сохоанился.
 
+#### Создание volume для MongoDB
+
+- В Makefile target run_all добавлено создание volume в случае отсутствия
+  ```shell
+  docker volume inspect ${REDDIT_DB_VOLUME_NAME} 1>/dev/null || docker volume create ${REDDIT_DB_VOLUME_NAME}
+  ```
+- В Makefile target run_all при создании контейнера с mongodb монтируется volume
+  ```Makefile
+  -v reddit_db:/data/db
+  ```
+- В результате Makefile target run_all выглядит следующим образом:
+  ```Makefile
+  run_all:
+	docker network inspect ${REDDIT_NETWORK_NAME} 1>/dev/null || docker network create ${REDDIT_NETWORK_NAME}
+	docker volume inspect ${REDDIT_DB_VOLUME_NAME} 1>/dev/null || docker volume create ${REDDIT_DB_VOLUME_NAME}
+	docker run -d --network=${REDDIT_NETWORK_NAME} \
+		--network-alias=post_db \
+		--network-alias=comment_db \
+		-v reddit_db:/data/db \
+		mongo:latest
+	docker run -d --network=${REDDIT_NETWORK_NAME} \
+		--network-alias=post ${DOCKERHUB_LOGIN}/post:${POST_VERSION}
+	docker run -d --network=${REDDIT_NETWORK_NAME} \
+		--network-alias=comment ${DOCKERHUB_LOGIN}/comment:${COMMENT_VERSION}
+	docker run -d --network=${REDDIT_NETWORK_NAME} \
+		-p 9292:9292 ${DOCKERHUB_LOGIN}/ui:${UI_VERSION}
+  ```
+
 ### src/Makefile
 
 #### Переменные
 
-| переменная          | значение по-умолчанию | описание                |
-| ------------------- | --------------------- | ----------------------- |
-| DOCKERHUB_LOGIN     | vscoder               | логин на hub.docker.com |
-| POST_VERSION        | 1.0                   | версия сервиса post-py  |
-| COMMENT_VERSION     | 1.0                   | версия сервиса comment  |
-| UI_VERSION          | 1.0                   | версия сервиса ui       |
-| REDDIT_NETWORK_NAME | reddit                | Имя docker-сети         |
+| переменная            | значение по-умолчанию | описание                                    |
+| --------------------- | --------------------- | ------------------------------------------- |
+| DOCKERHUB_LOGIN       | vscoder               | логин на hub.docker.com                     |
+| POST_VERSION          | 1.0                   | версия сервиса post-py                      |
+| COMMENT_VERSION       | 1.0                   | версия сервиса comment                      |
+| UI_VERSION            | 1.0                   | версия сервиса ui                           |
+| REDDIT_NETWORK_NAME   | reddit                | Имя docker-сети                             |
+| REDDIT_DB_VOLUME_NAME | reddit_db             | Название volume для хранения данных mongodb |
 
 #### Цели
 
-| цель          | описание                                                                    |
-| ------------- | --------------------------------------------------------------------------- |
-| build_post    | собирает контейнер post:${POST_VERSION} из контекста ./post-py              |
-| dive_post     | анализ образа post:${POST_VERSION} на эффективность средствами `dive`       |
-| build_comment | собирает контейнер comment:${COMMENT_VERSION} из контекста ./comment        |
-| dive_comment  | анализ образа comment:${COMMENT_VERSION} на эффективность средствами `dive` |
-| build_ui      | собирает контейнер ui:${UI_VERSION} из контекста ./ui                       |
-| dive_ui       | анализ образа ui:${UI_VERSION} на эффективность средствами `dive`           |
-| build_all     | собрать все контейнеры                                                      |
-| run_all       | запустить контейнеры из образов mongodb и 3х наших сервисов                 |
-| kill_all      | Убить **все запущенные** контейнеры и удалить сеть                          |
+| цель          | описание                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| build_post    | собирает контейнер post:${POST_VERSION} из контекста ./post-py                                   |
+| dive_post     | анализ образа post:${POST_VERSION} на эффективность средствами `dive`                            |
+| build_comment | собирает контейнер comment:${COMMENT_VERSION} из контекста ./comment                             |
+| dive_comment  | анализ образа comment:${COMMENT_VERSION} на эффективность средствами `dive`                      |
+| build_ui      | собирает контейнер ui:${UI_VERSION} из контекста ./ui                                            |
+| dive_ui       | анализ образа ui:${UI_VERSION} на эффективность средствами `dive`                                |
+| build_all     | собрать все контейнеры                                                                           |
+| run_all       | запустить контейнеры из образов mongodb и 3х наших сервисов                                      |
+| kill_all      | Убить **все запущенные** контейнеры и удалить сеть (том `${REDDIT_DB_VOLUME_NAME}` не удаляется) |
