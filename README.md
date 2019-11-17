@@ -2761,7 +2761,33 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
 
 ##### none
 
+- Запуск контейнера с режимом сети `none`
+  ```shell
+  docker run -ti --rm --network none joffotron/docker-net-tools -c "ifconfig; ping -c4 localhost"
+  lo        Link encap:Local Loopback  
+            inet addr:127.0.0.1  Mask:255.0.0.0
+            UP LOOPBACK RUNNING  MTU:65536  Metric:1
+            RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:1000 
+            RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+  PING localhost (127.0.0.1): 56 data bytes
+  64 bytes from 127.0.0.1: seq=0 ttl=64 time=0.040 ms
+  64 bytes from 127.0.0.1: seq=1 ttl=64 time=0.062 ms
+  64 bytes from 127.0.0.1: seq=2 ttl=64 time=0.064 ms
+  64 bytes from 127.0.0.1: seq=3 ttl=64 time=0.064 ms
+
+  --- localhost ping statistics ---
+  4 packets transmitted, 4 packets received, 0% packet loss
+  round-trip min/avg/max = 0.040/0.057/0.064 ms
+  ```
+  - Видим только `lo` интерфейс. Сетевой стек внутри контейнера работает.
+  - Может быть применимо для тестирования или для фанимуляции с файлами в volume.
+
 ##### host
+
+
 
 ##### bridge
 
