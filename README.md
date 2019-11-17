@@ -81,6 +81,8 @@ vscoder microservices repository
         - [host](#host)
           - [network namespaces](#network-namespaces)
         - [bridge](#bridge)
+          - [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-1)
+          - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-1)
     - [Использование docker-compose](#%d0%98%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-docker-compose)
 
 # Makefile
@@ -2938,7 +2940,200 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
   default
   ```
   неймспейсов создано не было. Вывод - используется неймспейс хоста))
+- убили все контейнеры `docker kill $(docker ps -q)`
 
 ##### bridge
+
+###### Запуск приложения
+
+- контейнеры запущены с использованием bridge-сети `reddit` и назначенных контейнерам сетевых алиасов
+  ```shell
+  # make run_all  
+  docker network inspect reddit 1>/dev/null || docker network create reddit
+  docker volume inspect reddit_db 1>/dev/null || docker volume create reddit_db
+  docker run -d --network=reddit \
+          --network-alias=post_db \
+          --network-alias=comment_db \
+          -v reddit_db:/data/db \
+          mongo:latest
+  0ba10d8e3d43ce40c15a7b622ad09142f8ea2c9dcbe7e828287db98cc2fd5479
+  docker run -d --network=reddit \
+          --network-alias=post vscoder/post:2.0-alpine
+  7df2e80b66e19d0335685a78bb07348c3c02124cef97732124cb745615f1d05a
+  docker run -d --network=reddit \
+          --network-alias=comment vscoder/comment:2.0-alpine
+  37744b362a5838ddda44462e1b9bc580748eaf809c8885ba044f482815c693d2
+  docker run -d --network=reddit \
+          -p 9292:9292 vscoder/ui:3.0-alpine
+  5281ed3316e3050d16e4c2a7d2a54145ad5d72cc127261f3c2b1169f5f52c728
+  ```
+  ```shell
+  # docker ps
+  CONTAINER ID        IMAGE                        COMMAND                  CREATED             STATUS              PORTS                    NAMES
+  5281ed3316e3        vscoder/ui:3.0-alpine        "puma"                   7 minutes ago       Up 7 minutes        0.0.0.0:9292->9292/tcp   elated_gagarin
+  37744b362a58        vscoder/comment:2.0-alpine   "puma"                   7 minutes ago       Up 7 minutes                                 heuristic_murdock
+  7df2e80b66e1        vscoder/post:2.0-alpine      "python3 post_app.py"    7 minutes ago       Up 7 minutes                                 jolly_kirch
+  5b04e0482132        mongo:latest                 "docker-entrypoint.s…"   8 minutes ago       Up 8 minutes        27017/tcp                modest_proskuriakova
+  ```
+  приложение доступно по адресу http://35.241.253.37:9292
+- Использованы 2 сети reddit_back и reddit_front. 
+  - Контейнер ui подключен к сети reddit_front. 
+  - Остальные контейнеры подключены к сети reddit_back. 
+  - Так как при создании контейнеру можно указать только одну сеть, post и comment подключены к reddit_front после создания.
+- Теперь Makefile target выглядит следующим образом
+  ```Makefile
+  run_all:
+  	docker network inspect ${REDDIT_NETWORK_NAME}_back 1>/dev/null || docker network create ${REDDIT_NETWORK_NAME}_back
+  	docker network inspect ${REDDIT_NETWORK_NAME}_front 1>/dev/null || docker network create ${REDDIT_NETWORK_NAME}_front
+  	docker volume inspect ${REDDIT_DB_VOLUME_NAME} 1>/dev/null || docker volume create ${REDDIT_DB_VOLUME_NAME}
+  	docker run -d \
+      --name mongo_db \
+  		--network=${REDDIT_NETWORK_NAME}_back \
+  		--network-alias=post_db \
+  		--network-alias=comment_db \
+  		-v reddit_db:/data/db \
+  		mongo:latest
+  	docker run -d \
+      --name post \
+  		--network=${REDDIT_NETWORK_NAME}_back \
+  		--network-alias=post \
+  		${DOCKERHUB_LOGIN}/post:${POST_VERSION}
+  	docker network connect ${REDDIT_NETWORK_NAME}_front post
+  	docker run -d \
+      --name comment \
+  		--network=${REDDIT_NETWORK_NAME}_back \
+  		--network-alias=comment \
+  		${DOCKERHUB_LOGIN}/comment:${COMMENT_VERSION}
+  	docker network connect ${REDDIT_NETWORK_NAME}_front comment
+  	docker run -d \
+      --name ui \
+  		--network=${REDDIT_NETWORK_NAME}_front \
+  		-p 9292:9292 \
+  		${DOCKERHUB_LOGIN}/ui:${UI_VERSION}
+  ```
+- Запущены все контейнеры
+  ```shell
+  # make run_all
+  docker network inspect reddit_back 1>/dev/null || docker network create reddit_back
+  docker network inspect reddit_front 1>/dev/null || docker network create reddit_front
+  docker volume inspect reddit_db 1>/dev/null || docker volume create reddit_db
+  docker run -d \
+          --name mongo_db \
+          --network=reddit_back \
+          --network-alias=post_db \
+          --network-alias=comment_db \
+          -v reddit_db:/data/db \
+          mongo:latest
+  596f3227b31e1f90c0ab8fae012659378d7cbc99e047be6d9595ab898a2b7e8c
+  docker run -d \
+          --name post \
+          --network=reddit_back \
+          --network-alias=post \
+          vscoder/post:2.0-alpine
+  f272a11ca047c347e53e253ce4aafef301aa289e62ad5def39847c27c910578d
+  docker network connect reddit_front post
+  docker run -d \
+          --name comment \
+          --network=reddit_back \
+          --network-alias=comment \
+          vscoder/comment:2.0-alpine
+  b2ebe7a9d3d8c2e6dbf6169410e8ad61740a6c7564310591ec0a0a023940d8cd
+  docker network connect reddit_front comment
+  docker run -d \
+          --name ui \
+          --network=reddit_front \
+          -p 9292:9292 \
+          vscoder/ui:3.0-alpine
+  82db30416d495c1b590a0cefca7d9e8612cbc4b0564dd0c3937ba757ccc48811
+  ```
+- Работоспособность приложения проверена
+
+###### Анализ
+
+- Список docker-сетей на docker-machine
+  ```shell
+  $ sudo  docker network ls
+  NETWORK ID          NAME                DRIVER              SCOPE
+  0166874dac87        bridge              bridge              local
+  d183b24032cc        host                host                local
+  2c181ec206b6        none                null                local
+  7e75ed405d47        reddit_back         bridge              local
+  7c243bd0da8a        reddit_front        bridge              local
+  ```
+- Список br-* интерфейсов на docker-machine
+  ```shell
+  $ ifconfig | grep br
+  br-7c243bd0da8a Link encap:Ethernet  HWaddr 02:42:7a:38:6c:0a  
+  br-7e75ed405d47 Link encap:Ethernet  HWaddr 02:42:b4:2d:1a:09
+  ```
+  имена интефейсов бриджей совпадают с id сетей
+- состав бриджей
+  ```shell
+  $ brctl show br-7c243bd0da8a
+  bridge name     bridge id               STP enabled     interfaces
+  br-7c243bd0da8a         8000.02427a386c0a       no      veth234d18b
+                                                          vethf4cf7bf
+                                                          vethfde16ca
+  ```
+  ```shell
+  $ brctl show br-7e75ed405d47
+  bridge name     bridge id               STP enabled     interfaces
+  br-7e75ed405d47         8000.0242b42d1a09       no      veth257dc23
+                                                          veth5af2b40
+                                                          veth83d031a
+  ```
+  veth-интерфейсы соответствуют интерфейсам контейнеров в соответтсвующем бридже
+- iptables
+  ```shell
+  $ sudo iptables -vnL -t nat
+  Chain PREROUTING (policy ACCEPT 2523 packets, 151K bytes)
+   pkts bytes target     prot opt in     out     source               destination         
+    153 13027 DOCKER     all  --  *      *       0.0.0.0/0            0.0.0.0/0            ADDRTYPE match dst-type LOCAL
+
+  Chain INPUT (policy ACCEPT 9 packets, 440 bytes)
+   pkts bytes target     prot opt in     out     source               destination         
+
+  Chain OUTPUT (policy ACCEPT 82 packets, 5229 bytes)
+   pkts bytes target     prot opt in     out     source              destination         
+      0     0 DOCKER     all  --  *      *       0.0.0.0/0           !127.0.0.0/8          ADDRTYPE match dst-type LOCAL
+
+  Chain POSTROUTING (policy ACCEPT 2598 packets, 156K bytes)
+   pkts bytes target      prot opt in     out               source               destination         
+      0     0 MASQUERADE  all  --  *      !br-7c243bd0da8a  172.20.0.0/16        0.0.0.0/0           
+      0     0 MASQUERADE  all  --  *      !br-7e75ed405d47  172.19.0.0/16        0.0.0.0/0           
+    254 15387 MASQUERADE  all  --  *      !docker0          172.17.0.0/16        0.0.0.0/0           
+      0     0 MASQUERADE  tcp  --  *      *                 172.20.0.4           172.20.0.4           tcp dpt:9292
+
+  Chain DOCKER (2 references)
+   pkts bytes target     prot opt in               out    source               destination         
+      0     0 RETURN     all  --  br-7c243bd0da8a  *      0.0.0.0/0            0.0.0.0/0           
+      0     0 RETURN     all  --  br-7e75ed405d47  *      0.0.0.0/0            0.0.0.0/0           
+      0     0 RETURN     all  --  docker0          *      0.0.0.0/0            0.0.0.0/0           
+      2   120 DNAT       tcp  --  !br-7c243bd0da8a *      0.0.0.0/0            0.0.0.0/0            tcp dpt:9292 to:172.20.0.4:9292
+  ```
+  - здесь видно, что перед определением маршрута, весь трафик с `dst-type LOCAL` попадает в цепочку `DOCKER`, в которой
+    - возвращается обратно в `PREROUTING`, если пришёл с одного из docker-бриджей
+    - если пришёл не с `reddit_front` и на tcp-порт 9292, выполняется редирект на `172.20.0.4:9292` (ui)
+  - в цепочке `POSTROUTING` трафик, исходящий из docker-сетей маскируется перед выходом с других интерфейсов
+    - так же маскируется трафик между любыми интерфейсами с ip 172.20.0.4 на тот же ip 172.20.0.4 порт назначения tcp 9292
+      TODO: разобраться зачем это нужно
+- docker-proxy
+  ```shell
+  $ ps ax | grep docker-proxy
+  16085 ?        Sl     0:00 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 9292 -container-ip 172.20.0.4 -container-port 9292
+  ```
+  запущен 1 процесс `cocker-proxy`
+- netstat и lsof
+  ```shell
+  $ sudo lsof -nPi | grep 9292
+  docker-pr 16085        root    4u  IPv6 102960      0t0  TCP *:9292 (LISTEN)
+  ```
+  видим docker-proxy слушает TCPv6 порт 9292
+  ```shell
+  $ sudo netstat -apn | grep 9292 
+  tcp6       0      0 :::9292                 :::*                    LISTEN      16085/docker-proxy
+  ```
+  то же самое
+  TODO: почему ipv6?
 
 ### Использование docker-compose
