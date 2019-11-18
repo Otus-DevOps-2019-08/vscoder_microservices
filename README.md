@@ -84,6 +84,8 @@ vscoder microservices repository
           - [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-1)
           - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-1)
     - [Использование docker-compose](#%d0%98%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-docker-compose)
+      - [Установка](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0)
+      - [docker-compose.yml](#docker-composeyml)
 
 # Makefile
 
@@ -3137,3 +3139,33 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
   TODO: почему ipv6?
 
 ### Использование docker-compose
+
+#### Установка
+
+- В [requirements.txt](requirements.txt) ранее был добавлен `docker-compose>=1.24.1`
+
+#### docker-compose.yml
+
+- Создан [src/docker-compose.yml](src/docker-compose.yml)
+- В [env](env) добавлеа переменная для экспорта
+  ```shell
+  export USERNAME=vscoder
+  ```
+- Сборка образов и запуск контейнеров `docker-compose up -d`
+  ```log
+  ...
+  Creating src_post_1    ... done
+  Creating src_ui_1      ... done
+  Creating src_comment_1 ... done
+  Creating src_post_db_1 ... done
+  ```
+- `docker ps`
+  ```log
+  CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS              PORTS                    NAMES
+  232065aa859d        vscoder/comment:1.0   "puma"                   2 minutes ago       Up About a minute                            src_comment_1
+  4d18a821d1a6        mongo:3.2             "docker-entrypoint.s…"   2 minutes ago       Up About a minute   27017/tcp                src_post_db_1
+  f7631f5ae799        vscoder/ui:1.0        "puma"                   2 minutes ago       Up About a minute   0.0.0.0:9292->9292/tcp   src_ui_1
+  afd5a3874d23        vscoder/post:1.0      "python3 post_app.py"    2 minutes ago       Up About a minute                            src_post_1
+  ```
+- В браузере открыт http://35.240.72.210:9292/
+- всё работает, посты создаются
