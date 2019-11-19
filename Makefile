@@ -36,6 +36,11 @@ TFLINT_VERSION?=0.12.1
 TFLINT_URL=https://github.com/wata727/tflint/releases/download/v${TFLINT_VERSION}/tflint_linux_amd64.zip
 TFLINT?=${BIN_DIR}/tflint
 
+# Hadolint-related variables
+HADOLINT_VERSION?=1.17.2
+HADOLINT_URL=https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-x86_64
+HADOLINT?=${BIN_DIR}/hadolint
+
 debug:
 	echo BIN_DIR=${BIN_DIR}
 	echo TEMP_DIR=${TEMP_DIR}
@@ -84,6 +89,13 @@ install_tflint:
 	mv ${TEMP_DIR}/tflint ${BIN_DIR}/tflint-${TFLINT_VERSION}
 	ln -sf tflint-${TFLINT_VERSION} ${BIN_DIR}/tflint
 	${BIN_DIR}/tflint --version && rm ${TEMP_DIR}/tflint-${TFLINT_VERSION}.zip
+
+install_hadolint:
+	wget ${HADOLINT_URL} -O ${TEMP_DIR}/hadolint-${HADOLINT_VERSION}
+	mv ${TEMP_DIR}/hadolint-${HADOLINT_VERSION} ${BIN_DIR}/hadolint-${HADOLINT_VERSION}
+	ln -sf hadolint-${HADOLINT_VERSION} ${BIN_DIR}/hadolint
+	chmod +x ${BIN_DIR}/hadolint
+	${BIN_DIR}/hadolint --version
 
 docker_machine_create:
 	${DOCKER_MACHINE} create --driver google \

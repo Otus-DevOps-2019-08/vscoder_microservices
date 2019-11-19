@@ -38,6 +38,41 @@ vscoder microservices repository
     - [Вне ДЗ: безопасность](#%d0%92%d0%bd%d0%b5-%d0%94%d0%97-%d0%b1%d0%b5%d0%b7%d0%be%d0%bf%d0%b0%d1%81%d0%bd%d0%be%d1%81%d1%82%d1%8c)
       - [TODO:](#todo)
       - [Docker Security Benchmark](#docker-security-benchmark)
+  - [HomeWork 13: Docker-образы и Микросервисы](#homework-13-docker-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d1%8b-%d0%b8-%d0%9c%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d1%8b)
+    - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0)
+      - [Dockerfile best practices (collapsed)](#dockerfile-best-practices-collapsed)
+        - [FROM](#from)
+        - [LABEL](#label)
+        - [RUN](#run)
+        - [CMD](#cmd)
+        - [EXPOSE](#expose)
+        - [ENV](#env)
+        - [ADD or COPY](#add-or-copy)
+        - [ENTRYPOINT](#entrypoint)
+        - [VOLUME](#volume)
+        - [USER](#user)
+        - [WORKDIR](#workdir)
+        - [ONBUILD](#onbuild)
+    - [Запуск](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba)
+      - [Новая структура приложения](#%d0%9d%d0%be%d0%b2%d0%b0%d1%8f-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+      - [Сборка образов](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
+      - [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+    - [Задание со \*: Переопределение сетевых алиасов](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9f%d0%b5%d1%80%d0%b5%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%82%d0%b5%d0%b2%d1%8b%d1%85-%d0%b0%d0%bb%d0%b8%d0%b0%d1%81%d0%be%d0%b2)
+      - [Теория](#%d0%a2%d0%b5%d0%be%d1%80%d0%b8%d1%8f)
+      - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f)
+    - [Образы](#%d0%9e%d0%b1%d1%80%d0%b0%d0%b7%d1%8b)
+    - [Задание со \*: Уменьшаем размер образа](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%a3%d0%bc%d0%b5%d0%bd%d1%8c%d1%88%d0%b0%d0%b5%d0%bc-%d1%80%d0%b0%d0%b7%d0%bc%d0%b5%d1%80-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
+      - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7)
+      - [Сборка на основе alpine linux](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bd%d0%b0-%d0%be%d1%81%d0%bd%d0%be%d0%b2%d0%b5-alpine-linux)
+        - [ui](#ui)
+        - [comment](#comment)
+        - [post](#post)
+    - [Дальнейшие действия](#%d0%94%d0%b0%d0%bb%d1%8c%d0%bd%d0%b5%d0%b9%d1%88%d0%b8%d0%b5-%d0%b4%d0%b5%d0%b9%d1%81%d1%82%d0%b2%d0%b8%d1%8f)
+      - [Проверка работоспособности](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%be%d1%81%d0%bf%d0%be%d1%81%d0%be%d0%b1%d0%bd%d0%be%d1%81%d1%82%d0%b8)
+      - [Создание volume для MongoDB](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-volume-%d0%b4%d0%bb%d1%8f-mongodb)
+    - [src/Makefile](#srcmakefile)
+      - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
+      - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
 
 # Makefile
 
@@ -62,6 +97,8 @@ vscoder microservices repository
 | TERRAFORM              | ${BIN_DIR}/terraform       | Путь к исполняемому файлу `terraform`                                    |
 | TFLINT_VERSION         | 0.12.1                     | Версия tflist                                                            |
 | TFLINT                 | ${BIN_DIR}/tflint          | Путь к исполняемому файлу `tflint`                                       |
+| HADOLINT_VERSION       | 1.17.2                     | Версия hadolint (linter для Dockerfile)                                  |
+| HADOLINT               | ${BIN_DIR}/hadolint        | Путь к исполняемому файлу `hadolint`                                     |
 | IMAGE_VERSION          | 1.0                        | Версия docker-образа vscoder/otus-reddit для отправки на docker-hub      |
 
 ## Цели
@@ -80,6 +117,7 @@ vscoder microservices repository
 | monolith_packer_validate              | PACKER                                                                          | Проверить корректность packer-шаблона docker-monolith/packer/docker.json                                                                    |
 | install_terraform                     | TEMP_DIR, BIN_DIR, TERRAFORM_VERSION                                            | Установить terraform                                                                                                                        |
 | install_tflint                        | TEMP_DIR, BIN_DIR, TFLINT_VERSION                                               | Установить tflint                                                                                                                           |
+| install_hadolint                      | TEMP_DIR, BIN_DIR, HADOLINT_VERSION, HADOLINT                                   | Установить hadolint                                                                                                                         |
 | monolith_terraform_init               | ENV, TERRAFORM                                                                  | Инициализировать terraform для базового окружения `${ENV}` окружения                                                                        |
 | monolith_terraform_init_nobackend     | ENV, TERRAFORM                                                                  | Инициализировать terraform для окружения `${ENV}`, без инициализации remote backend. Используется в автоматизированных проверках            |
 | monolith_terraform_validate           | TERRAFORM                                                                       | Выполнить валидацию всех окружений terraform                                                                                                |
@@ -1815,3 +1853,878 @@ appuser@reddit-docker-stage-001:~$
 
 </p>
 </details>
+
+## HomeWork 13: Docker-образы и Микросервисы
+
+### Подготовка
+
+- Создан Makefile target `install_hadolint`
+
+#### Dockerfile best practices (collapsed)
+
+<details><summary>Dockerfile best practices</summary>
+<p>
+
+https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
+
+##### FROM
+
+https://docs.docker.com/develop/develop-images/#from
+
+We recommend the Alpine image as it is tightly controlled and small in size (currently under 5 MB), while still being a full Linux distribution.
+
+##### LABEL
+
+https://docs.docker.com/develop/develop-images/#label
+
+For each label, add a line beginning with LABEL and with one or more key-value pairs.
+
+##### RUN
+
+https://docs.docker.com/develop/develop-images/#run
+
+Always combine RUN apt-get update with apt-get install in the same RUN statement. For example:
+```Dockerfile
+RUN apt-get update && apt-get install -y \
+    package-bar \
+    package-baz \
+    package-foo
+```
+
+You can also achieve cache-busting by specifying a package version. This is known as version pinning, for example:
+```Dockerfile
+RUN apt-get update && apt-get install -y \
+    package-bar \
+    package-baz \
+    package-foo=1.3.*
+```
+
+If you want the command to fail due to an error at any stage in the pipe, prepend set -o pipefail && to ensure that an unexpected error prevents the build from inadvertently succeeding. For example:
+```Dockerfile
+RUN set -o pipefail && wget -O - https://some.site | wc -l > /number
+```
+
+##### CMD
+
+https://docs.docker.com/develop/develop-images/#cmd
+
+`CMD` should almost always be used in the form of `CMD ["executable", "param1", "param2"…]`. Thus, if the image is for a service, such as Apache and Rails, you would run something like `CMD ["apache2","-DFOREGROUND"]`.
+
+`CMD` should rarely be used in the manner of `CMD ["param", "param"]` in conjunction with `ENTRYPOINT`.
+
+##### EXPOSE
+
+https://docs.docker.com/develop/develop-images/#expose
+
+you should use the common, traditional port for your application
+For example, an image containing the Apache web server would use `EXPOSE 80`, while an image containing MongoDB would use `EXPOSE 27017` and so on.
+For container linking, Docker provides environment variables for the path from the recipient container back to the source (ie, `MYSQL_PORT_3306_TCP`).
+
+
+##### ENV
+
+https://docs.docker.com/develop/develop-images/#env
+
+For example, `ENV PATH /usr/local/nginx/bin:$PATH` ensures that `CMD ["nginx"]` just works.
+
+The `ENV` instruction is also useful for providing required environment variables specific to services you wish to containerize, such as Postgres’s `PGDATA`.
+
+Lastly, `ENV` can also be used to set commonly used version numbers so that version bumps are easier to maintain. Similar to having constant variables in a program (as opposed to hard-coding values), this approach lets you change a single ENV instruction to auto-magically bump the version of the software in your container.
+
+Each `ENV` line creates a new intermediate layer, just like `RUN` commands. This means that even if you unset the environment variable in a future layer, it still persists in this layer and its value can be dumped. To prevent this, and really unset the environment variable, use a RUN command with shell commands.
+
+##### ADD or COPY
+
+https://docs.docker.com/develop/develop-images/#add-or-copy
+
+Although `ADD` and `COPY` are functionally similar, generally speaking, `COPY` is preferred. That’s because it’s more transparent than ADD. COPY only supports the basic copying of local files into the container, while ADD has some features (like local-only tar extraction and remote URL support) that are not immediately obvious. 
+Consequently, the best use for ADD is local tar file auto-extraction into the image, as in `ADD rootfs.tar.xz /`.
+
+If you have multiple `Dockerfile` steps that use different files from your context, `COPY` them individually, rather than all at once.
+For example:
+```Dockerfile
+COPY requirements.txt /tmp/
+RUN pip install --requirement /tmp/requirements.txt
+COPY . /tmp/
+```
+Results in fewer cache invalidations for the `RUN` step, than if you put the `COPY . /tmp/` before it.
+
+Because image size matters, using ADD to fetch packages from remote URLs is strongly discouraged; you should use curl or wget instead. That way you can delete the files you no longer need after they’ve been extracted and you don’t have to add another layer in your image.
+do something like:
+```Dockerfile
+RUN mkdir -p /usr/src/things \
+    && curl -SL http://example.com/big.tar.xz \
+    | tar -xJC /usr/src/things \
+    && make -C /usr/src/things all
+```
+
+##### ENTRYPOINT
+
+https://docs.docker.com/develop/develop-images/#entrypoint
+
+The best use for ENTRYPOINT is to set the image’s main command, allowing that image to be run as though it was that command (and then use CMD as the default flags).
+```Dockerfile
+ENTRYPOINT ["s3cmd"]
+CMD ["--help"]
+```
+
+Postgres official image `ENTRYPOINT`
+```shell
+#!/bin/bash
+set -e
+
+if [ "$1" = 'postgres' ]; then
+    chown -R postgres "$PGDATA"
+
+    if [ -z "$(ls -A "$PGDATA")" ]; then
+        gosu postgres initdb
+    fi
+
+    exec gosu postgres "$@"
+fi
+
+exec "$@"
+```
+
+Configure app as PID 1
+This script uses [the `exec` Bash command](http://wiki.bash-hackers.org/commands/builtin/exec) so that the final running application becomes the container’s `PID 1`. This allows the application to receive any Unix signals sent to the container. For more, see the [`ENTRYPOINT` reference](https://docs.docker.com/engine/reference/builder/#entrypoint).
+
+##### VOLUME
+
+https://docs.docker.com/develop/develop-images/#volume
+
+The VOLUME instruction should be used to expose any database storage area, configuration storage, or files/folders created by your docker container. You are strongly encouraged to use VOLUME for any mutable and/or user-serviceable parts of your image.
+
+##### USER
+
+https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user
+
+If a service can run without privileges, use `USER` to change to a non-root user. Start by creating the user and group in the Dockerfile with something like 
+```Dockerfile
+RUN groupadd -r postgres && useradd --no-log-init -r -g postgres postgres
+```
+
+WARNING: [unresolved bug](https://github.com/golang/go/issues/13548)
+
+Avoid installing or using `sudo` as it has unpredictable TTY and signal-forwarding behavior that can cause problems. If you absolutely need functionality similar to `sudo`, such as initializing the daemon as root but running it as non-root, consider using `“gosu”`.
+
+##### WORKDIR
+
+https://docs.docker.com/develop/develop-images/#workdir
+
+For clarity and reliability, you should always use absolute paths for your `WORKDIR`. Also, you should use `WORKDIR` instead of proliferating instructions like `RUN cd … && do-something`, which are hard to read, troubleshoot, and maintain.
+
+##### ONBUILD
+
+https://docs.docker.com/develop/develop-images/#onbuild
+
+An `ONBUILD` command executes after the current `Dockerfile` build completes. `ONBUILD` executes in any child image derived FROM the current image. Think of the `ONBUILD` command as an instruction the parent `Dockerfile` gives to the child `Dockerfile`.
+`ONBUILD` is useful for images that are going to be built `FROM` a given image.
+[Ruby’s ONBUILD variants](https://github.com/docker-library/ruby/blob/c43fef8a60cea31eb9e7d960a076d633cb62ba8d/2.4/jessie/onbuild/Dockerfile)
+Images built with `ONBUILD` should get a separate tag, for example: `ruby:1.9-onbuild` or `ruby:2.0-onbuild`.
+
+</p>
+</details>
+
+### Запуск
+
+#### Новая структура приложения
+
+- Скачан и распакован архив [microservices.zip](https://github.com/express42/reddit/archive/microservices.zip)
+  ```shell
+  wget https://github.com/express42/reddit/archive/microservices.zip && \
+    unzip microservices.zip && \
+    rm microservices.zip
+  ```
+- Каталог `reddit-microservices` переименован в `src`
+  ```shell
+  mv reddit-microservices src
+  ```
+- Создан файл [src/post-py/Dockerfile](src/post-py/Dockerfile)
+- В файле [src/post-py/Dockerfile](src/post-py/Dockerfile) рабочий каталог параметризирован
+- Создан файл [src/comment/Dockerfile](src/comment/Dockerfile)
+- Создан файл [src/ui/Dockerfile](src/ui/Dockerfile)
+- Скачан последний образ MongoDB
+  ```shell
+  docker pull mongo:latest
+  ```
+- Подготовлен [Makefile](src/Makefile) с набороми часто используемых действий
+
+#### Сборка образов
+
+- Сборка образа `post-py` завершилась ошибкой
+  ```log
+  unable to execute 'gcc': No such file or directory
+  error: command 'gcc' failed with exit status 1
+  ```
+- Собран образ comment `make build_comment`
+- Собран образ ui `make build_ui`
+
+- Проблема с `post-py` решена следующим образом
+  ```Dockerfile
+  RUN apk add --no-cache --virtual .build-deps build-base \
+    && pip install -r $APP_HOME/requirements.txt \
+    && apk del .build-deps
+  ```
+  Перед установкой `requirements.txt`, ставится пакет `build-base`. После установки `requirements.txt`, все необходимые для сборки пакеты удаляются. Это всё происходит в рамках одной инструкции `RUN`, чтобы не создавать лишний слой с установленными зависимостями.
+
+Сборка `ui` началась не с первого шага, потому что слой с установленным пакетом `build-essential` уже был создан на этапе сборки `comment`, а сейчас был взят из build-cache вместо ссборки с нуля.
+
+#### Запуск приложения
+
+Работа ведётся в директории [src/](src/)
+
+- Собраны все образы `make build_all`
+- В [Makefile](src/Makefile) добавлена цель `run_all`, которая
+  - Создаёт сеть `${REDDIT_NETWORK_NAME}`
+  - Запускает контейнеры в сети `${REDDIT_NETWORK_NAME}` из образов
+    - `mongodb:latest`
+    - `${DOCKERHUB_LOGIN}/post:${POST_VERSION}`
+    - `${DOCKERHUB_LOGIN}/comment:${COMMENT_VERSION}`
+    - `${DOCKERHUB_LOGIN}/ui:${UI_VERSION}`
+- В [Makefile](src/Makefile) добавлена цель `kill_all`, которая
+  - Убивает все запущенные контейнеры (**ВНИМАНИЕ**: вообще все! О чём выдаётся предупреждение с возможностью отмены.)
+  - Удаляет сеть `${REDDIT_NETWORK_NAME}`
+- Создана сеть и запущены контейнеры `make run_all`
+- Зайти на http://127.0.0.1:9292 удалось
+- Написать пост удалось
+- Всё убито `make kill_all`
+
+### Задание со \*: Переопределение сетевых алиасов
+
+#### Теория
+
+https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e---env---env-file
+
+Use the `-e`, `--env`, and `--env-file` flags to set simple (non-array) environment variables in the container you’re running, or overwrite variables that are defined in the Dockerfile of the image you’re running.
+
+```shell
+$ docker run --env VAR1=value1 --env VAR2=value2 ubuntu env | grep VAR
+VAR1=value1
+VAR2=value2
+```
+
+```shell
+export VAR1=value1
+export VAR2=value2
+
+$ docker run --env VAR1 --env VAR2 ubuntu env | grep VAR
+VAR1=value1
+VAR2=value2
+```
+
+```shell
+$ cat env.list
+# This is a comment
+VAR1=value1
+VAR2=value2
+USER
+
+$ docker run --env-file env.list ubuntu env | grep VAR
+VAR1=value1
+VAR2=value2
+USER=denis
+```
+
+#### Реализация
+
+Создание сети и запуск контейнеров с другими алиасами и переопределением переменных
+```shell
+docker network create reddit
+docker run -d --network=reddit \
+  --network-alias=posts_db1 \
+  --network-alias=comment_db1 \
+  mongo:latest
+docker run -d --network=reddit \
+  --network-alias=post1 \
+  --env POST_DATABASE_HOST=posts_db1 \
+  vscoder/post:1.0
+docker run -d --network=reddit \
+  --network-alias=comment1 \
+  --env COMMENT_DATABASE_HOST=comment_db1 \
+  vscoder/comment:1.0
+docker run -d --network=reddit \
+  --env POST_SERVICE_HOST=post1 \
+  --env COMMENT_SERVICE_HOST=comment1 \
+  -p 9292:9292 \
+  vscoder/ui:1.0
+```
+
+Сеть создана, контейнеры запущены. Работоспособность приложения проверена.
+
+### Образы
+
+Список образов `docker images`
+
+```shell
+REPOSITORY            TAG                 IMAGE ID            CREATED             SIZE
+vscoder/ui            1.0                 aacf973cbc5d        About an hour ago   772MB
+vscoder/comment       1.0                 188232c05d67        About an hour ago   770MB
+vscoder/post          1.0                 f22acc632909        About an hour ago   109MB
+reddit                latest              fce89963a387        5 days ago          691MB
+vscoder/otus-reddit   1.0                 fce89963a387        5 days ago          691MB
+mongo                 latest              965553e202a4        2 weeks ago         363MB
+ubuntu                16.04               5f2bf26e3524        2 weeks ago         123MB
+ruby                  2.2                 6c8e6f9667b2        18 months ago       715MB
+python                3.6.0-alpine        cb178ebbf0f2        2 years ago         88.6MB
+```
+
+- Уменьшен убраз `ui`, засчёт пересборки его на основе `ubuntu:16.04`. Новый [Dockerfile](src/ui/Dockerfile)
+- В [Makefile](src/Makefile) изменена версия ui на 2.0
+- Образ пересобран `make build_ui`
+
+Список образов `docker images`
+
+```shell
+REPOSITORY            TAG                 IMAGE ID            CREATED             SIZE
+vscoder/ui            2.0                 ebb79fd1384f        2 minutes ago       458MB
+vscoder/ui            1.0                 aacf973cbc5d        About an hour ago   772MB
+vscoder/comment       1.0                 188232c05d67        About an hour ago   770MB
+vscoder/post          1.0                 f22acc632909        About an hour ago   109MB
+reddit                latest              fce89963a387        5 days ago          691MB
+vscoder/otus-reddit   1.0                 fce89963a387        5 days ago          691MB
+mongo                 latest              965553e202a4        2 weeks ago         363MB
+ubuntu                16.04               5f2bf26e3524        2 weeks ago         123MB
+ruby                  2.2                 6c8e6f9667b2        18 months ago       715MB
+python                3.6.0-alpine        cb178ebbf0f2        2 years ago         88.6MB
+```
+
+### Задание со \*: Уменьшаем размер образа
+
+#### Анализ
+
+Ссылки:
+
+- [Официальная wiki](https://wiki.alpinelinux.org/wiki)
+- [Статья на habr](https://habr.com/ru/company/digdes/blog/415279/)
+- [Статья на habr](https://habr.com/ru/company/digdes/blog/440658/)
+- [Получаем максимум от Docker. Микроконтейнеры и Alpine Linux](https://youtu.be/ClX9jbiVLaY)
+- Утилита по исследованию образов [dive](https://github.com/wagoodman/dive)
+  Пример использования:
+  - Для интерактивного анализа
+    ```shell
+    docker run --rm -it \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      wagoodman/dive:latest <ui image id>
+    ```
+  - Для интеграции с CI
+    ```shell
+    docker run --rm -it \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -e CI=true \
+      wagoodman/dive:latest <ui image id>
+    ```
+
+Варианты решения:
+
+- Образы на основе alpine-linux. 
+  - '+' Очень эффективно (результаты далее) за счёт минималистичного базового образа.
+  - '-' Могут возникнуть сложности при отсутствии каких-либо пакетов в репозитории.
+- Образы на основе [scratch](https://hub.docker.com/_/scratch), то есть на основе пустого образа
+  - '+' На несколько мегабайт эффективнее чем alpine-linux.
+  - '-' Очень сильно усложняет обслуживание образов.
+- Использование промежуточных образов, Многоступенчатая сборка.
+  - '+' Позволяет все зависимости, необходимые для сборки исполняемого файла, иметь в отдельном образе. В основном используется для компиляции исполняемых файлов с последующим копированием их в итоговый образ.
+  - '-' Усложняет обслуживание. Сложно применимо в ряде случаев (например для интерпретируемых языков).
+  - Для используемых образов (python и ruby) можно в промежуточном образе установить зависимости, необходимые для компиляции, установить зависимости приложения (`pip` или `bundle`), получить с помощью `dive` добавленные файлы и скопировать их в итоговый образ. Но это **чрезмерно** усложнит обслуживание образа, что делает возможную выгоду несущественной.
+
+Выводы:
+
+Наиболее эффективным решением быдет использование для приложений образов на основе alpine-linux
+
+#### Сборка на основе alpine linux
+
+##### ui
+
+- Образ пересобран на базе `ruby:2.2-alpine`. Установка зависимостей потребовала установки `build-base`. Установка `build-base`, установка зависимостей и удаление `build-base` выполняется одниой инструкцией `RUN`, чтобы избежать создания лишних образов.
+```Dockerfile
+FROM ruby:2.2-alpine
+
+ENV POST_SERVICE_HOST post
+ENV POST_SERVICE_PORT 5000
+ENV COMMENT_SERVICE_HOST comment
+ENV COMMENT_SERVICE_PORT 9292
+ENV APP_HOME /app
+
+RUN mkdir $APP_HOME
+WORKDIR $APP_HOME
+COPY Gemfile* $APP_HOME/
+
+RUN apk add --no-cache --virtual .build-deps build-base \
+    && bundle install \
+    && apk del .build-deps
+
+COPY . $APP_HOME
+
+CMD ["puma"]
+```
+- Занимаемый объём уменьшился `docker images | grep vscoder/ui`
+```log
+vscoder/ui            3.0                 25f038173527        13 minutes ago      158MB
+vscoder/ui            2.0                 ebb79fd1384f        4 hours ago         458MB
+vscoder/ui            1.0                 aacf973cbc5d        6 hours ago         772MB
+```
+- Результат работы `dive`
+  ```shell
+  make dive_ui
+  docker run --rm -it \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -e CI=true \
+          wagoodman/dive:latest $(docker images -q vscoder/ui:3.0)
+  ```
+
+<details><summary>результат</summary>
+<p>
+
+```log
+Image Source: docker://7d3825b1f360
+Fetching image... (this can take a while for large images)
+Analyzing image...
+  efficiency: 99.4482 %
+
+  wastedBytes: 892115 bytes (892 kB)
+
+  userWastedPercent: 0.5820 %
+
+Inefficient Files:
+Count  Wasted Space  File Path
+    3        324 kB  /lib/apk/db/installed
+    2        113 kB  /bin/ps
+    2         83 kB  /usr/bin/top
+    2         70 kB  /usr/bin/bunzip2
+    2         70 kB  /usr/bin/bzip2
+    2         70 kB  /usr/bin/bzcat
+    3         32 kB  /lib/apk/db/scripts.tar
+    2         26 kB  /usr/bin/pmap
+    2         22 kB  /usr/bin/pgrep
+    2         22 kB  /usr/bin/pkill
+    2         18 kB  /sbin/sysctl
+    2         14 kB  /usr/bin/free
+    2         10 kB  /usr/bin/uptime
+    2        9.9 kB  /usr/bin/pwdx
+    2        3.7 kB  /app/Gemfile.lock
+    3         500 B  /lib/apk/db/triggers
+    2         474 B  /app/Gemfile
+    3         181 B  /etc/apk/world
+    2           0 B  /usr/bin/sort
+    2           0 B  /usr/bin/test
+    2           0 B  /usr/bin/fold
+    2           0 B  /usr/bin/tail
+    2           0 B  /usr/bin/tac
+    2           0 B  /usr/bin/sum
+    3           0 B  /usr/bin/strings
+    2           0 B  /usr/bin/split
+    2           0 B  /usr/bin/timeout
+    2           0 B  /usr/bin/shuf
+    2           0 B  /usr/bin/sha512sum
+    2           0 B  /usr/bin/sha256sum
+    2           0 B  /usr/bin/sha1sum
+    2           0 B  /usr/bin/seq
+    2           0 B  /usr/bin/realpath
+    2           0 B  /usr/bin/readlink
+    2           0 B  /usr/bin/tr
+    2           0 B  /usr/bin/printf
+    2           0 B  /usr/bin/truncate
+    2           0 B  /usr/bin/tty
+    2           0 B  /usr/bin/unexpand
+    2           0 B  /usr/bin/od
+    2           0 B  /usr/bin/nohup
+    2           0 B  /usr/bin/mkfifo
+    2           0 B  /usr/bin/md5sum
+    2           0 B  /usr/bin/lzma
+    2           0 B  /usr/bin/lzcat
+    2           0 B  /usr/bin/install
+    2           0 B  /usr/bin/id
+    2           0 B  /usr/bin/hostid
+    2           0 B  /usr/bin/head
+    2           0 B  /usr/bin/groups
+    2           0 B  /usr/bin/uniq
+    2           0 B  /usr/bin/tee
+    2           0 B  /usr/bin/expr
+    2           0 B  /usr/bin/expand
+    2           0 B  /usr/bin/env
+    2           0 B  /usr/bin/du
+    2           0 B  /usr/bin/dirname
+    2           0 B  /usr/bin/cut
+    2           0 B  /usr/bin/comm
+    2           0 B  /usr/bin/cksum
+    2           0 B  /usr/bin/unlink
+    2           0 B  /usr/bin/unlzma
+    2           0 B  /usr/bin/unxz
+    2           0 B  /usr/bin/basename
+    2           0 B  /usr/bin/[
+    3           0 B  /tmp
+    2           0 B  /usr/bin/wc
+    2           0 B  /root
+    2           0 B  /usr/bin/whoami
+    2           0 B  /usr/bin/xzcat
+    3           0 B  /lib/apk/db/lock
+    2           0 B  /usr/bin/yes
+    2           0 B  /usr/sbin/chroot
+    2           0 B  /bin/uname
+    2           0 B  /bin/true
+    2           0 B  /bin/touch
+    2           0 B  /bin/tar
+    2           0 B  /bin/sync
+    2           0 B  /bin/stty
+    2           0 B  /bin/stat
+    2           0 B  /bin/sleep
+    2           0 B  /bin/rmdir
+    2           0 B  /bin/rm
+    2           0 B  /bin/pwd
+    3           0 B  /var/cache/misc
+    2           0 B  /bin/printenv
+    2           0 B  /bin/nice
+    2           0 B  /bin/mv
+    2           0 B  /bin/mktemp
+    2           0 B  /bin/mknod
+    2           0 B  /bin/mkdir
+    2           0 B  /bin/ls
+    2           0 B  /bin/ln
+    2           0 B  /bin/false
+    2           0 B  /bin/echo
+    2           0 B  /bin/df
+    2           0 B  /bin/dd
+    2           0 B  /bin/date
+    2           0 B  /bin/cp
+    2           0 B  /bin/chown
+    2           0 B  /bin/chmod
+    2           0 B  /bin/chgrp
+    2           0 B  /bin/cat
+    2           0 B  /bin/base64
+Results:
+  PASS: highestUserWastedPercent
+  SKIP: highestWastedBytes: rule disabled
+  PASS: lowestEfficiency
+Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
+```
+
+</p>
+</details>
+
+- На шаге установки зависимостей, была добавлена очистка кеша `bundle clean`, что позволило уменьшить итоговый образ на 1Мб.
+  ```shell
+  # docker images vscoder/ui  
+  REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+  vscoder/ui          3.0-alpine          f54689080dbe        17 minutes ago      157MB
+  vscoder/ui          3.0                 7d3825b1f360        2 hours ago         158MB
+  vscoder/ui          2.0                 ebb79fd1384f        26 hours ago        458MB
+  vscoder/ui          1.0                 aacf973cbc5d        28 hours ago        772MB
+  ```
+
+##### comment
+
+- Dockerfile
+```Dockerfile
+FROM ruby:2.2-alpine
+
+ENV COMMENT_DATABASE_HOST comment_db
+ENV COMMENT_DATABASE comments
+ENV APP_HOME /app
+
+RUN mkdir $APP_HOME
+WORKDIR $APP_HOME
+
+# Application requiremets (fat layer)
+COPY Gemfile* $APP_HOME/
+RUN apk add --no-cache --virtual .build-deps build-base \
+    && bundle install \
+    && apk del .build-deps
+
+# Application (frequently changing layer)
+COPY . $APP_HOME
+
+CMD ["puma"]
+```
+
+- Размер `docker images | grep vscoder/comment`
+```log
+vscoder/comment       2.0                 a85ccabc510d        15 seconds ago      156MB
+vscoder/comment       1.0                 188232c05d67        6 hours ago         770MB
+```
+- Результат работы `dive`
+  ```shell
+  # make dive_comment 
+  docker run --rm -it \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -e CI=true \
+          wagoodman/dive:latest $(docker images -q vscoder/comment:2.0)
+  ```
+<details><summary>результат</summary>
+<p>
+
+```log
+  Using default CI config
+Image Source: docker://a85ccabc510d
+Fetching image... (this can take a while for large images)
+Analyzing image...
+  efficiency: 99.4405 %
+
+  wastedBytes: 890157 bytes (890 kB)
+
+  userWastedPercent: 0.5898 %
+
+Inefficient Files:
+Count  Wasted Space  File Path
+    3        324 kB  /lib/apk/db/installed
+    2        113 kB  /bin/ps
+    2         83 kB  /usr/bin/top
+    2         70 kB  /usr/bin/bunzip2
+    2         70 kB  /usr/bin/bzip2
+    2         70 kB  /usr/bin/bzcat
+    3         32 kB  /lib/apk/db/scripts.tar
+    2         26 kB  /usr/bin/pmap
+    2         22 kB  /usr/bin/pgrep
+    2         22 kB  /usr/bin/pkill
+    2         18 kB  /sbin/sysctl
+    2         14 kB  /usr/bin/free
+    2         10 kB  /usr/bin/uptime
+    2        9.9 kB  /usr/bin/pwdx
+    2        1.8 kB  /app/Gemfile.lock
+    3         500 B  /lib/apk/db/triggers
+    2         364 B  /app/Gemfile
+    3         181 B  /etc/apk/world
+    2           0 B  /usr/bin/sort
+    2           0 B  /usr/bin/test
+    2           0 B  /usr/bin/fold
+    2           0 B  /usr/bin/tail
+    2           0 B  /usr/bin/tac
+    2           0 B  /usr/bin/sum
+    3           0 B  /usr/bin/strings
+    2           0 B  /usr/bin/split
+    2           0 B  /usr/bin/timeout
+    2           0 B  /usr/bin/shuf
+    2           0 B  /usr/bin/sha512sum
+    2           0 B  /usr/bin/sha256sum
+    2           0 B  /usr/bin/sha1sum
+    2           0 B  /usr/bin/seq
+    2           0 B  /usr/bin/realpath
+    2           0 B  /usr/bin/readlink
+    2           0 B  /usr/bin/tr
+    2           0 B  /usr/bin/printf
+    2           0 B  /usr/bin/truncate
+    2           0 B  /usr/bin/tty
+    2           0 B  /usr/bin/unexpand
+    2           0 B  /usr/bin/od
+    2           0 B  /usr/bin/nohup
+    2           0 B  /usr/bin/mkfifo
+    2           0 B  /usr/bin/md5sum
+    2           0 B  /usr/bin/lzma
+    2           0 B  /usr/bin/lzcat
+    2           0 B  /usr/bin/install
+    2           0 B  /usr/bin/id
+    2           0 B  /usr/bin/hostid
+    2           0 B  /usr/bin/head
+    2           0 B  /usr/bin/groups
+    2           0 B  /usr/bin/uniq
+    2           0 B  /usr/bin/tee
+    2           0 B  /usr/bin/expr
+    2           0 B  /usr/bin/expand
+    2           0 B  /usr/bin/env
+    2           0 B  /usr/bin/du
+    2           0 B  /usr/bin/dirname
+    2           0 B  /usr/bin/cut
+    2           0 B  /usr/bin/comm
+    2           0 B  /usr/bin/cksum
+    2           0 B  /usr/bin/unlink
+    2           0 B  /usr/bin/unlzma
+    2           0 B  /usr/bin/unxz
+    2           0 B  /usr/bin/basename
+    2           0 B  /usr/bin/[
+    3           0 B  /tmp
+    2           0 B  /usr/bin/wc
+    2           0 B  /root
+    2           0 B  /usr/bin/whoami
+    2           0 B  /usr/bin/xzcat
+    3           0 B  /lib/apk/db/lock
+    2           0 B  /usr/bin/yes
+    2           0 B  /usr/sbin/chroot
+    2           0 B  /bin/uname
+    2           0 B  /bin/true
+    2           0 B  /bin/touch
+    2           0 B  /bin/tar
+    2           0 B  /bin/sync
+    2           0 B  /bin/stty
+    2           0 B  /bin/stat
+    2           0 B  /bin/sleep
+    2           0 B  /bin/rmdir
+    2           0 B  /bin/rm
+    2           0 B  /bin/pwd
+    3           0 B  /var/cache/misc
+    2           0 B  /bin/printenv
+    2           0 B  /bin/nice
+    2           0 B  /bin/mv
+    2           0 B  /bin/mktemp
+    2           0 B  /bin/mknod
+    2           0 B  /bin/mkdir
+    2           0 B  /bin/ls
+    2           0 B  /bin/ln
+    2           0 B  /bin/false
+    2           0 B  /bin/echo
+    2           0 B  /bin/df
+    2           0 B  /bin/dd
+    2           0 B  /bin/date
+    2           0 B  /bin/cp
+    2           0 B  /bin/chown
+    2           0 B  /bin/chmod
+    2           0 B  /bin/chgrp
+    2           0 B  /bin/cat
+    2           0 B  /bin/base64
+Results:
+  PASS: highestUserWastedPercent
+  SKIP: highestWastedBytes: rule disabled
+  PASS: lowestEfficiency
+Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
+```
+
+</p>
+</details>
+
+- На шаге установки зависимостей, была добавлена очистка кеша `bundle clean`, что позволило уменьшить итоговый образ на 1Мб.
+  ```shell
+  # docker images vscoder/comment
+  REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+  vscoder/comment     2.0-alpine          333b8da781a5        17 minutes ago      156MB
+  vscoder/comment     2.0                 a85ccabc510d        22 hours ago        156MB
+  vscoder/comment     1.0                 188232c05d67        28 hours ago        770MB
+  ```
+
+##### post
+
+- Образ post изначально бдыл основан на alpine, в связи с этим модификация не потребовалась.
+  ```shell
+  # docker images vscoder/post
+  REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+  vscoder/post        1.0                 f22acc632909        27 hours ago        109MB
+  ```
+- Результат работы `dive`
+  ```shell
+  make dive_post 
+  docker run --rm -it \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -e CI=true \
+          wagoodman/dive:latest $(docker images -q vscoder/post:1.0)
+  ```
+<details><summary>результат</summary>
+<p>
+
+```log
+  Using default CI config
+Image Source: docker://f22acc632909
+Fetching image... (this can take a while for large images)
+Analyzing image...
+  efficiency: 98.7017 %
+
+  wastedBytes: 2357680 bytes (2.4 MB)
+
+  userWastedPercent: 2.2600 %
+
+Inefficient Files:
+Count  Wasted Space  File Path
+    2        1.1 MB  /lib/ld-musl-x86_64.so.1
+    2        549 kB  /etc/ssl/certs/ca-certificates.crt
+    4        465 kB  /lib/apk/db/installed
+    2         73 kB  /usr/bin/getent
+    2         63 kB  /usr/bin/getconf
+    4         45 kB  /lib/apk/db/scripts.tar
+    2         41 kB  /usr/bin/iconv
+    4         812 B  /lib/apk/db/triggers
+    2         786 B  /sbin/ldconfig
+    4         284 B  /etc/apk/world
+    2         216 B  /app/requirements.txt
+    2           0 B  /usr/bin/unlzma
+    3           0 B  /usr/bin/strings
+    2           0 B  /usr/bin/lzma
+    2           0 B  /usr/bin/lzcat
+    3           0 B  /tmp
+    2           0 B  /root
+    2           0 B  /usr/bin/xzcat
+    2           0 B  /bin/tar
+    4           0 B  /var/cache/misc
+    2           0 B  /lib/apk/db/lock
+    2           0 B  /lib/libc.musl-x86_64.so.1
+    2           0 B  /usr/bin/ldd
+    2           0 B  /usr/bin/unxz
+Results:
+  PASS: highestUserWastedPercent
+  SKIP: highestWastedBytes: rule disabled
+  PASS: lowestEfficiency
+Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
+```
+
+</p>
+</details>
+
+- При установке зависимостей была добавлена опция `--no-cache-dir` к `pip`, что позволило уменьшить итоговый образ на 3Мб
+  ```shell
+  # docker images vscoder/post
+  REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+  vscoder/post        2.0-alpine          6cadaa2065a7        2 minutes ago       106MB
+  vscoder/post        1.0                 f22acc632909        28 hours ago        109MB
+  ```
+
+### Дальнейшие действия
+
+#### Проверка работоспособности
+
+- К тегам образов добавлен суффикс `-alpine`
+- Пересобраны все образы `make build_all`
+- Остановлены ранее запущенные инстансы `make kill_all`
+- Контейнеры запущены заново на основе свежих образов `make run_all`
+- Работоспособность проверена. Пост создан успешно. Ранее созданный пост не сохоанился.
+
+#### Создание volume для MongoDB
+
+- В Makefile target run_all добавлено создание volume в случае отсутствия
+  ```shell
+  docker volume inspect ${REDDIT_DB_VOLUME_NAME} 1>/dev/null || docker volume create ${REDDIT_DB_VOLUME_NAME}
+  ```
+- В Makefile target run_all при создании контейнера с mongodb монтируется volume
+  ```Makefile
+  -v reddit_db:/data/db
+  ```
+- В результате Makefile target run_all выглядит следующим образом:
+  ```Makefile
+  run_all:
+	docker network inspect ${REDDIT_NETWORK_NAME} 1>/dev/null || docker network create ${REDDIT_NETWORK_NAME}
+	docker volume inspect ${REDDIT_DB_VOLUME_NAME} 1>/dev/null || docker volume create ${REDDIT_DB_VOLUME_NAME}
+	docker run -d --network=${REDDIT_NETWORK_NAME} \
+		--network-alias=post_db \
+		--network-alias=comment_db \
+		-v reddit_db:/data/db \
+		mongo:latest
+	docker run -d --network=${REDDIT_NETWORK_NAME} \
+		--network-alias=post ${DOCKERHUB_LOGIN}/post:${POST_VERSION}
+	docker run -d --network=${REDDIT_NETWORK_NAME} \
+		--network-alias=comment ${DOCKERHUB_LOGIN}/comment:${COMMENT_VERSION}
+	docker run -d --network=${REDDIT_NETWORK_NAME} \
+		-p 9292:9292 ${DOCKERHUB_LOGIN}/ui:${UI_VERSION}
+  ```
+- Работоспособность проверена
+
+### src/Makefile
+
+#### Переменные
+
+| переменная            | значение по-умолчанию | описание                                    |
+| --------------------- | --------------------- | ------------------------------------------- |
+| DOCKERHUB_LOGIN       | vscoder               | логин на hub.docker.com                     |
+| POST_VERSION          | 1.0                   | версия сервиса post-py                      |
+| COMMENT_VERSION       | 1.0                   | версия сервиса comment                      |
+| UI_VERSION            | 1.0                   | версия сервиса ui                           |
+| REDDIT_NETWORK_NAME   | reddit                | Имя docker-сети                             |
+| REDDIT_DB_VOLUME_NAME | reddit_db             | Название volume для хранения данных mongodb |
+
+#### Цели
+
+| цель          | описание                                                                                         |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| build_post    | собирает контейнер post:${POST_VERSION} из контекста ./post-py                                   |
+| dive_post     | анализ образа post:${POST_VERSION} на эффективность средствами `dive`                            |
+| build_comment | собирает контейнер comment:${COMMENT_VERSION} из контекста ./comment                             |
+| dive_comment  | анализ образа comment:${COMMENT_VERSION} на эффективность средствами `dive`                      |
+| build_ui      | собирает контейнер ui:${UI_VERSION} из контекста ./ui                                            |
+| dive_ui       | анализ образа ui:${UI_VERSION} на эффективность средствами `dive`                                |
+| build_all     | собрать все контейнеры                                                                           |
+| run_all       | запустить контейнеры из образов mongodb и 3х наших сервисов                                      |
+| kill_all      | Убить **все запущенные** контейнеры и удалить сеть (том `${REDDIT_DB_VOLUME_NAME}` не удаляется) |
