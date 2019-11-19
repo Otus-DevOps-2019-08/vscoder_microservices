@@ -3174,3 +3174,97 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
   > If the WORKDIR doesn’t exist, it will be created even if it’s not used in any subsequent Dockerfile instruction.
 
 - Файл [src/docker-compose.yml](src/docker-compose.yml) изменён для использования нескольких сетей
+  ```yaml
+  version: "3.3"
+  services:
+    post_db:
+      image: mongo:${MONGO_VERSION-3.2}
+      volumes:
+        - post_db:/data/db
+      networks:
+        - reddit_back
+    ui:
+      build: ./ui
+      image: ${USERNAME}/ui:${UI_VERSION-1.0}
+      ports:
+        - 9292:9292/tcp
+      networks:
+        - reddit_front
+    post:
+      build: ./post-py
+      image: ${USERNAME}/post:${POST_VERSION-1.0}
+      networks:
+        - reddit_front
+        - reddit_back
+    comment:
+      build: ./comment
+      image: ${USERNAME}/comment:${COMMENT_VERSION-1.0}
+      networks:
+        - reddit_front
+        - reddit_back
+
+  volumes:
+    post_db:
+
+  networks:
+    reddit_front:
+    reddit_back:
+  ```
+
+- Подробнее про 
+  - переменные окружения https://docs.docker.com/compose/environment-variables/
+  - подстановку переменных окружения https://docs.docker.com/compose/compose-file/#variable-substitution
+    > Important: The .env file feature only works when you use the docker-compose up command and does not work with docker stack deploy.
+  - `docker-compose config` чтобы посмотреть отрезолвленный compose-файл https://docs.docker.com/compose/reference/config/
+  - Compose CLI environment variables https://docs.docker.com/compose/reference/envvars/
+- Создан файл [src/.env](src/.env) со значениями переменных по умолчанию
+- Параметризованы следующие параметры
+  - `MONGO_VERSION=3.2` - версия mongodb
+  - `UI_VERSION=1.0` - версия ui
+  - `POST_VERSION=1.0` - версия post-py
+  - `COMMENT_VERSION=1.0` - версия comment
+  - `UI_PORT=9292` - порт публикации ui
+  - `USERNAME=vscoder` - имя пользователя для подстановки в имя образа.
+    Например `image: ${USERNAME}/ui:${UI_VERSION}`
+- Проверка `docker-compose config`
+  ```yaml
+  networks:
+    reddit_back: {}
+    reddit_front: {}
+  services:
+    comment:
+      build:
+        context: /mnt/calculate/home/vscoder/projects/otus/devops201908/vscoder_microservices/src/comment
+      image: vscoder/comment:1.0
+      networks:
+        reddit_back: null
+        reddit_front: null
+    post:
+      build:
+        context: /mnt/calculate/home/vscoder/projects/otus/devops201908/vscoder_microservices/src/post-py
+      image: vscoder/post:1.0
+      networks:
+        reddit_back: null
+        reddit_front: null
+    post_db:
+      image: mongo:3.2
+      networks:
+        reddit_back: null
+      volumes:
+      - post_db:/data/db:rw
+    ui:
+      build:
+        context: /mnt/calculate/home/vscoder/projects/otus/devops201908/vscoder_microservices/src/ui
+      image: vscoder/ui:1.0
+      networks:
+        reddit_front: null
+      ports:
+      - protocol: tcp
+        published: 9292
+        target: 9292
+  version: '3.7'
+  volumes:
+    post_db: {}
+  ```
+- Выполнен запуск всего с публикацией приложения на 80 порту (доступ на 80 разрешён в фаерволе). `export UI_PORT=80 && docker-compose up -d`
+- Проверка показала, что приложение доступно на 80 порту
