@@ -3142,7 +3142,7 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
 
 #### Установка
 
-- В [requirements.txt](requirements.txt) ранее был добавлен `docker-compose>=1.24.1`
+- В [requirements.txt](requirements.txt) ранее уже был добавлен `docker-compose>=1.24.1`
 
 #### docker-compose.yml
 
@@ -3169,3 +3169,6 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
   ```
 - В браузере открыт http://35.240.72.210:9292/
 - всё работает, посты создаются
+
+- Отступление: убрана лишняя директива `RUN` из `src/*/Dockerfile`, создающая рабочий каталок перед заданием `WORKDIR`, так как это делает `WORKDIR` автоматически.
+  > If the WORKDIR doesn’t exist, it will be created even if it’s not used in any subsequent Dockerfile instruction.
