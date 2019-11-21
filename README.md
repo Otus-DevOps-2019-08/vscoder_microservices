@@ -86,6 +86,10 @@ vscoder microservices repository
     - [Использование docker-compose](#%d0%98%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-docker-compose)
       - [Установка](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0)
       - [docker-compose.yml](#docker-composeyml)
+      - [Имя проекта](#%d0%98%d0%bc%d1%8f-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
+    - [Задание со \*: docker-compose.override.yml](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--docker-composeoverrideyml)
+      - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-2)
+      - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-1)
 
 # Makefile
 
@@ -3268,3 +3272,35 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
   ```
 - Выполнен запуск всего с публикацией приложения на 80 порту (доступ на 80 разрешён в фаерволе). `export UI_PORT=80 && docker-compose up -d`
 - Проверка показала, что приложение доступно на 80 порту
+
+#### Имя проекта
+
+- https://docs.docker.com/compose/#multiple-isolated-environments-on-a-single-host
+- Имя проекта по умолчанию берётся из `basename` директории проекта
+- Переопределить имя проекта можно 
+  - using the [-p command line option](https://docs.docker.com/compose/reference/overview/)
+  - using [COMPOSE_PROJECT_NAME environment variable](https://docs.docker.com/compose/reference/envvars/#compose_project_name)
+
+### Задание со \*: docker-compose.override.yml
+
+#### Анализ
+
+[Share Compose configurations between files and projects](https://docs.docker.com/compose/extends/)
+
+By default, Compose reads two files, a docker-compose.yml and an optional docker-compose.override.yml file.
+If a service is defined in both files, Compose merges the configurations.
+To use multiple override files, or an override file with a different name, you can use the -f option to specify the list of files. Compose merges files in the order they’re specified on the command line.
+
+#### Реализация
+
+- Добавлен файл [src/docker-compose.override.yml](src/docker-compose.override.yml)
+- В [src/docker-compose.override.yml](src/docker-compose.override.yml) переопределены следующие параметры:
+  - В `/app` контейнера `post` монтируется локальная директория `./post-py`
+  - В `/app` контейнера `comment` монтируется локальная директория `./comment`
+  - Сервис `puma` в `ui` запускается с параметрами `--debug -w 2`
+  - Так же в  добавлена секция
+    ```yaml
+    environment:
+      APP_HOME: /app
+    ```
+    переопределяющая переменную `APP_HOME` на случай, если она будет задана в основном файле [src/docker-compose.yml](src/docker-compose.yml)

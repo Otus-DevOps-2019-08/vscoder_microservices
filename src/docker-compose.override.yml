@@ -1,0 +1,13 @@
+---
+environment:
+  APP_HOME: /app
+post:
+  volumes:
+    - "./post-py:/app"
+
+comment:
+  volumes:
+    - "./comment:/app"
+
+ui:
+  command: --debug -w 2
