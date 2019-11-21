@@ -1,14 +1,14 @@
 ---
 version: "3.7"
-environment:
-  APP_HOME: /app
-post:
-  volumes:
-    - "./post-py:/app"
 
-comment:
-  volumes:
-    - "./comment:/app"
-
-ui:
-  command: puma --debug -w 2
+services:
+  post:
+    volumes:
+      - "./post-py:${POST_APP_HOME}"
+  comment:
+    volumes:
+      - "./comment:${COMMENT_APP_HOME}"
+  ui:
+    volumes:
+      - "./ui:${UI_APP_HOME}"
+    command: puma --debug -w 2

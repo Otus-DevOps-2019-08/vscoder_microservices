@@ -3311,13 +3311,27 @@ To use multiple override files, or an override file with a different name, you c
   - В `/app` контейнера `post` монтируется локальная директория `./post-py`
   - В `/app` контейнера `comment` монтируется локальная директория `./comment`
   - Сервис `puma` в `ui` запускается с параметрами `--debug -w 2`
-  - Так же в  добавлена секция
-    ```yaml
-    environment:
-      APP_HOME: /app
-    ```
-    переопределяющая переменную `APP_HOME` на случай, если она будет переопределена ранее в переменных окружения среды запуска `docker-compose` или в родительском [src/docker-compose.yml](src/docker-compose.yml), так как при монтировании volumes используется абсолютный путь
 - В [src/docker-compose.override.yml](src/docker-compose.override.yml) добавлена версия
   ```yaml
   version: "3.7"
   ```
+- В [src/docker-compose.override.yml](src/docker-compose.override.yml) описание сервисов помещено в секцию `services:`
+- Для каждого сервиса в [src/docker-compose.override.yml](src/docker-compose.override.yml) директория с кодом монтируется в директорию, указанную в соответтсвующей переменной окружения
+- Итоговое содержимое [src/docker-compose.override.yml](src/docker-compose.override.yml)
+  ```yaml
+  ---
+  version: "3.7"
+
+  services:
+    post:
+      volumes:
+        - "./post-py:${POST_APP_HOME}"
+    comment:
+      volumes:
+        - "./comment:${COMMENT_APP_HOME}"
+    ui:
+      volumes:
+        - "./ui:${UI_APP_HOME}"
+      command: puma --debug -w 2
+  ```
+- **ВАЖНО** не работает из коробки с docker-machine, необходимо колдовать с [docker-machine mount](https://docs.docker.com/machine/reference/mount/)
