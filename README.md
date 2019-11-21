@@ -86,7 +86,8 @@ vscoder microservices repository
     - [Использование docker-compose](#%d0%98%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-docker-compose)
       - [Установка](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0)
       - [docker-compose.yml](#docker-composeyml)
-      - [Имя проекта](#%d0%98%d0%bc%d1%8f-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
+        - [Переменные окружения](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+        - [Имя проекта](#%d0%98%d0%bc%d1%8f-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
     - [Задание со \*: docker-compose.override.yml](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--docker-composeoverrideyml)
       - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-2)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-1)
@@ -3215,6 +3216,18 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
     reddit_back:
   ```
 
+##### Переменные окружения
+
+Приоритет источников для значения переменных в контейнере:
+
+When you set the same environment variable in multiple files, here’s the priority used by Compose to choose which value to use:
+
+1. Compose file
+2. Shell environment variables
+3. Environment file
+4. Dockerfile
+5. Variable is not defined
+
 - Подробнее про 
   - переменные окружения https://docs.docker.com/compose/environment-variables/
   - подстановку переменных окружения https://docs.docker.com/compose/compose-file/#variable-substitution
@@ -3273,7 +3286,7 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
 - Выполнен запуск всего с публикацией приложения на 80 порту (доступ на 80 разрешён в фаерволе). `export UI_PORT=80 && docker-compose up -d`
 - Проверка показала, что приложение доступно на 80 порту
 
-#### Имя проекта
+##### Имя проекта
 
 - https://docs.docker.com/compose/#multiple-isolated-environments-on-a-single-host
 - Имя проекта по умолчанию берётся из `basename` директории проекта
@@ -3303,4 +3316,4 @@ To use multiple override files, or an override file with a different name, you c
     environment:
       APP_HOME: /app
     ```
-    переопределяющая переменную `APP_HOME` на случай, если она будет задана в основном файле [src/docker-compose.yml](src/docker-compose.yml)
+    переопределяющая переменную `APP_HOME` на случай, если она будет переопределена ранее в переменных окружения среды запуска `docker-compose` или в родительском [src/docker-compose.yml](src/docker-compose.yml), так как при монтировании volumes используется абсолютный путь
