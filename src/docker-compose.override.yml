@@ -10,4 +10,4 @@ comment:
     - "./comment:/app"
 
 ui:
-  command: --debug -w 2
+  command: puma --debug -w 2
