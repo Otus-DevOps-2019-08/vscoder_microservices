@@ -3317,3 +3317,7 @@ To use multiple override files, or an override file with a different name, you c
       APP_HOME: /app
     ```
     переопределяющая переменную `APP_HOME` на случай, если она будет переопределена ранее в переменных окружения среды запуска `docker-compose` или в родительском [src/docker-compose.yml](src/docker-compose.yml), так как при монтировании volumes используется абсолютный путь
+- В [src/docker-compose.override.yml](src/docker-compose.override.yml) добавлена версия
+  ```yaml
+  version: "3.7"
+  ```

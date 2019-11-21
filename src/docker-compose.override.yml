@@ -1,4 +1,5 @@
 ---
+version: "3.7"
 environment:
   APP_HOME: /app
 post:
