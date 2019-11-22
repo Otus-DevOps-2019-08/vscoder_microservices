@@ -3313,14 +3313,14 @@ To use multiple override files, or an override file with a different name, you c
   - Сервис `puma` в `ui` запускается с параметрами `--debug -w 2`
 - В [src/docker-compose.override.yml](src/docker-compose.override.yml) добавлена версия
   ```yaml
-  version: "3.7"
+  version: "3.3"
   ```
 - В [src/docker-compose.override.yml](src/docker-compose.override.yml) описание сервисов помещено в секцию `services:`
 - Для каждого сервиса в [src/docker-compose.override.yml](src/docker-compose.override.yml) директория с кодом монтируется в директорию, указанную в соответтсвующей переменной окружения
 - Итоговое содержимое [src/docker-compose.override.yml](src/docker-compose.override.yml)
   ```yaml
   ---
-  version: "3.7"
+  version: "3.3"
 
   services:
     post:
@@ -3335,3 +3335,4 @@ To use multiple override files, or an override file with a different name, you c
       command: puma --debug -w 2
   ```
 - **ВАЖНО** не работает из коробки с docker-machine, необходимо колдовать с [docker-machine mount](https://docs.docker.com/machine/reference/mount/)
+- Версия формата докерфайла изменена с `3.7` на `3.3` в связи с тем, что travis-ci не поддерживает более высокую версию
