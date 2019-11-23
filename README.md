@@ -91,6 +91,7 @@ vscoder microservices repository
     - [Задание со \*: docker-compose.override.yml](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--docker-composeoverrideyml)
       - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-2)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-1)
+    - [Вне заданий](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9)
 
 # Makefile
 
@@ -3336,3 +3337,9 @@ To use multiple override files, or an override file with a different name, you c
   ```
 - **ВАЖНО** не работает из коробки с docker-machine, необходимо колдовать с [docker-machine mount](https://docs.docker.com/machine/reference/mount/)
 - Версия формата докерфайла изменена с `3.7` на `3.3` в связи с тем, что travis-ci не поддерживает более высокую версию
+
+### Вне заданий
+
+- С целью улучшения читаемости, из [.travis.yml] в шелл-скрипты перенесены команды из секций
+  - `install` в [.travis-scripts/install.sh](.travis-scripts/install.sh)
+  - `before_script` в [.travis-scripts/before_script.sh](.travis-scripts/before_script.sh)

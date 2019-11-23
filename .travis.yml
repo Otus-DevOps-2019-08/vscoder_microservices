@@ -5,23 +5,9 @@ before_install:
   - curl https://raw.githubusercontent.com/express42/otus-homeworks/2019-08/run.sh |
     bash
 install:
-  - make install_packer install_terraform install_tflint
-  - sudo apt-get install python-virtualenv
-  - make install_requirements_virtualenv
-  # Fix Failed to validate the SSL certificate for galaxy.ansible.com:443 #795 https://github.com/ansible/galaxy/issues/795
-  - "./.venv/bin/pip install -U urllib3[secure]"
-  - make monolith_ansible_install_requirements
+  - ./.travis-scripts/install.sh
 before_script:
-  # Create fake variables files
-  - cp docker-monolith/packer/variables.json.example docker-monolith/packer/variables.json
-  - cp docker-monolith/terraform/terraform.tfvars.example docker-monolith/terraform/terraform.tfvars
-  - cp docker-monolith/terraform/stage/terraform.tfvars.example docker-monolith/terraform/stage/terraform.tfvars
-  # Initialize terraform
-  - make monolith_terraform_init_nobackend ENV=""
-  - make monolith_terraform_init_nobackend ENV="stage"
-  # Create fake ansible vault key file
-  - mkdir -p ~/.ansible/keys/
-  - echo "fakepassword" > ~/.ansible/keys/otus-devops-vault.key
+  - ./.travis-scripts/before_script.sh
 script:
   - make monolith_packer_validate monolith_terraform_validate monolith_terraform_tflint
   - make monolith_ansible_syntax monolith_ansible_lint
