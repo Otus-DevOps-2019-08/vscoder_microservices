@@ -5,27 +5,13 @@ before_install:
   - curl https://raw.githubusercontent.com/express42/otus-homeworks/2019-08/run.sh |
     bash
 install:
-  - make install_packer install_terraform install_tflint
-  - sudo apt-get install python-virtualenv
-  - make install_requirements_virtualenv
-  # Fix Failed to validate the SSL certificate for galaxy.ansible.com:443 #795 https://github.com/ansible/galaxy/issues/795
-  - ./.venv/bin/pip install -U urllib3[secure]
-  - make monolith_ansible_install_requirements
+  - ./.travis-scripts/install.sh
 before_script:
-  # Create fake variables files
-  - cp docker-monolith/packer/variables.json.example docker-monolith/packer/variables.json
-  - cp docker-monolith/terraform/terraform.tfvars.example docker-monolith/terraform/terraform.tfvars
-  - cp docker-monolith/terraform/stage/terraform.tfvars.example docker-monolith/terraform/stage/terraform.tfvars
-  # Initialise terraform
-  - make monolith_terraform_init_nobackend ENV=""
-  - make monolith_terraform_init_nobackend ENV="stage"
-  # Create fake ansible vault key file
-  - mkdir -p ~/.ansible/keys/
-  - echo "fakepassword" > ~/.ansible/keys/otus-devops-vault.key
+  - ./.travis-scripts/before_script.sh
 script:
   - make monolith_packer_validate monolith_terraform_validate monolith_terraform_tflint
   - make monolith_ansible_syntax monolith_ansible_lint
 notifications:
   slack:
     rooms:
-      secure: ZlHbqtM0xs75/tCDM6OiAh+k7ClwlmfxGBUtjZaHdhqkub9cQwQT6TRy4b66Vntt0OM6OKRmMxBkNITaIWMSz62Z0fCMkKpCycivU8ufz2KaZXieXpe4miX95HVRQGwA9JS9czNdxYVsVayamcGJxBtVyz12rWsNTe43Anyj4iYcsLCycg3Di4pGJutcxLpD2HwINUJbjhybvKb5dcZ/8CltL6BBC1Ls4sETXMzmg0AeMf3vklCzqCY++znl1dAm+WiBYAzwRRjWXWp7V2l+XkPUYDIpgoUpguUMu1d/JOaX+7I8deHo7Z82uikQzr/u3WXvjcP3XNHP4qw8LxCLlfxz+WF9RhcTb+AdV1bMxjskjpU6HiwFhHUyMZdUgCPCm3WkW1j3KaKV7jji+1lNeWgQOEtokP6Px0zsQF3crqKwfgVBR9n1UplxJF30gflEg04wB3EFzKw3V0/xo57Ptnh31+dp94b1cxx+FqotL/+eNMtORiAFhduoK6QwaYWq74a3UCmXFfjTHp5aY5FcKmZF4+C2t/j0BNf5d8Zn51LE5JhnoQKRKqAtUXHes+bfDAWf34/2R/bECLTzuv/1OT+xeiwTdgBX9GkULvlWwSm2LN4Qtal+s9KHP1Mif+2uo63Sd8pybIq/ci92DJfMgBjkMFKOUXWEuR6ZreMjpqw=
+      secure: UaFHUCKI2v7guEx1Z+GW/1EUvA700rxg5xRWIsRPHPBMrQVyzYAyV9k/PFyeBVf+AUiSUXcpd+7V8GQcI3UcNn3ONaXUb+50eWGSdE7UB+4Iy+pio0S9gvP7cOLon37ny/d01ut7PcN7yRISZNOnpIv6yF2YnZYgIxy2+zTXjF255Y5Y5KiRysZ6lcogaUolfNRgsIq9P1v2yPaaCJA1VB24fmXVZN5TjqIMnbUT1zAH595CTV2ifUkUpBmYK6Qh36QxJI7WggI9xkYIs2R3No96RklMg3MGbD/1eYrYAjvbHptm4rCGPy0oL25KSNf1n+xTOxyKI0WnM9yxuoyrZVn/d+hHxbpsaoG+asziiHvzJsq4Zo3DRxIUbWW8f5gTx/Mzxlil8iC2YE0PaSmpuCJD7vAQVvYfNivmp0EdBZsnJDM/q3ZNsVggm4Z0QNGg8T6VCRgo2CaH3IAmN/BDFRKayb9oUCvJKpsdANe9QRFL41SydbkYi54IBD6/YXRiFqJ/P/s6V3yF6/3bRCkUgr6vrrIHX3Nznm9JRwU9CdYGMkPhKsumimv8L0EK2UJIPt54sPehpzx5IS4ujAimMZJFIb1De6Y05agUu/BY9fXj2U5FHGk7uM1K4tPr1r+qFb/Un0uua0zSBjRvEvptqo/sRJ0/cjjsk+Yg/vt3Mtk=

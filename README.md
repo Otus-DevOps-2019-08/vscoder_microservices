@@ -73,6 +73,25 @@ vscoder microservices repository
     - [src/Makefile](#srcmakefile)
       - [Переменные](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-1)
       - [Цели](#%d0%a6%d0%b5%d0%bb%d0%b8-1)
+  - [HomeWork 14: Docker: сети, docker-compose](#homework-14-docker-%d1%81%d0%b5%d1%82%d0%b8-docker-compose)
+    - [Работа с сетями в Docker](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d1%81%d0%b5%d1%82%d1%8f%d0%bc%d0%b8-%d0%b2-docker)
+      - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-1)
+      - [Работа с сетью в Docker](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d1%81%d0%b5%d1%82%d1%8c%d1%8e-%d0%b2-docker)
+        - [none](#none)
+        - [host](#host)
+          - [network namespaces](#network-namespaces)
+        - [bridge](#bridge)
+          - [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-1)
+          - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-1)
+    - [Использование docker-compose](#%d0%98%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-docker-compose)
+      - [Установка](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0)
+      - [docker-compose.yml](#docker-composeyml)
+        - [Переменные окружения](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+        - [Имя проекта](#%d0%98%d0%bc%d1%8f-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
+    - [Задание со \*: docker-compose.override.yml](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--docker-composeoverrideyml)
+      - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-2)
+      - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-1)
+    - [Вне заданий](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9)
 
 # Makefile
 
@@ -2728,3 +2747,599 @@ Result:PASS [Total:3] [Passed:2] [Failed:0] [Warn:0] [Skipped:1]
 | build_all     | собрать все контейнеры                                                                           |
 | run_all       | запустить контейнеры из образов mongodb и 3х наших сервисов                                      |
 | kill_all      | Убить **все запущенные** контейнеры и удалить сеть (том `${REDDIT_DB_VOLUME_NAME}` не удаляется) |
+
+
+## HomeWork 14: Docker: сети, docker-compose
+
+### Работа с сетями в Docker
+
+#### Подготовка
+
+- Создаём новый docker-machine и подключаемся к нему
+  ```shell
+  make docker_machine_create
+  docker-machine ls
+  ```
+  ```log
+  NAME          ACTIVE   DRIVER   STATE     URL                        SWARM   DOCKER     ERRORS
+  docker-host   -        google   Running   tcp://35.241.253.37:2376           v19.03.5
+  ```
+  ```shell
+  eval $(docker-machine env docker-host)
+  ```
+
+#### Работа с сетью в Docker
+
+##### none
+
+- Запуск контейнера с режимом сети `none`
+  ```shell
+  docker run -ti --rm --network none joffotron/docker-net-tools -c "ifconfig; ping -c4 localhost"
+  lo        Link encap:Local Loopback  
+            inet addr:127.0.0.1  Mask:255.0.0.0
+            UP LOOPBACK RUNNING  MTU:65536  Metric:1
+            RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:1000 
+            RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+  PING localhost (127.0.0.1): 56 data bytes
+  64 bytes from 127.0.0.1: seq=0 ttl=64 time=0.040 ms
+  64 bytes from 127.0.0.1: seq=1 ttl=64 time=0.062 ms
+  64 bytes from 127.0.0.1: seq=2 ttl=64 time=0.064 ms
+  64 bytes from 127.0.0.1: seq=3 ttl=64 time=0.064 ms
+
+  --- localhost ping statistics ---
+  4 packets transmitted, 4 packets received, 0% packet loss
+  round-trip min/avg/max = 0.040/0.057/0.064 ms
+  ```
+  - Видим только `lo` интерфейс. Сетевой стек внутри контейнера работает.
+  - Может быть применимо для тестирования или для фанимуляции с файлами в volume.
+
+##### host
+
+- Запуск контейнера в сетевом пространстве имён хоста
+  ```shell
+  docker run -ti --rm --network host joffotron/docker-net-tools -c ifconfig
+
+  docker0   Link encap:Ethernet  HWaddr 02:42:34:B5:56:3D  
+            inet addr:172.17.0.1  Bcast:172.17.255.255  Mask:255.255.0.0
+            UP BROADCAST MULTICAST  MTU:1500  Metric:1
+            RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:0 
+            RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+
+  ens4      Link encap:Ethernet  HWaddr 42:01:0A:84:00:14  
+            inet addr:10.132.0.20  Bcast:10.132.0.20  Mask:255.255.255.255
+            inet6 addr: fe80::4001:aff:fe84:14%32617/64 Scope:Link
+            UP BROADCAST RUNNING MULTICAST  MTU:1460  Metric:1
+            RX packets:5504 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:4356 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:1000 
+            RX bytes:108677168 (103.6 MiB)  TX bytes:447776 (437.2 KiB)
+
+  lo        Link encap:Local Loopback  
+            inet addr:127.0.0.1  Mask:255.0.0.0
+            inet6 addr: ::1%32617/128 Scope:Host
+            UP LOOPBACK RUNNING  MTU:65536  Metric:1
+            RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:1000 
+            RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+   ```
+- Для сравнения, `ifconfig` на хосте docker-machine
+  ```shell
+  docker0   Link encap:Ethernet  HWaddr 02:42:34:b5:56:3d  
+            inet addr:172.17.0.1  Bcast:172.17.255.255  Mask:255.255.0.0
+            UP BROADCAST MULTICAST  MTU:1500  Metric:1
+            RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:0 
+            RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+  ens4      Link encap:Ethernet  HWaddr 42:01:0a:84:00:14  
+            inet addr:10.132.0.20  Bcast:10.132.0.20  Mask:255.255.255.255
+            inet6 addr: fe80::4001:aff:fe84:14/64 Scope:Link
+            UP BROADCAST RUNNING MULTICAST  MTU:1460  Metric:1
+            RX packets:5779 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:4570 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:1000 
+            RX bytes:108738036 (108.7 MB)  TX bytes:480943 (480.9 KB)
+  lo        Link encap:Local Loopback  
+            inet addr:127.0.0.1  Mask:255.0.0.0
+            inet6 addr: ::1/128 Scope:Host
+            UP LOOPBACK RUNNING  MTU:65536  Metric:1
+            RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+            TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+            collisions:0 txqueuelen:1000 
+            RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
+  ```
+- Видим, что они идентичны
+- docker machine host пересоздан из за проблем подулючения по ssh
+- запущен nginx
+  ```shell
+  docker run --network host -d nginx
+  ...
+  docker ps
+  
+  CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+  faa0e86c423f        nginx               "nginx -g 'daemon of…"   6 seconds ago       Up 3 seconds                            distracted_bell
+  ```
+- запущен ещё один nginx (и ещё, и ещё), результат всегда одинаков
+  ```shell
+  docker ps
+
+  CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+  faa0e86c423f        nginx               "nginx -g 'daemon of…"   5 minutes ago       Up 5 minutes                            distracted_bell
+  ```
+- попытка запуска с анализом логов
+  ```shell
+  docker run --network host -d nginx; docker logs $(docker ps -q | head -n1)
+  ```
+  ```log
+  0d82882d485d9678ad273ea048d2b4631652f3feb1bfb5443efb6ffee6bd8fa0
+  2019/11/17 13:01:30 [emerg] 1#1: bind() to 0.0.0.0:80 failed (98: Address already in use)
+  nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+  2019/11/17 13:01:30 [emerg] 1#1: bind() to 0.0.0.0:80 failed (98: Address already in use)
+  nginx: [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+  ```
+  Из лога видно, что причина падения -- уже занятый порт 80 в неймспейсе хоста.
+- все запущенные контейнеры остановлены
+  ```shell
+  docker kill $(docker ps -q)
+  ```
+
+###### network namespaces
+
+- на docker-host создан симлинк, позволяющий видеть неймспейсы командой `sudo ip netns`
+  ```shell
+  sudo ln -s /var/run/docker/netns /var/run/netns
+  ```
+- список неймспейсов без запущенных контейнеров
+  ```shell
+  $ sudo ip netns
+  default
+  ```
+- список неймспейсов при запущенном контейнере с сетью `none`
+  ```shell
+  docker run --network none -d nginx
+  docker ps
+  CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+  d227262ccf99        nginx               "nginx -g 'daemon of…"   6 seconds ago       Up 5 seconds                            zen_mclean
+  ```
+  на docker-machine
+  ```shell
+  $ sudo ip netns
+  743e31b95726
+  default
+  ```
+  видим, появился новый namespace. Запускаем ещё один контейнер
+  ```shell
+  docker run --network none -d nginx
+
+  160ca7fec220c182d05a522a1a74143b0114af78220d9ef0370f2bf7be7290c6
+  ```
+  ```shell
+  docker ps                         
+
+  CONTAINER ID        IMAGE               COMMAND                  CREATED              STATUS              PORTS               NAMES
+  160ca7fec220        nginx               "nginx -g 'daemon of…"   2 seconds ago        Up 1 second                             crazy_bardeen
+  d227262ccf99        nginx               "nginx -g 'daemon of…"   About a minute ago   Up About a minute                       zen_mclean
+  ```
+  на docker-machine
+  ```shell
+  $ sudo ip netns
+  73f504acb923
+  743e31b95726
+  default
+  ```
+  видим 2 неймспейса
+- убили все контейнеры `docker kill $(docker ps -q)`
+- используем сеть `host`
+  ```shell
+  docker run --network host -d nginx
+
+  7eda8485e28a626e507d310aecaf6e45bc5aa053266ef8338b196f90df93955c
+  ```
+  на docker-machine
+  ```shell
+  $ sudo ip netns
+
+  default
+  ```
+  неймспейсов создано не было. Вывод - используется неймспейс хоста))
+- убили все контейнеры `docker kill $(docker ps -q)`
+
+##### bridge
+
+###### Запуск приложения
+
+- контейнеры запущены с использованием bridge-сети `reddit` и назначенных контейнерам сетевых алиасов
+  ```shell
+  # make run_all  
+  docker network inspect reddit 1>/dev/null || docker network create reddit
+  docker volume inspect reddit_db 1>/dev/null || docker volume create reddit_db
+  docker run -d --network=reddit \
+          --network-alias=post_db \
+          --network-alias=comment_db \
+          -v reddit_db:/data/db \
+          mongo:latest
+  0ba10d8e3d43ce40c15a7b622ad09142f8ea2c9dcbe7e828287db98cc2fd5479
+  docker run -d --network=reddit \
+          --network-alias=post vscoder/post:2.0-alpine
+  7df2e80b66e19d0335685a78bb07348c3c02124cef97732124cb745615f1d05a
+  docker run -d --network=reddit \
+          --network-alias=comment vscoder/comment:2.0-alpine
+  37744b362a5838ddda44462e1b9bc580748eaf809c8885ba044f482815c693d2
+  docker run -d --network=reddit \
+          -p 9292:9292 vscoder/ui:3.0-alpine
+  5281ed3316e3050d16e4c2a7d2a54145ad5d72cc127261f3c2b1169f5f52c728
+  ```
+  ```shell
+  # docker ps
+  CONTAINER ID        IMAGE                        COMMAND                  CREATED             STATUS              PORTS                    NAMES
+  5281ed3316e3        vscoder/ui:3.0-alpine        "puma"                   7 minutes ago       Up 7 minutes        0.0.0.0:9292->9292/tcp   elated_gagarin
+  37744b362a58        vscoder/comment:2.0-alpine   "puma"                   7 minutes ago       Up 7 minutes                                 heuristic_murdock
+  7df2e80b66e1        vscoder/post:2.0-alpine      "python3 post_app.py"    7 minutes ago       Up 7 minutes                                 jolly_kirch
+  5b04e0482132        mongo:latest                 "docker-entrypoint.s…"   8 minutes ago       Up 8 minutes        27017/tcp                modest_proskuriakova
+  ```
+  приложение доступно по адресу http://35.241.253.37:9292
+- Использованы 2 сети reddit_back и reddit_front. 
+  - Контейнер ui подключен к сети reddit_front. 
+  - Остальные контейнеры подключены к сети reddit_back. 
+  - Так как при создании контейнеру можно указать только одну сеть, post и comment подключены к reddit_front после создания.
+- Теперь Makefile target выглядит следующим образом
+  ```Makefile
+  run_all:
+  	docker network inspect ${REDDIT_NETWORK_NAME}_back 1>/dev/null || docker network create ${REDDIT_NETWORK_NAME}_back
+  	docker network inspect ${REDDIT_NETWORK_NAME}_front 1>/dev/null || docker network create ${REDDIT_NETWORK_NAME}_front
+  	docker volume inspect ${REDDIT_DB_VOLUME_NAME} 1>/dev/null || docker volume create ${REDDIT_DB_VOLUME_NAME}
+  	docker run -d \
+      --name mongo_db \
+  		--network=${REDDIT_NETWORK_NAME}_back \
+  		--network-alias=post_db \
+  		--network-alias=comment_db \
+  		-v reddit_db:/data/db \
+  		mongo:latest
+  	docker run -d \
+      --name post \
+  		--network=${REDDIT_NETWORK_NAME}_back \
+  		--network-alias=post \
+  		${DOCKERHUB_LOGIN}/post:${POST_VERSION}
+  	docker network connect ${REDDIT_NETWORK_NAME}_front post
+  	docker run -d \
+      --name comment \
+  		--network=${REDDIT_NETWORK_NAME}_back \
+  		--network-alias=comment \
+  		${DOCKERHUB_LOGIN}/comment:${COMMENT_VERSION}
+  	docker network connect ${REDDIT_NETWORK_NAME}_front comment
+  	docker run -d \
+      --name ui \
+  		--network=${REDDIT_NETWORK_NAME}_front \
+  		-p 9292:9292 \
+  		${DOCKERHUB_LOGIN}/ui:${UI_VERSION}
+  ```
+- Запущены все контейнеры
+  ```shell
+  # make run_all
+  docker network inspect reddit_back 1>/dev/null || docker network create reddit_back
+  docker network inspect reddit_front 1>/dev/null || docker network create reddit_front
+  docker volume inspect reddit_db 1>/dev/null || docker volume create reddit_db
+  docker run -d \
+          --name mongo_db \
+          --network=reddit_back \
+          --network-alias=post_db \
+          --network-alias=comment_db \
+          -v reddit_db:/data/db \
+          mongo:latest
+  596f3227b31e1f90c0ab8fae012659378d7cbc99e047be6d9595ab898a2b7e8c
+  docker run -d \
+          --name post \
+          --network=reddit_back \
+          --network-alias=post \
+          vscoder/post:2.0-alpine
+  f272a11ca047c347e53e253ce4aafef301aa289e62ad5def39847c27c910578d
+  docker network connect reddit_front post
+  docker run -d \
+          --name comment \
+          --network=reddit_back \
+          --network-alias=comment \
+          vscoder/comment:2.0-alpine
+  b2ebe7a9d3d8c2e6dbf6169410e8ad61740a6c7564310591ec0a0a023940d8cd
+  docker network connect reddit_front comment
+  docker run -d \
+          --name ui \
+          --network=reddit_front \
+          -p 9292:9292 \
+          vscoder/ui:3.0-alpine
+  82db30416d495c1b590a0cefca7d9e8612cbc4b0564dd0c3937ba757ccc48811
+  ```
+- Работоспособность приложения проверена
+
+###### Анализ
+
+- Список docker-сетей на docker-machine
+  ```shell
+  $ sudo  docker network ls
+  NETWORK ID          NAME                DRIVER              SCOPE
+  0166874dac87        bridge              bridge              local
+  d183b24032cc        host                host                local
+  2c181ec206b6        none                null                local
+  7e75ed405d47        reddit_back         bridge              local
+  7c243bd0da8a        reddit_front        bridge              local
+  ```
+- Список br-* интерфейсов на docker-machine
+  ```shell
+  $ ifconfig | grep br
+  br-7c243bd0da8a Link encap:Ethernet  HWaddr 02:42:7a:38:6c:0a  
+  br-7e75ed405d47 Link encap:Ethernet  HWaddr 02:42:b4:2d:1a:09
+  ```
+  имена интефейсов бриджей совпадают с id сетей
+- состав бриджей
+  ```shell
+  $ brctl show br-7c243bd0da8a
+  bridge name     bridge id               STP enabled     interfaces
+  br-7c243bd0da8a         8000.02427a386c0a       no      veth234d18b
+                                                          vethf4cf7bf
+                                                          vethfde16ca
+  ```
+  ```shell
+  $ brctl show br-7e75ed405d47
+  bridge name     bridge id               STP enabled     interfaces
+  br-7e75ed405d47         8000.0242b42d1a09       no      veth257dc23
+                                                          veth5af2b40
+                                                          veth83d031a
+  ```
+  veth-интерфейсы соответствуют интерфейсам контейнеров в соответтсвующем бридже
+- iptables
+  ```shell
+  $ sudo iptables -vnL -t nat
+  Chain PREROUTING (policy ACCEPT 2523 packets, 151K bytes)
+   pkts bytes target     prot opt in     out     source               destination         
+    153 13027 DOCKER     all  --  *      *       0.0.0.0/0            0.0.0.0/0            ADDRTYPE match dst-type LOCAL
+
+  Chain INPUT (policy ACCEPT 9 packets, 440 bytes)
+   pkts bytes target     prot opt in     out     source               destination         
+
+  Chain OUTPUT (policy ACCEPT 82 packets, 5229 bytes)
+   pkts bytes target     prot opt in     out     source              destination         
+      0     0 DOCKER     all  --  *      *       0.0.0.0/0           !127.0.0.0/8          ADDRTYPE match dst-type LOCAL
+
+  Chain POSTROUTING (policy ACCEPT 2598 packets, 156K bytes)
+   pkts bytes target      prot opt in     out               source               destination         
+      0     0 MASQUERADE  all  --  *      !br-7c243bd0da8a  172.20.0.0/16        0.0.0.0/0           
+      0     0 MASQUERADE  all  --  *      !br-7e75ed405d47  172.19.0.0/16        0.0.0.0/0           
+    254 15387 MASQUERADE  all  --  *      !docker0          172.17.0.0/16        0.0.0.0/0           
+      0     0 MASQUERADE  tcp  --  *      *                 172.20.0.4           172.20.0.4           tcp dpt:9292
+
+  Chain DOCKER (2 references)
+   pkts bytes target     prot opt in               out    source               destination         
+      0     0 RETURN     all  --  br-7c243bd0da8a  *      0.0.0.0/0            0.0.0.0/0           
+      0     0 RETURN     all  --  br-7e75ed405d47  *      0.0.0.0/0            0.0.0.0/0           
+      0     0 RETURN     all  --  docker0          *      0.0.0.0/0            0.0.0.0/0           
+      2   120 DNAT       tcp  --  !br-7c243bd0da8a *      0.0.0.0/0            0.0.0.0/0            tcp dpt:9292 to:172.20.0.4:9292
+  ```
+  - здесь видно, что перед определением маршрута, весь трафик с `dst-type LOCAL` попадает в цепочку `DOCKER`, в которой
+    - возвращается обратно в `PREROUTING`, если пришёл с одного из docker-бриджей
+    - если пришёл не с `reddit_front` и на tcp-порт 9292, выполняется редирект на `172.20.0.4:9292` (ui)
+  - в цепочке `POSTROUTING` трафик, исходящий из docker-сетей маскируется перед выходом с других интерфейсов
+    - так же маскируется трафик между любыми интерфейсами с ip 172.20.0.4 на тот же ip 172.20.0.4 порт назначения tcp 9292
+      TODO: разобраться зачем это нужно
+- docker-proxy
+  ```shell
+  $ ps ax | grep docker-proxy
+  16085 ?        Sl     0:00 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 9292 -container-ip 172.20.0.4 -container-port 9292
+  ```
+  запущен 1 процесс `cocker-proxy`
+- netstat и lsof
+  ```shell
+  $ sudo lsof -nPi | grep 9292
+  docker-pr 16085        root    4u  IPv6 102960      0t0  TCP *:9292 (LISTEN)
+  ```
+  видим docker-proxy слушает TCPv6 порт 9292
+  ```shell
+  $ sudo netstat -apn | grep 9292 
+  tcp6       0      0 :::9292                 :::*                    LISTEN      16085/docker-proxy
+  ```
+  то же самое
+  TODO: почему ipv6?
+
+### Использование docker-compose
+
+#### Установка
+
+- В [requirements.txt](requirements.txt) ранее уже был добавлен `docker-compose>=1.24.1`
+
+#### docker-compose.yml
+
+- Создан [src/docker-compose.yml](src/docker-compose.yml)
+- В [env](env) добавлеа переменная для экспорта
+  ```shell
+  export USERNAME=vscoder
+  ```
+- Сборка образов и запуск контейнеров `docker-compose up -d`
+  ```log
+  ...
+  Creating src_post_1    ... done
+  Creating src_ui_1      ... done
+  Creating src_comment_1 ... done
+  Creating src_post_db_1 ... done
+  ```
+- `docker ps`
+  ```log
+  CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS              PORTS                    NAMES
+  232065aa859d        vscoder/comment:1.0   "puma"                   2 minutes ago       Up About a minute                            src_comment_1
+  4d18a821d1a6        mongo:3.2             "docker-entrypoint.s…"   2 minutes ago       Up About a minute   27017/tcp                src_post_db_1
+  f7631f5ae799        vscoder/ui:1.0        "puma"                   2 minutes ago       Up About a minute   0.0.0.0:9292->9292/tcp   src_ui_1
+  afd5a3874d23        vscoder/post:1.0      "python3 post_app.py"    2 minutes ago       Up About a minute                            src_post_1
+  ```
+- В браузере открыт http://35.240.72.210:9292/
+- всё работает, посты создаются
+
+- Отступление: убрана лишняя директива `RUN` из `src/*/Dockerfile`, создающая рабочий каталок перед заданием `WORKDIR`, так как это делает `WORKDIR` автоматически.
+  > If the WORKDIR doesn’t exist, it will be created even if it’s not used in any subsequent Dockerfile instruction.
+
+- Файл [src/docker-compose.yml](src/docker-compose.yml) изменён для использования нескольких сетей
+  ```yaml
+  version: "3.3"
+  services:
+    post_db:
+      image: mongo:${MONGO_VERSION-3.2}
+      volumes:
+        - post_db:/data/db
+      networks:
+        - reddit_back
+    ui:
+      build: ./ui
+      image: ${USERNAME}/ui:${UI_VERSION-1.0}
+      ports:
+        - 9292:9292/tcp
+      networks:
+        - reddit_front
+    post:
+      build: ./post-py
+      image: ${USERNAME}/post:${POST_VERSION-1.0}
+      networks:
+        - reddit_front
+        - reddit_back
+    comment:
+      build: ./comment
+      image: ${USERNAME}/comment:${COMMENT_VERSION-1.0}
+      networks:
+        - reddit_front
+        - reddit_back
+
+  volumes:
+    post_db:
+
+  networks:
+    reddit_front:
+    reddit_back:
+  ```
+
+##### Переменные окружения
+
+Приоритет источников для значения переменных в контейнере:
+
+When you set the same environment variable in multiple files, here’s the priority used by Compose to choose which value to use:
+
+1. Compose file
+2. Shell environment variables
+3. Environment file
+4. Dockerfile
+5. Variable is not defined
+
+- Подробнее про 
+  - переменные окружения https://docs.docker.com/compose/environment-variables/
+  - подстановку переменных окружения https://docs.docker.com/compose/compose-file/#variable-substitution
+    > Important: The .env file feature only works when you use the docker-compose up command and does not work with docker stack deploy.
+  - `docker-compose config` чтобы посмотреть отрезолвленный compose-файл https://docs.docker.com/compose/reference/config/
+  - Compose CLI environment variables https://docs.docker.com/compose/reference/envvars/
+- Создан файл [src/.env](src/.env) со значениями переменных по умолчанию
+- Параметризованы следующие параметры
+  - `MONGO_VERSION=3.2` - версия mongodb
+  - `UI_VERSION=1.0` - версия ui
+  - `POST_VERSION=1.0` - версия post-py
+  - `COMMENT_VERSION=1.0` - версия comment
+  - `UI_PORT=9292` - порт публикации ui
+  - `USERNAME=vscoder` - имя пользователя для подстановки в имя образа.
+    Например `image: ${USERNAME}/ui:${UI_VERSION}`
+- Проверка `docker-compose config`
+  ```yaml
+  networks:
+    reddit_back: {}
+    reddit_front: {}
+  services:
+    comment:
+      build:
+        context: /mnt/calculate/home/vscoder/projects/otus/devops201908/vscoder_microservices/src/comment
+      image: vscoder/comment:1.0
+      networks:
+        reddit_back: null
+        reddit_front: null
+    post:
+      build:
+        context: /mnt/calculate/home/vscoder/projects/otus/devops201908/vscoder_microservices/src/post-py
+      image: vscoder/post:1.0
+      networks:
+        reddit_back: null
+        reddit_front: null
+    post_db:
+      image: mongo:3.2
+      networks:
+        reddit_back: null
+      volumes:
+      - post_db:/data/db:rw
+    ui:
+      build:
+        context: /mnt/calculate/home/vscoder/projects/otus/devops201908/vscoder_microservices/src/ui
+      image: vscoder/ui:1.0
+      networks:
+        reddit_front: null
+      ports:
+      - protocol: tcp
+        published: 9292
+        target: 9292
+  version: '3.7'
+  volumes:
+    post_db: {}
+  ```
+- Выполнен запуск всего с публикацией приложения на 80 порту (доступ на 80 разрешён в фаерволе). `export UI_PORT=80 && docker-compose up -d`
+- Проверка показала, что приложение доступно на 80 порту
+
+##### Имя проекта
+
+- https://docs.docker.com/compose/#multiple-isolated-environments-on-a-single-host
+- Имя проекта по умолчанию берётся из `basename` директории проекта
+- Переопределить имя проекта можно 
+  - using the [-p command line option](https://docs.docker.com/compose/reference/overview/)
+  - using [COMPOSE_PROJECT_NAME environment variable](https://docs.docker.com/compose/reference/envvars/#compose_project_name)
+
+### Задание со \*: docker-compose.override.yml
+
+#### Анализ
+
+[Share Compose configurations between files and projects](https://docs.docker.com/compose/extends/)
+
+By default, Compose reads two files, a docker-compose.yml and an optional docker-compose.override.yml file.
+If a service is defined in both files, Compose merges the configurations.
+To use multiple override files, or an override file with a different name, you can use the -f option to specify the list of files. Compose merges files in the order they’re specified on the command line.
+
+#### Реализация
+
+- Добавлен файл [src/docker-compose.override.yml](src/docker-compose.override.yml)
+- В [src/docker-compose.override.yml](src/docker-compose.override.yml) переопределены следующие параметры:
+  - В `/app` контейнера `post` монтируется локальная директория `./post-py`
+  - В `/app` контейнера `comment` монтируется локальная директория `./comment`
+  - Сервис `puma` в `ui` запускается с параметрами `--debug -w 2`
+- В [src/docker-compose.override.yml](src/docker-compose.override.yml) добавлена версия
+  ```yaml
+  version: "3.3"
+  ```
+- В [src/docker-compose.override.yml](src/docker-compose.override.yml) описание сервисов помещено в секцию `services:`
+- Для каждого сервиса в [src/docker-compose.override.yml](src/docker-compose.override.yml) директория с кодом монтируется в директорию, указанную в соответтсвующей переменной окружения
+- Итоговое содержимое [src/docker-compose.override.yml](src/docker-compose.override.yml)
+  ```yaml
+  ---
+  version: "3.3"
+
+  services:
+    post:
+      volumes:
+        - "./post-py:${POST_APP_HOME}"
+    comment:
+      volumes:
+        - "./comment:${COMMENT_APP_HOME}"
+    ui:
+      volumes:
+        - "./ui:${UI_APP_HOME}"
+      command: puma --debug -w 2
+  ```
+- **ВАЖНО** не работает из коробки с docker-machine, необходимо колдовать с [docker-machine mount](https://docs.docker.com/machine/reference/mount/)
+- Версия формата докерфайла изменена с `3.7` на `3.3` в связи с тем, что travis-ci не поддерживает более высокую версию
+
+### Вне заданий
+
+- С целью улучшения читаемости, из [.travis.yml] в шелл-скрипты перенесены команды из секций
+  - `install` в [.travis-scripts/install.sh](.travis-scripts/install.sh)
+  - `before_script` в [.travis-scripts/before_script.sh](.travis-scripts/before_script.sh)
