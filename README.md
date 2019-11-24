@@ -3636,4 +3636,10 @@ end
 ```ruby
 gem 'rack-test'
 ```
-- Изпенения закоммичены и запушены в gitlab
+- Изменения закоммичены и запушены в gitlab
+```shell
+git add .
+git ci -m"Add reddit app tests to pipeline"
+git push gitlab gitlab-ci-1
+```
+- Job succeeded
