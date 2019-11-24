@@ -3665,3 +3665,10 @@ deploy_dev_job:
     url: http://dev.example.com
 ```
 - Выполнен commit и push
+```shell
+git add .
+git ci -m"Add deploy dev environment"
+git push gitlab gitlab-ci-1
+```
+- В проекте в *operations* -> *environments* появилось окружение **dev**
+- При нажатии на *View deployment* происходит переход на указанный url
