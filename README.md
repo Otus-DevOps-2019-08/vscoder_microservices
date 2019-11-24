@@ -102,6 +102,7 @@ vscoder microservices repository
       - [Первоначальная настройка](#%d0%9f%d0%b5%d1%80%d0%b2%d0%be%d0%bd%d0%b0%d1%87%d0%b0%d0%bb%d1%8c%d0%bd%d0%b0%d1%8f-%d0%bd%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0)
         - [Работа с репозиторием через ssh](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d1%80%d0%b5%d0%bf%d0%be%d0%b7%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%b5%d0%bc-%d1%87%d0%b5%d1%80%d0%b5%d0%b7-ssh)
       - [Создание проекта](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
+      - [CI/CD Pipeline](#cicd-pipeline)
 
 # Makefile
 
@@ -3493,4 +3494,34 @@ web:
 ```shell
 git remote add gitlab ssh://git@34.76.206.37:2222/otus/example.git
 git push gitlab gitlab-ci-1
+```
+
+#### CI/CD Pipeline
+
+- Добавлен [.gitlab-ci.yml](.gitlab-ci.yml) содержащий шаблон пайплайна
+```yaml
+stages:
+  - build
+  - test
+  - deploy
+
+build_job:
+  stage: build
+  script:
+    - echo 'Building'
+
+test_unit_job:
+  stage: test
+  script:
+    - echo 'Testing 1'
+
+test_integration_job:
+  stage: test
+  script:
+    - echo 'Testing 2'
+
+deploy_job:
+  stage: deploy
+  script:
+    - echo 'Deploy'
 ```
