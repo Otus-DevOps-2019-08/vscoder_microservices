@@ -104,6 +104,7 @@ vscoder microservices repository
     - [Создание проекта](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
       - [CI/CD Pipeline](#cicd-pipeline)
     - [Runner](#runner)
+    - [тестирование Reddit](#%d1%82%d0%b5%d1%81%d1%82%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-reddit)
 
 # Makefile
 
@@ -3561,3 +3562,12 @@ alpine:latest
 ```
 - Пайплайн автоматически был запущен и выполнен успешно
 
+### тестирование Reddit
+
+- Код приложения склонирован из репозитория
+```shell
+git clone https://github.com/express42/reddit.git && rm -rf ./reddit/.git
+git add reddit/
+git commit -m “Add reddit app”
+git push gitlab gitlab-ci-1
+```
