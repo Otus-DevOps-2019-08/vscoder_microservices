@@ -104,7 +104,7 @@ vscoder microservices repository
     - [Создание проекта](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
       - [CI/CD Pipeline](#cicd-pipeline)
     - [Runner](#runner)
-    - [тестирование Reddit](#%d1%82%d0%b5%d1%81%d1%82%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-reddit)
+    - [Тестирование Reddit](#%d0%a2%d0%b5%d1%81%d1%82%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-reddit)
 
 # Makefile
 
@@ -3562,7 +3562,7 @@ alpine:latest
 ```
 - Пайплайн автоматически был запущен и выполнен успешно
 
-### тестирование Reddit
+### Тестирование Reddit
 
 - Код приложения склонирован из репозитория
 ```shell
@@ -3571,3 +3571,69 @@ git add reddit/
 git commit -m "Add reddit app"
 git push gitlab gitlab-ci-1
 ```
+- В [.gitlab-ci.yml](.gitlab-ci.yml) добавлены элементы пайпалйна для тестирования приложения. Новое содержимое
+```yaml
+---
+image: ruby:2.4.2
+
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  DATABASE_URL: "mongodb://mongo/user_posts"
+
+before_script:
+  - cd reddit
+  - bundle install
+
+build_job:
+  stage: build
+  script:
+    - echo 'Building'
+
+test_unit_job:
+  stage: test
+  services:
+    - mongo:latest
+  script:
+    - ruby simpletest.rb
+    # - echo 'Testing 1'
+
+test_integration_job:
+  stage: test
+  script:
+    - echo 'Testing 2'
+
+deploy_job:
+  stage: deploy
+  script:
+    - echo 'Deploy'
+```
+- В [reddit/simpletest.rb](reddit/simpletest.rb) добавлен простой тест
+```ruby
+require_relative './app'
+require 'test/unit'
+require 'rack/test'
+
+set :environment, :test
+
+class MyAppTest < Test::Unit::TestCase
+  include Rack::Test::Methods
+
+  def app
+    Sinatra::Application
+  end
+
+  def test_get_request
+    get '/'
+    assert last_response.ok?
+  end
+end
+```
+- В [reddit/Gemfile](reddit/Gemfile) добавлена библиотека для тестирования
+```ruby
+gem 'rack-test'
+```
+- Изпенения закоммичены и запушены в gitlab
