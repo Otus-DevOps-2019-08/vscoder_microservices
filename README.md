@@ -98,6 +98,7 @@ vscoder microservices repository
         - [ansible](#ansible)
         - [packer](#packer)
         - [terraform](#terraform)
+      - [Развёртывание gitlab](#%d0%a0%d0%b0%d0%b7%d0%b2%d1%91%d1%80%d1%82%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-gitlab-1)
 
 # Makefile
 
@@ -3431,3 +3432,36 @@ To use multiple override files, or an override file with a different name, you c
     "34.76.206.37",
   ]
   ```
+
+#### Развёртывание gitlab
+
+Все действия выполняются на удалённой машине, развёрнутой в предыдущем пункте
+
+- Созданы необходимые директории
+  ```shell
+  sudo mkdir -p /srv/gitlab/config /srv/gitlab/data /srv/gitlab/logs
+  cd /srv/gitlab/
+  sudo touch docker-compose.yml
+  ```
+- Содержимое `docker-compose.yml`
+```yaml
+web:
+  image: 'gitlab/gitlab-ce:latest'
+  restart: always
+  hostname: 'gitlab.example.com'
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      external_url 'http://34.76.206.37'
+  ports:
+    - '80:80'
+    - '443:443'
+    - '2222:22'
+  volumes:
+    - '/srv/gitlab/config:/etc/gitlab'
+    - '/srv/gitlab/logs:/var/log/gitlab'
+    - '/srv/gitlab/data:/var/opt/gitlab'
+```
+- Запущено развёртывание `sudo docker-compose up -d`
+- Спустя несколько минут установка завершена
+- Задан пароль для пользователя `root` (пользователь по умолчанию)
+- Успешно выполнен вход
