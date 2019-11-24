@@ -105,6 +105,7 @@ vscoder microservices repository
       - [CI/CD Pipeline](#cicd-pipeline)
     - [Runner](#runner)
     - [Тестирование Reddit](#%d0%a2%d0%b5%d1%81%d1%82%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-reddit)
+    - [Работа с окружениями](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f%d0%bc%d0%b8)
 
 # Makefile
 
@@ -3643,3 +3644,24 @@ git ci -m"Add reddit app tests to pipeline"
 git push gitlab gitlab-ci-1
 ```
 - Job succeeded
+
+### Работа с окружениями
+
+- В [.gitlab-ci.yml](.gitlab-ci.yml) stage `deploy` переименован в `review`
+```yaml
+stages:
+  - build
+  - test
+  - review
+```
+- Job `deploy_job` переименован в `deploy_dev_job` и приведён к следующему виду
+```yaml
+deploy_dev_job:
+  stage: review
+  script:
+    - echo 'Deploy'
+  environment:
+    name: dev
+    url: http://dev.example.com
+```
+- Выполнен commit и push
