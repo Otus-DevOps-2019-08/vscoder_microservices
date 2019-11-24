@@ -3568,6 +3568,6 @@ alpine:latest
 ```shell
 git clone https://github.com/express42/reddit.git && rm -rf ./reddit/.git
 git add reddit/
-git commit -m “Add reddit app”
+git commit -m "Add reddit app"
 git push gitlab gitlab-ci-1
 ```
