@@ -1,0 +1,44 @@
+BIN_DIR?=~/bin
+
+# Environment name
+ENV?=stage
+
+PACKER?=${BIN_DIR}/packer
+ANSIBLE?=../../.venv/bin/ansible
+TERRAFORM?=${BIN_DIR}/terraform
+TFLINT?=${BIN_DIR}/tflint
+
+
+packer_build:
+	${PACKER} build -var-file=packer/variables.json packer/docker.json
+
+packer_validate:
+	${PACKER} --version
+	${PACKER} validate -var-file=packer/variables.json packer/docker.json
+
+
+terraform_init:
+	cd ./terraform && ${TERRAFORM} init
+	cd ./terraform/${ENV} && ${TERRAFORM} init
+
+terraform_init_nobackend:
+	cd ./terraform/${ENV} && ${TERRAFORM} init -backend=false
+
+terraform_validate:
+	${TERRAFORM} --version
+	cd ./terraform && ${TERRAFORM} validate
+	cd ./terraform/stage && ${TERRAFORM} validate
+
+terraform_tflint:
+	cd ./terraform && ${TFLINT}
+	cd ./terraform/stage && ${TFLINT}
+
+terraform_apply:
+	cd ./terraform/${ENV} && ${TERRAFORM} apply
+
+terraform_destroy:
+	cd ./terraform/${ENV} && ${TERRAFORM} destroy
+
+
+ansible_install_requirements:
+	cd ./ansible && ${ANSIBLE}-galaxy install -r environments/stage/requirements.yml

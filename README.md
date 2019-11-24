@@ -92,6 +92,12 @@ vscoder microservices repository
       - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-2)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-1)
     - [Вне заданий](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9)
+  - [HomeWork 15: Устройство Gitlab CI. Построение процесса непрерывной поставки](#homework-15-%d0%a3%d1%81%d1%82%d1%80%d0%be%d0%b9%d1%81%d1%82%d0%b2%d0%be-gitlab-ci-%d0%9f%d0%be%d1%81%d1%82%d1%80%d0%be%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d1%86%d0%b5%d1%81%d1%81%d0%b0-%d0%bd%d0%b5%d0%bf%d1%80%d0%b5%d1%80%d1%8b%d0%b2%d0%bd%d0%be%d0%b9-%d0%bf%d0%be%d1%81%d1%82%d0%b0%d0%b2%d0%ba%d0%b8)
+    - [Развёртывание gitlab](#%d0%a0%d0%b0%d0%b7%d0%b2%d1%91%d1%80%d1%82%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-gitlab)
+      - [Подготовка хоста](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d1%85%d0%be%d1%81%d1%82%d0%b0)
+        - [ansible](#ansible)
+        - [packer](#packer)
+        - [terraform](#terraform)
 
 # Makefile
 
@@ -3343,3 +3349,85 @@ To use multiple override files, or an override file with a different name, you c
 - С целью улучшения читаемости, из [.travis.yml] в шелл-скрипты перенесены команды из секций
   - `install` в [.travis-scripts/install.sh](.travis-scripts/install.sh)
   - `before_script` в [.travis-scripts/before_script.sh](.travis-scripts/before_script.sh)
+
+
+## HomeWork 15: Устройство Gitlab CI. Построение процесса непрерывной поставки
+
+### Развёртывание gitlab
+
+#### Подготовка хоста
+
+- Создана директория [gitlab](gitlab)
+- Создан [Makefile](gitlab/Makefile) с набором целей для развёртывания инфраструктуры под gitlab средствами packer, teraform и ansible
+
+##### ansible
+
+- На основе [docker-monolith/ansible](docker-monolith/ansible) создана директория [gitlab/ansible](gitlab/ansible)
+- Удалены лишние файлы и директории.
+- Оставлен только плейбук [gitlab/ansible/playbooks/docker.yml](gitlab/ansible/playbooks/docker.yml), необходимый для развёртывания docker в packer-образе
+- Установлены вынешние ansible-роли
+
+##### packer
+
+- На основе [docker-monolith packer](docker-monolith/packer) создана директория [gitlab/packer](gitlab/packer)
+- Дополнен файл с примерами переменных [gitlab/packer/variables.json.example](gitlab/packer/variables.json.example)
+  ```json
+  {
+    "project_id": "docker-ID",
+    "source_image_family": "ubuntu-1604-lts",
+    "machine_type": "n1-standart-1",
+    "disk_size": "60"
+  }
+  ```
+- Заполнены переменные [gitlab/packer/variables.json](gitlab/packer/variables.json)
+- Проверена конфигурация packer
+  ```shell
+  # make packer_validate
+  ~/bin/packer --version
+  1.4.4
+  ~/bin/packer validate -var-file=packer/variables.json packer/docker.json
+  Template validated successfully.
+  ```
+- Собран образ `"image_family": "gitlab-docker-base"`
+  ```shell
+  # make packer_build
+  ...
+  ==> Builds finished. The artifacts of successful builds are:
+  --> googlecompute: A disk image was created: gitlab-docker-base-1574589582
+  ```
+
+##### terraform
+
+- Директория [docker-monolith/terraform](docker-monolith/terraform) скопирована в [gitlab/terraform](gitlab/terraform)
+- В [gitlab/terraform/stage/backend.tf](gitlab/terraform/stage/backend.tf) значение `prefix` установлено в `"terraform/gitlab/stage"`
+- В [gitlab/terraform/stage/terraform.tfvars.example](gitlab/terraform/stage/terraform.tfvars.example) изменены значения следующих переменных
+  ```hcl
+  docker_app_disk_image     = "gitlab-docker-base"
+  docker_app_tags           = ["gitlab-docker-app"]
+  docker_app_tcp_ports      = ["80", "443"]
+  ```
+- Так же добавлены переменные
+  ```hcl
+  docker_app_name_prefix    = "gitlab"
+  docker_app_machine_type   = "n1-standard-1"
+  ```
+- Те же переменные добавлены/изменены в [gitlab/terraform/terraform.tfvars](gitlab/terraform/terraform.tfvars)
+- Выполнена инициализация terraform
+  ```shell
+  # make terraform_init
+  ...
+  Terraform has been successfully initialized!
+  ...
+  ```
+- Выполнена валидация `make terraform_validate`
+- Выполнен линтинг `make terraform_tflint`
+- Создана инфраструктура `make terraform_apply`
+  ```json
+  Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+  Outputs:
+
+  docker_app_external_ip = [
+    "34.76.206.37",
+  ]
+  ```
