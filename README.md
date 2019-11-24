@@ -99,6 +99,9 @@ vscoder microservices repository
         - [packer](#packer)
         - [terraform](#terraform)
       - [Развёртывание gitlab](#%d0%a0%d0%b0%d0%b7%d0%b2%d1%91%d1%80%d1%82%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-gitlab-1)
+      - [Первоначальная настройка](#%d0%9f%d0%b5%d1%80%d0%b2%d0%be%d0%bd%d0%b0%d1%87%d0%b0%d0%bb%d1%8c%d0%bd%d0%b0%d1%8f-%d0%bd%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0)
+        - [Работа с репозиторием через ssh](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d1%80%d0%b5%d0%bf%d0%be%d0%b7%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%b5%d0%bc-%d1%87%d0%b5%d1%80%d0%b5%d0%b7-ssh)
+      - [Создание проекта](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
 
 # Makefile
 
@@ -3452,6 +3455,7 @@ web:
   environment:
     GITLAB_OMNIBUS_CONFIG: |
       external_url 'http://34.76.206.37'
+      gitlab_rails['gitlab_shell_ssh_port'] = 2222
   ports:
     - '80:80'
     - '443:443'
@@ -3465,3 +3469,28 @@ web:
 - Спустя несколько минут установка завершена
 - Задан пароль для пользователя `root` (пользователь по умолчанию)
 - Успешно выполнен вход
+
+#### Первоначальная настройка
+
+- Отменена возможность регистрации новых пользователей
+  *settings -> general -> sign-up restrictions ->sign-up enabled = false*, *save changes*
+- Изменён логин пользователя *Administrator* чтобы усложнить подбор пароля перебором
+
+##### Работа с репозиторием через ssh
+
+- Пользователю добавлен публичный ssh-ключ
+- В [gitlab/terraform/stage/terraform.tfvars](gitlab/terraform/stage/terraform.tfvars) разрешён порт `2222`
+  ```hcl
+  docker_app_tcp_ports = ["80", "443", "2222"]
+  ```
+- В `docker-comnpose.yml` добавлен параметр `gitlab_rails['gitlab_shell_ssh_port'] = 2222` для работы с git-репозиторием через ssh по порту `2222`
+
+#### Создание проекта
+
+- Создана приватная группа `homework`
+- Создан приватный проект `example`
+- В репозиторий `vscoder_microservices` добавлен удалённый репозиторий созданного проекта
+```shell
+git remote add gitlab ssh://git@34.76.206.37:2222/otus/example.git
+git push gitlab gitlab-ci-1
+```
