@@ -101,8 +101,9 @@ vscoder microservices repository
       - [Развёртывание gitlab](#%d0%a0%d0%b0%d0%b7%d0%b2%d1%91%d1%80%d1%82%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-gitlab-1)
       - [Первоначальная настройка](#%d0%9f%d0%b5%d1%80%d0%b2%d0%be%d0%bd%d0%b0%d1%87%d0%b0%d0%bb%d1%8c%d0%bd%d0%b0%d1%8f-%d0%bd%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0)
         - [Работа с репозиторием через ssh](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d1%80%d0%b5%d0%bf%d0%be%d0%b7%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%b5%d0%bc-%d1%87%d0%b5%d1%80%d0%b5%d0%b7-ssh)
-      - [Создание проекта](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
+    - [Создание проекта](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
       - [CI/CD Pipeline](#cicd-pipeline)
+    - [Runner](#runner)
 
 # Makefile
 
@@ -3486,7 +3487,7 @@ web:
   ```
 - В `docker-comnpose.yml` добавлен параметр `gitlab_rails['gitlab_shell_ssh_port'] = 2222` для работы с git-репозиторием через ssh по порту `2222`
 
-#### Создание проекта
+### Создание проекта
 
 - Создана приватная группа `homework`
 - Создан приватный проект `example`
@@ -3525,3 +3526,38 @@ deploy_job:
   script:
     - echo 'Deploy'
 ```
+
+### Runner
+
+- На хосте с gitlab запущен раннер
+```shell
+docker run -d --name gitlab-runner --restart always \
+  -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  gitlab/gitlab-runner:latest
+```
+- Раннер зарегистрирован в gitlab
+```shell
+docker exec -it gitlab-runner gitlab-runner register --run-untagged --locked=false
+```
+```shell
+> Runtime platform                                    arch=amd64 os=linux pid=13 revision=577f813d version=12.5.0
+> Running in system-mode.                            
+>                                                    
+> Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com/):
+http://34.76.206.37/
+> Please enter the gitlab-ci token for this runner:
+here_is_token
+> Please enter the gitlab-ci description for this runner:
+[b1ae79ee8481]: gce-docker-runnel
+> Please enter the gitlab-ci tags for this runner (comma separated):
+linux,xenial,ubuntu,docker
+> Registering runner... succeeded                     runner=QW4GxkHH
+> Please enter the executor: parallels, shell, virtualbox, docker+machine, docker-ssh+machine, custom, docker, docker-ssh, ssh, kubernetes:
+docker
+> Please enter the default Docker image (e.g. ruby:2.6):
+alpine:latest
+> Runner registered successfully. Feel free to start it, but if it's running already the config should be automatically reloaded!
+```
+- Пайплайн автоматически был запущен и выполнен успешно
+
