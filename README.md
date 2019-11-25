@@ -3712,4 +3712,6 @@ git add .
 git commit -m "Add tag and push"
 git tag 2.4.10
 git push gitlab gitlab-ci-1
+git push gitlab gitlab-ci-1 --tags
 ```
+- Для job-а с тегом снова доступны стадии stage и prod
