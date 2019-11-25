@@ -3705,3 +3705,11 @@ production:
 only:
   - /^\d+\.\d+\.\d+/
 ```
+- После пуша без тега, стадии stage и production недоступны
+- Выполнен пуш с тегом
+```shell
+git add .
+git commit -m "Add tag and push"
+git tag 2.4.10
+git push gitlab gitlab-ci-1
+```
