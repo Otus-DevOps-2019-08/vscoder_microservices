@@ -106,6 +106,8 @@ vscoder microservices repository
     - [Runner](#runner)
     - [Тестирование Reddit](#%d0%a2%d0%b5%d1%81%d1%82%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-reddit)
     - [Работа с окружениями](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f%d0%bc%d0%b8)
+      - [dev](#dev)
+      - [staging и production](#staging-%d0%b8-production)
 
 # Makefile
 
@@ -3647,6 +3649,8 @@ git push gitlab gitlab-ci-1
 
 ### Работа с окружениями
 
+#### dev
+
 - В [.gitlab-ci.yml](.gitlab-ci.yml) stage `deploy` переименован в `review`
 ```yaml
 stages:
@@ -3672,3 +3676,26 @@ git push gitlab gitlab-ci-1
 ```
 - В проекте в *operations* -> *environments* появилось окружение **dev**
 - При нажатии на *View deployment* происходит переход на указанный url
+
+#### staging и production
+
+- В [.gitlab-ci.yml](.gitlab-ci.yml) добавлены jobs `staging` и `production`
+```yaml
+staging:
+  stage: stage
+  when: manual  # ручной запуск
+  script:
+    - echo 'Deploy'
+  environment:
+    name: stage
+    url: https://beta.example.com
+
+production:
+  stage: production
+  when: manual  # ручной запуск
+  script:
+    - echo 'Deploy'
+  environment:
+    name: production
+    url: https://example.com
+```
