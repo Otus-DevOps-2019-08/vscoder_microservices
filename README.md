@@ -108,6 +108,7 @@ vscoder microservices repository
     - [Работа с окружениями](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f%d0%bc%d0%b8)
       - [dev](#dev)
       - [staging и production](#staging-%d0%b8-production)
+      - [Динамические окружения](#%d0%94%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
 
 # Makefile
 
@@ -3715,3 +3716,20 @@ git push gitlab gitlab-ci-1
 git push gitlab gitlab-ci-1 --tags
 ```
 - Для job-а с тегом снова доступны стадии stage и prod
+
+#### Динамические окружения
+
+- Добавлен job `branch review`
+```yaml
+branch review:
+  stage: review  # имя стадии
+  script: echo "Deploy to $CI_ENVIRONMENT_SLUG"
+  environment:
+    name: branch/$CI_COMMIT_REF_NAME  # имя бренча в имени окружения
+    url: http://$CI_ENVIRONMENT_SLUG.example.com  # имя бренча в url
+  only:
+    - branches  # запуск для каждой ветки репозитория
+  except:
+    - master  # не запускать для мастера
+```
+Этот job определяет динамическое окружение для каждой ветки в репозитории, кроме ветки master
