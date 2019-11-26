@@ -112,6 +112,7 @@ vscoder microservices repository
     - [Вне заданий: улучшалки](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9-%d1%83%d0%bb%d1%83%d1%87%d1%88%d0%b0%d0%bb%d0%ba%d0%b8)
     - [Задание со \*: Автоматизированная сборка приложения reddit](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-reddit)
       - [План](#%d0%9f%d0%bb%d0%b0%d0%bd)
+      - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-2)
 
 # Makefile
 
@@ -3751,12 +3752,19 @@ branch review:
 
 #### План
 
-- [ ] Для сборки образов будет использован [docker build](https://docs.docker.com/engine/reference/commandline/build/)
 - [ ] Настроить [gitlab registry](https://docs.gitlab.com/ee/user/packages/container_registry/index.html)
-  - [ ] Предварительно включить registry [GitLab Container Registry administration](https://docs.gitlab.com/ee/administration/packages/container_registry.html)
-- [ ] Следующим шагом необходимо загрузить образ в registry, настроенный предыдущим шагом
+  - [ ] Включить интеграцию с [Let’s Encrypt](https://docs.gitlab.com/omnibus/settings/ssl.html#lets-encrypt-integration)
+    - [ ] Создать привязку к доменному имени
+      - [ ] Создать постоянный ip средствами terraform
+      - [ ] В последствии, решить проблему с формированием url для `environment.url` в `.gitlab-ci.yml`
+  - [ ] registry добжен включиться автоматически [GitLab Container Registry administration](https://docs.gitlab.com/ee/administration/packages/container_registry.html)
+- [ ] Настроить в `.gitlab-ci.yml` автоматизированную сборку образов средствами [docker build](https://docs.docker.com/engine/reference/commandline/build/)
+- [ ] Следующим шагом необходимо загрузить образ в registry, настроенный ранее
 - [ ] Подготовить инфраструктуру:
   - [ ] создать сервер с установленным docker для деплоя ветки (terraform)
 - [ ] создать ansible-playbook для деплоя приложения на созданный сервер средствами docker-compose
 - [ ] реализовать деплой в `.gitlab-ci.yml`
 
+#### Реализация
+
+- Как описано в [документации], для работы registry необходимо включить [Let’s Encrypt integration](https://docs.gitlab.com/omnibus/settings/ssl.html#lets-encrypt-integration)
