@@ -42,3 +42,6 @@ terraform_destroy:
 
 ansible_install_requirements:
 	cd ./ansible && ${ANSIBLE}-galaxy install -r environments/stage/requirements.yml
+
+ansible_inventory_list:
+	cd ./ansible && ${ANSIBLE}-inventory --list

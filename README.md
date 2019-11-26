@@ -109,6 +109,8 @@ vscoder microservices repository
       - [dev](#dev)
       - [staging и production](#staging-%d0%b8-production)
       - [Динамические окружения](#%d0%94%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+    - [Вне заданий: улучшалки](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9-%d1%83%d0%bb%d1%83%d1%87%d1%88%d0%b0%d0%bb%d0%ba%d0%b8)
+    - [Задание со \*: Автоматизированная сборка приложения reddit](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-reddit)
 
 # Makefile
 
@@ -3736,3 +3738,10 @@ branch review:
 - Проверено: была создана ветка `new-feature`. Создалось 2 окружения
   - `branch/gitlab-ci-1` для текущего бренча
   - `branch/new-feature` для созданного бренча
+
+
+### Вне заданий: улучшалки
+
+- Добавлен [gitlab/README.md](gitlab/README.md) с описанием Makefile целей и переменных
+
+### Задание со \*: Автоматизированная сборка приложения reddit
