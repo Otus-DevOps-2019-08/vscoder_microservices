@@ -51,3 +51,8 @@ variable tcp_ports {
   type        = list
   default     = []
 }
+
+variable use_static_ip {
+  description = "Need to create static ip for instance?"
+  default     = false
+}

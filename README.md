@@ -113,6 +113,10 @@ vscoder microservices repository
     - [Задание со \*: Автоматизированная сборка приложения reddit](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-reddit)
       - [План](#%d0%9f%d0%bb%d0%b0%d0%bd)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-2)
+        - [Настройка terraform module instance](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-terraform-module-instance)
+        - [Настройка stage-окружения terraform](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-stage-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-terraform)
+        - [Применение инфраструктуры](#%d0%9f%d1%80%d0%b8%d0%bc%d0%b5%d0%bd%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b8%d0%bd%d1%84%d1%80%d0%b0%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d1%8b)
+        - [Интеграция с Let's Encrypt](#%d0%98%d0%bd%d1%82%d0%b5%d0%b3%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%81-lets-encrypt)
 
 # Makefile
 
@@ -3754,8 +3758,8 @@ branch review:
 
 - [ ] Настроить [gitlab registry](https://docs.gitlab.com/ee/user/packages/container_registry/index.html)
   - [ ] Включить интеграцию с [Let’s Encrypt](https://docs.gitlab.com/omnibus/settings/ssl.html#lets-encrypt-integration)
-    - [ ] Создать привязку к доменному имени
-      - [ ] Создать постоянный ip средствами terraform
+    - [x] Создать привязку к доменному имени
+      - [x] Создать постоянный ip средствами terraform
       - [ ] В последствии, решить проблему с формированием url для `environment.url` в `.gitlab-ci.yml`
   - [ ] registry добжен включиться автоматически [GitLab Container Registry administration](https://docs.gitlab.com/ee/administration/packages/container_registry.html)
 - [ ] Настроить в `.gitlab-ci.yml` автоматизированную сборку образов средствами [docker build](https://docs.docker.com/engine/reference/commandline/build/)
@@ -3767,4 +3771,87 @@ branch review:
 
 #### Реализация
 
-- Как описано в [документации], для работы registry необходимо включить [Let’s Encrypt integration](https://docs.gitlab.com/omnibus/settings/ssl.html#lets-encrypt-integration)
+**ПРИМЕЧАНИЕ** Возможно, более правильно использовать `google_dns_managed_zone` для управления dns-записями на gitlab и branch-окружения. **TODO:** разобраться
+
+В рамках данного ДЗ, для интеграции Let's Encrypt будет использован постоянный IP и собственный домен `vscoder.ru`
+
+##### Настройка terraform module instance
+
+- В [gitlab/terraform/modules/instance/main.tf](gitlab/terraform/modules/instance/main.tf) настроено использование статического ip
+```hcl
+resource "google_compute_instance" "instance" {
+  ...
+  network_interface {
+    ...
+    access_config {
+      nat_ip = var.use_static_ip ? google_compute_address.instance_ip[0].address : null
+    }
+  }
+}
+...
+resource "google_compute_address" "instance_ip" {
+  name  = "reddit-app-ip-${var.environment}"
+  count = var.use_static_ip ? 1 : 0
+}
+```
+- В [gitlab/terraform/modules/instance/variables.tf](gitlab/terraform/modules/instance/variables.tf) добавлено описание переменной `use_static_ip`
+```hcl
+variable use_static_ip {
+  description = "Need to create static ip for instance?"
+  default     = false
+}
+```
+
+##### Настройка stage-окружения terraform
+
+- В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) включено использование статического ip для gitlab instance
+```hcl
+# GitLab instance
+module "docker-app" {
+  instance_count      = 1  # Количество 1 так как у нас единственный инстанс gitlab
+  ...
+  use_static_ip       = true
+}
+```
+
+##### Применение инфраструктуры
+
+- Применение
+```shell
+cd gitlab && make terraform_apply
+```
+```log
+module.docker-app.google_compute_address.instance_ip[0]: Creating...
+module.docker-app.google_compute_address.instance_ip[0]: Creation complete after 4s [id=docker-257914/europe-west1/reddit-app-ip-stage]
+module.docker-app.google_compute_instance.instance[0]: Modifying... [id=gitlab-stage-001]
+module.docker-app.google_compute_instance.instance[0]: Still modifying... [id=gitlab-stage-001, 10s elapsed]
+module.docker-app.google_compute_instance.instance[0]: Modifications complete after 16s [id=gitlab-stage-001]
+
+Apply complete! Resources: 1 added, 1 changed, 0 destroyed.
+
+Outputs:
+
+docker_app_external_ip = [
+  "35.195.25.130",
+]
+```
+- Создано доменная запись `gitlab.vscoder.ru A 35.195.25.130`
+- После истечения таймаута, GitLab доступен по адресу http://gitlab.vscoder.ru
+- Забыл пароль. Восстановление https://docs.gitlab.com/ee/security/reset_root_password.html
+```shell
+ssh -i ~/.ssh/<private_key> appuser@35.195.25.130
+cd /srv/gitlab
+sudo docker-compose exec web bash
+gitlab-rails console -e production
+```
+```ruby
+user = User.where(id: 1).first
+user.password = 'secret_pass'
+user.password_confirmation = 'secret_pass'
+user.save!
+```
+- Вход выполнен успешно
+
+##### Интеграция с Let's Encrypt
+
+TODO

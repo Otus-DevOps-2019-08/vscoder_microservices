@@ -14,7 +14,9 @@ resource "google_compute_instance" "instance" {
   }
   network_interface {
     network = var.vpc_network_name
-    access_config {}
+    access_config {
+      nat_ip = var.use_static_ip ? google_compute_address.instance_ip[0].address : null
+    }
   }
 }
 resource "google_compute_firewall" "firewall_tcp" {
@@ -26,4 +28,8 @@ resource "google_compute_firewall" "firewall_tcp" {
   }
   source_ranges = ["0.0.0.0/0"]
   target_tags   = var.tags
+}
+resource "google_compute_address" "instance_ip" {
+  name  = "reddit-app-ip-${var.environment}"
+  count = var.use_static_ip ? 1 : 0
 }

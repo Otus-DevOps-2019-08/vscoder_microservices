@@ -4,8 +4,9 @@ provider "google" {
   region  = var.region
 }
 
+# GitLab instance
 module "docker-app" {
-  instance_count      = var.docker_app_instance_count
+  instance_count      = 1
   source              = "../modules/instance"
   project             = var.project
   zone                = var.zone
@@ -16,4 +17,5 @@ module "docker-app" {
   tags                = var.docker_app_tags
   tcp_ports           = var.docker_app_tcp_ports
   vpc_network_name    = var.vpc_network_name
+  use_static_ip       = true
 }
