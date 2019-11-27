@@ -3969,3 +3969,12 @@ script:
   - apk install make
   - cd src && make build_all
 ```
+- ошибка `ERROR: 'install' is not an apk command. See 'apk --help'.`
+нет чтобы заглянуть в свой старый код (например сборку оборазов на основе alpine))
+- заменил `install` на `add`
+```yaml
+script:
+  - echo 'Building'
+  - apk add make
+  - cd src && make build_all
+```
