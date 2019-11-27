@@ -18,6 +18,7 @@ build_job:
   stage: build
   script:
     - echo 'Building'
+    - cd src && make build_all
 
 test_unit_job:
   stage: test
