@@ -3978,3 +3978,11 @@ script:
   - apk add make
   - cd src && make build_all
 ```
+- ошибка
+```log
+docker build -t vscoder/post:2.0-alpine ./post-py
+time="2019-11-27T17:53:26Z" level=error msg="failed to dial gRPC: cannot connect to the Docker daemon. Is 'docker daemon' running on this host?: dial tcp: lookup docker on 169.254.169.254:53: no such host"
+error during connect: Post http://docker:2375/v1.40/build?buildargs=%7B%7D&cachefrom=%5B%5D&cgroupparent=&cpuperiod=0&cpuquota=0&cpusetcpus=&cpusetmems=&cpushares=0&dockerfile=Dockerfile&labels=%7B%7D&memory=0&memswap=0&networkmode=default&rm=1&session=d831lkik8627vo4jczmd2jqvm&shmsize=0&t=vscoder%2Fpost%3A2.0-alpine&target=&ulimits=null&version=1: context canceled
+make: *** [Makefile:11: build_post] Error 1
+```
+- попытка решения: указать `DOCKER_HOST: unix:///var/run/docker.sock` так как мы не используем сервис docker-in-docker
