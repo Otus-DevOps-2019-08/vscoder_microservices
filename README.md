@@ -3941,3 +3941,11 @@ make: docker: Command not found
 ```
   - Причина - сборка в образе `image: ruby:2.4.2`
 - Попытка решения: использование [образа](https://hub.docker.com/_/docker) `docker:stable` для `build_job`
+- Ошибка `/bin/sh: eval: line 87: make: not found`
+- В [.gitlab-ci.yml](.gitlab-ci.yml) добавлена установка `make`
+```yaml
+script:
+  - echo 'Building'
+  - sudo apt install make
+  - cd src && make build_all
+```
