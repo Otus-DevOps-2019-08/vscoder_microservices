@@ -118,6 +118,8 @@ vscoder microservices repository
         - [Применение инфраструктуры](#%d0%9f%d1%80%d0%b8%d0%bc%d0%b5%d0%bd%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b8%d0%bd%d1%84%d1%80%d0%b0%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d1%8b)
         - [Интеграция с Let's Encrypt](#%d0%98%d0%bd%d1%82%d0%b5%d0%b3%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%81-lets-encrypt)
         - [Настройка сборки образов в .gitlab-ci.yml](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b8-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d0%b2-gitlab-ciyml)
+          - [Попытка решить задачу в лоб (неудачная)](#%d0%9f%d0%be%d0%bf%d1%8b%d1%82%d0%ba%d0%b0-%d1%80%d0%b5%d1%88%d0%b8%d1%82%d1%8c-%d0%b7%d0%b0%d0%b4%d0%b0%d1%87%d1%83-%d0%b2-%d0%bb%d0%be%d0%b1-%d0%bd%d0%b5%d1%83%d0%b4%d0%b0%d1%87%d0%bd%d0%b0%d1%8f)
+          - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-3)
 
 # Makefile
 
@@ -3764,6 +3766,7 @@ branch review:
       - [ ] В последствии, решить проблему с формированием url для `environment.url` в `.gitlab-ci.yml`
   - [x] registry добжен включиться автоматически [GitLab Container Registry administration](https://docs.gitlab.com/ee/administration/packages/container_registry.html)
 - [ ] Настроить в `.gitlab-ci.yml` автоматизированную сборку образов средствами [docker build](https://docs.docker.com/engine/reference/commandline/build/)
+  - [ ] решить проблему со сборкой образов раннером типа docker https://docs.gitlab.com/сe/ci/docker/using_docker_build.html
 - [ ] Следующим шагом необходимо загрузить образ в registry, настроенный ранее
 - [ ] Подготовить инфраструктуру:
   - [ ] создать сервер с установленным docker для деплоя ветки (terraform)
@@ -3915,6 +3918,8 @@ web:
 
 ##### Настройка сборки образов в .gitlab-ci.yml
 
+###### Попытка решить задачу в лоб (неудачная)
+
 - Удалён вызов фейковых тестов, добавленных ранее в качестве примера
 - В [.gitlab-ci.yml](.gitlab-ci.yml) в задачу `build_job` добавлена сборка всех контейнеров
 - В репозитории `vscoder_microservices` изменён удалённый репозиторий созданного проекта
@@ -3986,3 +3991,21 @@ error during connect: Post http://docker:2375/v1.40/build?buildargs=%7B%7D&cache
 make: *** [Makefile:11: build_post] Error 1
 ```
 - попытка решения: указать `DOCKER_HOST: unix:///var/run/docker.sock` так как мы не используем сервис docker-in-docker
+- не сработало `Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?`
+
+###### Анализ
+
+- Конец танцам с бубном, время читать документацию: https://docs.gitlab.com/сe/ci/docker/using_docker_build.html
+- Самый простой способ -- [использовать shell executor](https://docs.gitlab.com/ce/ci/docker/using_docker_build.html#use-shell-executor)
+  - предполагается использование отдельного хоста
+  - By adding gitlab-runner to the docker group you are effectively granting gitlab-runner full root permissions
+- Так же возможно использовать [docker-in-docker workflow with Docker executor](https://docs.gitlab.com/ce/ci/docker/using_docker_build.html#use-docker-in-docker-workflow-with-docker-executor)
+  - Читать https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/ до просветления, почему так лучше не делать (TODO)
+- Тертий способ -- [Use Docker socket binding](https://docs.gitlab.com/ce/ci/docker/using_docker_build.html#use-docker-socket-binding)
+  - **WARNING** Docker in privileged mode
+
+Был выбран 3й способ, как наиболее универсальный в рамках данной задачи.
+
+####### Runner with Docker socket binding
+
+TODO
