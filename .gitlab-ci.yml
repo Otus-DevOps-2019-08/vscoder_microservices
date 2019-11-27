@@ -1,5 +1,5 @@
 ---
-image: ruby:2.4.2
+iamge: ruby:2.4.2
 
 stages:
   - build
@@ -16,6 +16,7 @@ before_script:
 
 build_job:
   stage: build
+  image: docker:stable
   script:
     - echo 'Building'
     - cd src && make build_all

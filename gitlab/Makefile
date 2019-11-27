@@ -45,3 +45,7 @@ ansible_install_requirements:
 
 ansible_inventory_list:
 	cd ./ansible && ${ANSIBLE}-inventory --list
+
+
+push_gitlab:
+	git push gitlab gitlab-ci-1

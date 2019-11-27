@@ -25,3 +25,4 @@
 | terraform_destroy            | ENV, TERRAFORM | Уничтожить инфраструктуру terraform для окружения `${ENV}`                                                                       |
 | ansible_install_requirements | ANSIBLE        | Установить внешние роли ansible из [requirements.yml](docker-monolith/ansible/environments/stage/requirements.yml)               |
 | ansible_inventory_list       | ANSIBLE        | Показать содержимое ansible-inventory ввформате json                                                                             |
+| remote add                   |                | Выполнить пуш ветки `gitlab-ci-1` в remote named `gitlab`                                                                        |

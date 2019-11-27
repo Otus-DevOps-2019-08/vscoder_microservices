@@ -3917,3 +3917,27 @@ web:
 
 - Удалён вызов фейковых тестов, добавленных ранее в качестве примера
 - В [.gitlab-ci.yml](.gitlab-ci.yml) в задачу `build_job` добавлена сборка всех контейнеров
+- В репозитории `vscoder_microservices` изменён удалённый репозиторий созданного проекта
+```shell
+git remote rm gitlab
+git remote add gitlab ssh://git@gitlab.vscoder.ru:2222/otus/example.git
+git push gitlab gitlab-ci-1
+```
+- В [gitlab/Makefile](gitlab/Makefile) добавлена цель `push_gitlab` для пуша в remote named _gitlab_
+- Выполнен пуш в гитлаб
+- Ранее запущенный раннер оказался неактивен из за смены URL gitlab на https://gitlab.vscoder.ru
+- Выполнено подключение к контейнеру `sudo docker exec -it gitlab-runner bash`
+- В конфиге раннера `/etc/gitlab-runner/gitlab.toml` изменён url с `url = "http://34.76.206.37/"` на `url = "https://gitlab.vscoder.ru/"`
+- Контейнер перезапущен
+```shell
+sudo docker restart gitlab-runner
+```
+- gitlab-rrunner `gce-docker-runnel` снова стал активен
+- pipeline завершилсф ошибкой
+```shell
+$ cd src && make build_all
+docker build -t vscoder/post:2.0-alpine ./post-py
+make: docker: Command not found
+```
+  - Причина - сборка в образе `image: ruby:2.4.2`
+- Попытка решения: использование [образа](https://hub.docker.com/_/docker) `docker:stable` для `build_job`
