@@ -19,7 +19,7 @@ build_job:
   image: docker:stable
   script:
     - echo 'Building'
-    - apt install make
+    - apk install make
     - cd src && make build_all
 
 test_unit_job:

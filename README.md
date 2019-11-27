@@ -3961,3 +3961,11 @@ script:
   - apt install make
   - cd src && make build_all
 ```
+- ошибка `/bin/sh: eval: line 87: apt: not found`
+- Мы же в alpine linux)) заменил `apt` на `apk`
+```yaml
+script:
+  - echo 'Building'
+  - apk install make
+  - cd src && make build_all
+```
