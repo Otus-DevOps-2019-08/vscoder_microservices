@@ -3756,12 +3756,12 @@ branch review:
 
 #### План
 
-- [ ] Настроить [gitlab registry](https://docs.gitlab.com/ee/user/packages/container_registry/index.html)
-  - [ ] Включить интеграцию с [Let’s Encrypt](https://docs.gitlab.com/omnibus/settings/ssl.html#lets-encrypt-integration)
+- [x] Настроить [gitlab registry](https://docs.gitlab.com/ee/user/packages/container_registry/index.html)
+  - [x] Включить интеграцию с [Let’s Encrypt](https://docs.gitlab.com/omnibus/settings/ssl.html#lets-encrypt-integration)
     - [x] Создать привязку к доменному имени
       - [x] Создать постоянный ip средствами terraform
       - [ ] В последствии, решить проблему с формированием url для `environment.url` в `.gitlab-ci.yml`
-  - [ ] registry добжен включиться автоматически [GitLab Container Registry administration](https://docs.gitlab.com/ee/administration/packages/container_registry.html)
+  - [x] registry добжен включиться автоматически [GitLab Container Registry administration](https://docs.gitlab.com/ee/administration/packages/container_registry.html)
 - [ ] Настроить в `.gitlab-ci.yml` автоматизированную сборку образов средствами [docker build](https://docs.docker.com/engine/reference/commandline/build/)
 - [ ] Следующим шагом необходимо загрузить образ в registry, настроенный ранее
 - [ ] Подготовить инфраструктуру:
@@ -3854,4 +3854,60 @@ user.save!
 
 ##### Интеграция с Let's Encrypt
 
-TODO
+- На хосте с gitlab в `/srv/gitlab/docker-compose.yml` включена [интеграция с Let's Encrypt](https://docs.gitlab.com/omnibus/settings/ssl.html#primary-gitlab-instance)
+```yaml
+...
+web:
+  ...
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      gitlab_rails['gitlab_shell_ssh_port'] = 2222
+      letsencrypt['enable'] = true
+      external_url "https://gitlab.vscoder.ru"
+```
+- Гитлаб перезапущен
+```sh
+sudo docker-compose down; sudo docker-compose up -d && sudo docker-compose logs -f
+# wait ~3-5min for ditlab starts
+```
+```log
+...
+Recipe: letsencrypt::enable
+   * crond_job[letsencrypt-renew] action create
+     * file[/var/opt/gitlab/crond/letsencrypt-renew] action create
+       - create new file /var/opt/gitlab/crond/letsencrypt-renew
+       - update content in file /var/opt/gitlab/crond/letsencrypt-renew from none to d7e87c
+       --- /var/opt/gitlab/crond/letsencrypt-renew      2019-11-27 16:19:49.916624624 +0000
+       +++ /var/opt/gitlab/crond/.chef-letsencrypt-renew20191127-22-k2j9ix      2019-11-27 16:19:49.916624624 +0000
+       @@ -1 +1,2 @@
+       +18 0 */4 * * root /opt/gitlab/bin/gitlab-ctl renew-le-certs
+       - change owner from '' to 'root'
+       - change group from '' to 'root'
+   
+   * ruby_block[display_le_message] action nothing (skipped due to action :nothing)
+   * ruby_block[save_auto_enabled] action run
+     - execute the ruby block save_auto_enabled
+...
+```
+- Успешно выполнен вход на https://gitlab.vscoder.ru/
+- В Admin Area видно, что встроенный Container Registry стал активным
+- Актуальный `docker-compose.yml`
+```yaml
+web:
+  image: 'gitlab/gitlab-ce:latest'
+  restart: always
+  hostname: 'gitlab.example.com'
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      gitlab_rails['gitlab_shell_ssh_port'] = 2222
+      letsencrypt['enable'] = true
+      external_url "https://gitlab.vscoder.ru"
+  ports:
+    - '80:80'
+    - '443:443'
+    - '2222:22'
+  volumes:
+    - '/srv/gitlab/config:/etc/gitlab'
+    - '/srv/gitlab/logs:/var/log/gitlab'
+    - '/srv/gitlab/data:/var/opt/gitlab'
+```
