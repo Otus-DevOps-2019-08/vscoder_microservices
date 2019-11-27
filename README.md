@@ -3949,3 +3949,15 @@ script:
   - sudo apt install make
   - cd src && make build_all
 ```
+- Ошибка
+```log
+$ sudo apt install make
+/bin/sh: eval: line 87: sudo: not found
+```
+- убрал sudo
+```yaml
+script:
+  - echo 'Building'
+  - apt install make
+  - cd src && make build_all
+```
