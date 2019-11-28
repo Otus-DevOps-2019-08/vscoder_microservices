@@ -4,17 +4,19 @@ BIN_DIR?=~/bin
 ENV?=stage
 
 PACKER?=${BIN_DIR}/packer
+PACKER_VAR_FILE?=packer/variables.json
+
 ANSIBLE?=../../.venv/bin/ansible
 TERRAFORM?=${BIN_DIR}/terraform
 TFLINT?=${BIN_DIR}/tflint
 
 
 packer_build:
-	${PACKER} build -var-file=packer/variables.json packer/docker.json
+	${PACKER} build -var-file=${PACKER_VAR_FILE} packer/docker.json
 
 packer_validate:
 	${PACKER} --version
-	${PACKER} validate -var-file=packer/variables.json packer/docker.json
+	${PACKER} validate -var-file=${PACKER_VAR_FILE} packer/docker.json
 
 
 terraform_init:

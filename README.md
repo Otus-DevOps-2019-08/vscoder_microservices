@@ -120,6 +120,7 @@ vscoder microservices repository
         - [Настройка сборки образов в .gitlab-ci.yml](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b8-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d0%b2-gitlab-ciyml)
           - [Попытка решить задачу в лоб (неудачная)](#%d0%9f%d0%be%d0%bf%d1%8b%d1%82%d0%ba%d0%b0-%d1%80%d0%b5%d1%88%d0%b8%d1%82%d1%8c-%d0%b7%d0%b0%d0%b4%d0%b0%d1%87%d1%83-%d0%b2-%d0%bb%d0%be%d0%b1-%d0%bd%d0%b5%d1%83%d0%b4%d0%b0%d1%87%d0%bd%d0%b0%d1%8f)
           - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-3)
+          - [Подготовка хоста для docker runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d0%b4%d0%bb%d1%8f-docker-runner)
 
 # Makefile
 
@@ -4004,8 +4005,58 @@ make: *** [Makefile:11: build_post] Error 1
 - Тертий способ -- [Use Docker socket binding](https://docs.gitlab.com/ce/ci/docker/using_docker_build.html#use-docker-socket-binding)
   - **WARNING** Docker in privileged mode
 
-Был выбран 3й способ, как наиболее универсальный в рамках данной задачи.
+Минусы решения **docker-in-docker**
+- Проблемы при использовании SElinux или AppArmor
+- Проблемы при использовании DeviceMapper (DM not namespaced)
+- Или отказ от использования кэша образов, или возможность повреждения данных в случае использования кэша хоста
+  > But try to do something more involved (pull the same image from two different instances…) and watch the world burn.
+- Рекомендации от автора статьи
+  > And the simplest way is to just expose the Docker socket to your CI container, by bind-mounting it with the -v flag.
+  > ...
+  > And the simplest way is to just expose the Docker socket to your CI container, by bind-mounting it with the -v flag.
 
-####### Runner with Docker socket binding
+Минусы docker sockert binding
 
-TODO
+> By sharing the docker daemon, you are effectively disabling all the security mechanisms of containers and exposing your host to privilege escalation which can lead to container breakout. For example, if a project ran docker rm -f $(docker ps -a -q) it would remove the GitLab Runner containers.
+
+> Concurrent jobs may not work; if your tests create containers with specific names, they may conflict with each other.
+
+> Sharing files and directories from the source repo into containers may not work as expected since volume mounting is done in the context of the host machine, not the build container. For example:
+
+Было принято решение поднять раннер на отдельном хосте
+
+###### Подготовка хоста для docker runner
+
+- В [gitlab/packer/docker.json](gitlab/packer/docker.json) параметризован параметр `image_family`
+- Создан файл [gitlab/packer/variables-gitlab-runner.json](gitlab/packer/variables-gitlab-runner.json) со значениями для образа с gitlab-runner
+- В [gitlab/packer/docker.json](gitlab/packer/docker.json) параметризован параметр `playbook_file` для провиженинга образа. Необходимо указывать имя файла плейбука относительно директории `gitlab/ansible/playbooks/docker.yml`. По умолчанию `docker.yml`
+- Создан плейбук [gitlab/ansible/playbooks/packer-gitlab-runner.yml](gitlab/ansible/playbooks/packer-gitlab-runner.yml), устанавливающий докер и гитлаб-раннер
+```yaml
+---
+- name: Provision image with docker and gitlab-runner
+  hosts: all
+  become: true
+  roles:
+    - role: geerlingguy.docker
+    - role: riemers.gitlab-runner
+```
+- В зависимости ансибл [gitlab/ansible/environments/stage/requirements.yml](gitlab/ansible/environments/stage/requirements.yml) добавлена зависимость от роли 
+- Установлены зависимости ansible `make ansible_install_requirements`
+- Makefile target `packer_build` параметризован переменной `PACKER_VAR_FILE?=packer/variables.json`
+```json
+{
+  "project_id": "<project_id_here>",
+  "source_image_family": "ubuntu-1604-lts",
+  "image_family": "gitlab-runner-base",
+  "machine_type": "n1-standard-1",
+  "disk_size": "40",
+  "playbook_name": "packer-gitlab-runner.yml"
+}
+
+```
+- Выполнена сборка packer-образа gitlab-runner `make packer_build PACKER_VAR_FILE=packer/variables-gitlab-runner.json`
+  - **ОШИБКА** `Version '12.5.2' for 'gitlab-runner' was not found`
+  - из [gitlab/ansible/playbooks/packer-gitlab-runner.yml](gitlab/ansible/playbooks/packer-gitlab-runner.yml) удален параметр версии `gitlab_runner_package_version`
+  - сборка прошла успешно
+- В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) создан ещё один хост
+TODO описать конфиг
