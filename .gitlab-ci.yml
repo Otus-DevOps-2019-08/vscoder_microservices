@@ -17,6 +17,8 @@ before_script:
 build_job:
   stage: build
   image: docker:stable
+  before_script:
+    - docker info
   variables:
     DOCKER_HOST: unix:///var/run/docker.sock
   script:
