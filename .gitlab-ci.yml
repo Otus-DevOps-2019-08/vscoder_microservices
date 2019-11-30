@@ -14,14 +14,22 @@ before_script:
 
 build_job:
   stage: build
-  before_script:
-    - docker info
   variables:
     DOCKER_HOST: unix:///var/run/docker.sock
   script:
+    # login
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # build
     - echo 'Building'
     - apk add make
-    - cd src && make build_all
+    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME} ./post
+    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME} ./comment
+    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME} ./ui
+    # push
+    - docker push ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME}
   tags:
     - dind
 

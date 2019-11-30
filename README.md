@@ -123,6 +123,7 @@ vscoder microservices repository
           - [Подготовка хоста для docker runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d0%b4%d0%bb%d1%8f-docker-runner)
           - [Подготовлен docker-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%bb%d0%b5%d0%bd-docker-runner)
           - [Автоматизированная сборка образов](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
+        - [Загрузка образов в gitlab registry](#%d0%97%d0%b0%d0%b3%d1%80%d1%83%d0%b7%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d0%b2-gitlab-registry)
 
 # Makefile
 
@@ -3768,8 +3769,8 @@ branch review:
       - [x] Создать постоянный ip средствами terraform
       - [ ] В последствии, решить проблему с формированием url для `environment.url` в `.gitlab-ci.yml`
   - [x] registry добжен включиться автоматически [GitLab Container Registry administration](https://docs.gitlab.com/ee/administration/packages/container_registry.html)
-- [ ] Настроить в `.gitlab-ci.yml` автоматизированную сборку образов средствами [docker build](https://docs.docker.com/engine/reference/commandline/build/)
-  - [ ] решить проблему со сборкой образов раннером типа docker https://docs.gitlab.com/сe/ci/docker/using_docker_build.html
+- [x] Настроить в `.gitlab-ci.yml` автоматизированную сборку образов средствами [docker build](https://docs.docker.com/engine/reference/commandline/build/)
+  - [x] решить проблему со сборкой образов раннером типа docker https://docs.gitlab.com/сe/ci/docker/using_docker_build.html
 - [ ] Следующим шагом необходимо загрузить образ в registry, настроенный ранее
 - [ ] Подготовить инфраструктуру:
   - [ ] создать сервер с установленным docker для деплоя ветки (terraform)
@@ -4183,3 +4184,60 @@ fatal: [gitlab-runner-stage-001]: FAILED! => {"changed": false, "msg": "failed t
 
 - В [.gitlab-ci.yml](.gitlab-ci.yml) в `build_job` добавлен параметр `tags: ["dind"]` чтобы запуск билда выполнялся на правильном раннере. Так же:
   - удалён пунки `image: ruby:2.4.2`
+- Сборка образов **прошла успешно**!
+
+##### Загрузка образов в gitlab registry
+
+https://docs.gitlab.com/ee/user/packages/container_registry/index.html
+
+https://docs.gitlab.com/ee/ci/variables/predefined_variables.html#variables-reference
+
+- Проверяем что registry включен для проекта _Packages_ > _Container Registry_ [документация](https://docs.gitlab.com/ee/user/packages/container_registry/index.html#enable-the-container-registry-for-your-project)
+- Логинимся, для этого в `build_job` `before_script` добавляем `docker login`
+```yaml
+...
+build_job:
+  stage: build
+  before_script:
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+...
+```
+- после прочтения документации https://docs.gitlab.com/ee/ci/yaml/#before_script-and-after_script логин в регистри перенесён в секцию `script`
+```yaml
+...
+build_job:
+  ...
+  script:
+    # login
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    ...
+...
+```
+- Изменена сборка образов. Теперь они собираются вручную, без использования make. **НА БУДУЩЕЕ** в целях избежания разбухания make-файла, сборка образов для гитлаб в него добавлена не была.
+```yaml
+build_job:
+  ...
+  script:
+    # login
+    ...
+    # build
+    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME} ./post
+    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME} ./comment
+    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME} ./ui
+```
+- Добавлена загрузка образов в gitlab registry
+```yaml
+build_job:
+  ...
+  script:
+    # login
+    ...
+    # build
+    ...
+    # push
+    - docker push ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME}
+```
