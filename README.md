@@ -125,6 +125,7 @@ vscoder microservices repository
           - [Автоматизированная сборка образов](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
         - [Загрузка образов в gitlab registry](#%d0%97%d0%b0%d0%b3%d1%80%d1%83%d0%b7%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d0%b2-gitlab-registry)
     - [Задание со \*: Деплой контейнера на созданный для ветки сервер (НЕ СДЕЛАНО)](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0-%d0%bd%d0%b0-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d0%b9-%d0%b4%d0%bb%d1%8f-%d0%b2%d0%b5%d1%82%d0%ba%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b5%d1%80-%d0%9d%d0%95-%d0%a1%d0%94%d0%95%d0%9b%d0%90%d0%9d%d0%9e)
+      - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-3)
     - [Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2-%d0%9d%d0%95-%d0%a1%d0%94%d0%95%d0%9b%d0%90%d0%9d%d0%9e)
     - [Задание со \*: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
 
@@ -4331,6 +4332,22 @@ TODO: Анализ, Реализация
 - в packer подготовить образ с docker
 - в terraform на базе образа описать хост
 - в ansible реализовать запуск приложения средствами `docker-compose` из ранее собранных образов
+
+#### Реализация
+
+- Создан [gitlab/packer/variables-stage-server.json](gitlab/packer/variables-stage-server.json) файл с переменными описывающими stage-сервер
+```json
+{
+  "source_image_family": "ubuntu-1604-lts",
+  "image_family": "stage-server-base",
+  "machine_type": "g1-small",
+  "disk_size": "40"
+}
+```
+- Валидация `make packer_validate PACKER_VAR_FILE=packer/variables-stage-server.json` успешна
+- Собран образ `make packer_build PACKER_VAR_FILE=packer/variables-stage-server.json`
+- 
+
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
