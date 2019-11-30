@@ -3771,7 +3771,7 @@ branch review:
   - [x] registry добжен включиться автоматически [GitLab Container Registry administration](https://docs.gitlab.com/ee/administration/packages/container_registry.html)
 - [x] Настроить в `.gitlab-ci.yml` автоматизированную сборку образов средствами [docker build](https://docs.docker.com/engine/reference/commandline/build/)
   - [x] решить проблему со сборкой образов раннером типа docker https://docs.gitlab.com/сe/ci/docker/using_docker_build.html
-- [ ] Следующим шагом необходимо загрузить образ в registry, настроенный ранее
+- [x] Следующим шагом необходимо загрузить образ в registry, настроенный ранее
 - [ ] Подготовить инфраструктуру:
   - [ ] создать сервер с установленным docker для деплоя ветки (terraform)
 - [ ] создать ansible-playbook для деплоя приложения на созданный сервер средствами docker-compose
@@ -4293,3 +4293,26 @@ An image does not exist locally with the tag: gitlab.vscoder.ru:5050/otus/exampl
       - cd ./src
       - docker build
     ```
+- **СБОРКА ПРОШЛА УСПЕШНО!!!**
+- Итоговый `build_job`
+```yaml
+build_job:
+  stage: build
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
+  script:
+    # login
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # build
+    - cd ./src
+    - docker build -t ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME} ./post-py
+    - docker build -t ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME} ./comment
+    - docker build -t ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME} ./ui
+    # push
+    - docker push ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME}
+  tags:
+    - dind
+```
