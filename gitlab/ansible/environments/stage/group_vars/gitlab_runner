@@ -1,0 +1,35 @@
+---
+gitlab_runner_registration_token: "{{ lookup('env','GITLAB_RUNNER_REGISTRATION_TOKEN') }}"
+gitlab_runner_coordinator_url: https://gitlab.vscoder.ru/ci
+gitlab_runner_runners:
+  - name: "GitLab Runner dind"
+    executor: docker
+    tags:
+      - dind
+    docker_volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/cache"
+    extra_configs:
+      runners.docker:
+        memory: 1024m
+        allowed_images: ["docker:*"]
+      runners.docker.sysctls:
+        net.ipv4.ip_forward: "1"
+  - name: "GitLab Runner docker"
+    executor: docker
+    tags:
+      - docker
+    docker_volumes:
+      - "/cache"
+    extra_configs:
+      runners.docker:
+        memory: 1024m
+      runners.docker.sysctls:
+        net.ipv4.ip_forward: "1"
+  - name: "GitLab Runner docker"
+    executor: shell
+    tags:
+      - shell
+    extra_configs:
+      runners.docker:
+        memory: 1024m

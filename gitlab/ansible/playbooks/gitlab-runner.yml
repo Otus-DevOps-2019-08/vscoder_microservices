@@ -1,0 +1,6 @@
+---
+- name: Provision image with docker and gitlab-runner
+  hosts: gitlab_runner
+  become: true
+  roles:
+    - role: riemers.gitlab-runner
