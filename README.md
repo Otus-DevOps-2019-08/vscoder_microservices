@@ -4254,4 +4254,16 @@ Error response from daemon: Get https://gitlab.vscoder.ru:5050/v2/: dial tcp 35.
 ```
 похоже что порт registry не проброшен при запуске gitlab-server
 - маппинг порта `5050:5050` добавлен в `docker-compose.yml` на хосте _gitlab.flexline.ru_. Гитлаб перезапущен `cd /srv/gitlab && sudo docker-compose restart`
-- Повторная попытка ...
+- Повторная попытка ... та же ошибка
+- gitlab-сервер перезапущен через `sudo docker-compose down; docker-compose up -d` и логин прошёл успешно!
+- новая ошибка:
+```log
+unable to prepare context: path "./post" not found
+```
+- добавлено немного дебага в пайплайн
+```yaml
+# debug
+- pwd
+- ls -la
+- tree
+```
