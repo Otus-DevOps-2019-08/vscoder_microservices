@@ -4347,3 +4347,12 @@ TODO: скопировать файлы данной задачи в дирек�
 Настройте интеграцию вашего Pipeline с тестовым Slack-чатом, который вы использовали ранее. Для этого перейдите в Project Settings > Integrations > Slack notifications. Нужно установить active, выбрать события и заполнить поля с URL вашего Slack webhook.
 Добавьте ссылку на канал в слаке, в котором можно проверить работу оповещений, в файл README.md;
 
+Про slack webhooks https://api.slack.com/messaging/webhooks
+
+1. Create a Slack app (if you don't have one already). Link is in docs
+2. Enable Incoming Webhooks
+3. Create an Incoming Webhook
+4. webhook прописан в gitlab
+> Slack notifications activated.
+
+Ссылка на канал: https://devops-team-otus.slack.com/archives/CMZK1KA02
