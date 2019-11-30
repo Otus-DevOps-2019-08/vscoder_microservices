@@ -16,7 +16,6 @@ before_script:
 
 build_job:
   stage: build
-  image: docker:stable
   before_script:
     - docker info
   variables:
@@ -25,6 +24,8 @@ build_job:
     - echo 'Building'
     - apk add make
     - cd src && make build_all
+  tags:
+    - dind
 
 test_unit_job:
   stage: test

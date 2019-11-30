@@ -122,6 +122,7 @@ vscoder microservices repository
           - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-3)
           - [Подготовка хоста для docker runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d0%b4%d0%bb%d1%8f-docker-runner)
           - [Подготовлен docker-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%bb%d0%b5%d0%bd-docker-runner)
+          - [Автоматизированная сборка образов](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
 
 # Makefile
 
@@ -4177,3 +4178,7 @@ fatal: [gitlab-runner-stage-001]: FAILED! => {"changed": false, "msg": "failed t
 - в итоге было зарезервировано 2 раннера 
   - `GitLab Runner dind` для сборки докер-образов
   - `GitLab Runner docker` для запуска всего остального
+
+###### Автоматизированная сборка образов
+
+- В [.gitlab-ci.yml](.gitlab-ci.yml) в `build_job` добавлен параметр `tags: ["dind"]` чтобы запуск билда выполнялся на правильном раннере
