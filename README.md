@@ -4181,4 +4181,5 @@ fatal: [gitlab-runner-stage-001]: FAILED! => {"changed": false, "msg": "failed t
 
 ###### Автоматизированная сборка образов
 
-- В [.gitlab-ci.yml](.gitlab-ci.yml) в `build_job` добавлен параметр `tags: ["dind"]` чтобы запуск билда выполнялся на правильном раннере
+- В [.gitlab-ci.yml](.gitlab-ci.yml) в `build_job` добавлен параметр `tags: ["dind"]` чтобы запуск билда выполнялся на правильном раннере. Так же:
+  - удалён пунки `image: ruby:2.4.2`
