@@ -19,7 +19,7 @@ gitlab_runner_runners:
         allowed_images: ["docker:*"]
   - name: "GitLab Runner docker"
     executor: docker
-    docker_image: "alpine"
+    docker_image: "alpine:latest"
     tags:
       - docker
     run_untagged: true
