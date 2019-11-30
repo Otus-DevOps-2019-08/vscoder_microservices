@@ -23,11 +23,13 @@ build_job:
     # debug
     - pwd
     - ls -la
+    - ls -la ./src
+    - apk add tree
     - tree
     # build
-    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME} ./post
-    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME} ./comment
-    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME} ./ui
+    - cd ./src && docker build -t ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME} ./post
+    - cd ./src && docker build -t ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME} ./comment
+    - cd ./src && docker build -t ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME} ./ui
     # push
     - docker push ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME}
     - docker push ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}

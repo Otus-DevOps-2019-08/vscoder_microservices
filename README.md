@@ -4260,10 +4260,13 @@ Error response from daemon: Get https://gitlab.vscoder.ru:5050/v2/: dial tcp 35.
 ```log
 unable to prepare context: path "./post" not found
 ```
-- добавлено немного дебага в пайплайн
+- добавлено немного дебага в пайплайн... больше дебага))
 ```yaml
 # debug
 - pwd
 - ls -la
+- ls -la ./src
+- apk add tree
 - tree
 ```
+- при сборке образов использованы относительные пути с `./src` вместо `src`
