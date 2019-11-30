@@ -4273,3 +4273,23 @@ unable to prepare context: path "./post" not found
   - причина проблемы была в том, что директория с приложением `post` называется не `post`, а `post-py`. В - внимательность! Нужно было нормально скопипастить или проверить.
   - Убран дебаг
   - Исправлен путь на `./post-py`
+- При запуске пайплайна -- ошибка
+```log
+Successfully tagged gitlab.vscoder.ru:5050/otus/example/post:gitlab-ci-1
+$ cd ./src && docker build -t ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME} ./comment
+$ cd ./src && docker build -t ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME} ./ui
+$ docker push ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME}
+/bin/sh: cd: line 92: can't cd to ./src: No such file or directory
+/bin/sh: cd: line 94: can't cd to ./src: No such file or directory
+...
+$ docker push ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}
+The push refers to repository [gitlab.vscoder.ru:5050/otus/example/comment]
+An image does not exist locally with the tag: gitlab.vscoder.ru:5050/otus/example/comment
+```
+это вам не Makefile! все команды `script` выполняются в одном shell
+  - Пайплайн изменён. `cd` выполняется только один раз
+    ```yaml
+      # build
+      - cd ./src
+      - docker build
+    ```
