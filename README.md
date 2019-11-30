@@ -4241,3 +4241,11 @@ build_job:
     - docker push ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}
     - docker push ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME}
 ```
+- Попытка прогона пайплайна: ошибка
+```log
+Error response from daemon: Get https://gitlab.vscoder.ru:5050/v2/: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+```
+подозрение на фаервол
+- В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) порт `5050` добавлен в список разрешённых для gitlab-сервера. Конфигурация применена `make terraform_apply`. **НА БУДУЩЕЕ** Правильным будет создание отдельного правила, разрешающего доступ к регистри только с раннеров. Но подобные правила удобнее использовать при плоской (без использования модулей) структуре проекта terraform.
+- Сохранены изменения в [.gitlab-ci.yml](.gitlab-ci.yml), удаляющие установку `make` из `build_job`
+- Следующая попытка выполнить пайплайн ...

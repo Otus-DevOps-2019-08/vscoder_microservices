@@ -15,7 +15,7 @@ module "docker-app" {
   machine_type        = "n1-standard-1"
   instance_disk_image = "gitlab-docker-base"
   tags                = ["gitlab-docker-app"]
-  tcp_ports           = ["80", "443", "22", "2222"]
+  tcp_ports           = ["80", "443", "22", "2222", "5050"]
   vpc_network_name    = var.vpc_network_name
   use_static_ip       = true
 }
