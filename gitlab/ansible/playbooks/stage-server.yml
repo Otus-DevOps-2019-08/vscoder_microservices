@@ -1,0 +1,56 @@
+---
+- name: Deploy app from branch on stage-server
+  hosts: stage_server
+  become: true
+  gather_facts: no
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    - name: Deploy reddit-app
+      docker_compose:
+        project_name: reddit
+        debug: yes
+        definition:
+          version: "3.3"
+          services:
+            post_db:
+              image: mongo:3.2
+              volumes:
+                - post_db:/data/db
+              networks:
+                - reddit_back
+            ui:
+              image: ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME}
+              ports:
+                - 9292:9292
+              networks:
+                - reddit_front
+            post:
+              image: ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME}
+              networks:
+                - reddit_front
+                - reddit_back
+            comment:
+              image: ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}
+              networks:
+                - reddit_front
+                - reddit_back
+
+          volumes:
+            post_db:
+
+          networks:
+            reddit_front:
+            reddit_back:
+
+      register: output
+
+    - debug:
+        var: output
+
+    - assert:
+        that:
+          - "post_db.reddit_post_db_1.state.running"
+          - "post.reddit_post_1.state.running"
+          - "comment.reddit_comment_1.state.running"
+          - "ui.reddit_ui_1.state.running"

@@ -1,0 +1,24 @@
+---
+- import_playbook: docker.yml
+
+- name: Install docker on all hosts
+  hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    - name: Ensure necessary packages are installed
+      apt:
+        name:
+          - python3-pip
+          - libffi-dev
+          - libssl-dev
+        state: present
+
+    - name: Ensure docker-compose and docker is installed
+      pip:
+        executable: /usr/bin/pip3
+        name:
+          - docker
+          - docker-compose
+        state: present

@@ -128,6 +128,9 @@ vscoder microservices repository
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-3)
         - [Packer](#packer-1)
         - [Terraform](#terraform-1)
+        - [Ansible](#ansible)
+          - [Поиск решения](#%d0%9f%d0%be%d0%b8%d1%81%d0%ba-%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d1%8f)
+          - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-4)
     - [Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2-%d0%9d%d0%95-%d0%a1%d0%94%d0%95%d0%9b%d0%90%d0%9d%d0%9e)
     - [Задание со \*: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
 
@@ -4339,13 +4342,41 @@ TODO: Анализ, Реализация
 
 ##### Packer
 
+- Создан playbook устанавливающий docker и необходимые для провиженинга ansible-ом пакеты [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml)
+```yaml
+---
+- import_playbook: docker.yml
+
+- name: Install docker on all hosts
+  hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    - name: Ensure necessary packages are installed
+      apt:
+        name:
+          - python3-pip
+          - libffi-dev
+          - libssl-dev
+        state: present
+
+    - name: Ensure docker-compose and docker is installed
+      pip:
+        executable: /usr/bin/pip3
+        name:
+          - docker
+          - docker-compose
+        state: present
+```
 - Создан [gitlab/packer/variables-stage-server.json](gitlab/packer/variables-stage-server.json) файл с переменными описывающими stage-сервер
 ```json
 {
   "source_image_family": "ubuntu-1604-lts",
   "image_family": "stage-server-base",
   "machine_type": "g1-small",
-  "disk_size": "40"
+  "disk_size": "40",
+  "playbook_name": "packer-gitlab-runner.yml"
 }
 ```
 - Валидация `make packer_validate PACKER_VAR_FILE=packer/variables-stage-server.json` успешна
@@ -4380,6 +4411,52 @@ output "stage_server_external_ip" {
 ```
 - terraform проинициализирован `make terraform_init`
 - инфраструктура применена `make terraform_apply`
+
+##### Ansible
+
+###### Поиск решения
+
+[Ansible Docker Guide](https://docs.ansible.com/ansible/latest/scenario_guides/)guide_docker.html
+
+Для реализации задачи можно использовать модули:
+
+- [docker_container](https://docs.ansible.com/ansible/latest/modules/docker_container_module.html)
+- [docker_compose](https://docs.ansible.com/ansible/latest/modules/docker_compose_module.html)
+
+После беглого изучения, было принято решение использовать `docker_compose` как более простое решение
+
+###### Реализация
+
+- Создан плейбук [gitlab/ansible/playbooks/stage-server.yml](gitlab/ansible/playbooks/stage-server.yml)
+- Содержимое compose-файла скопировано из [src/docker-compose.yml](src/docker-compose.yml) в [gitlab/ansible/playbooks/stage-server.yml](gitlab/ansible/playbooks/stage-server.yml)
+- При запуске плейбука `ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/stage-server.yml --check` ошибка:
+```log
+fatal: [stage-server-stage-001]: FAILED! => {"ansible_facts": {"discovered_interpreter_python": "/usr/bin/python"}, "changed": false, "msg": "Unable to find any of pip2, pip to use.  pip needs to be installed."}
+```
+- В результате был перепакован базовый образ. Подробности в описании packer
+- Применение плейбука `cd gitlab/ansible && ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/stage-server.yml`
+- Ошибка
+```log
+fatal: [stage-server-stage-001]: FAILED! => {"ansible_facts": {"discovered_interpreter_python": "/usr/bin/python"}, "changed": false, "module_stderr": "Shared connection to 35.240.27.254 closed.\r\n", "module_stdout": "\r\nTraceback (most recent call last):\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 102, in <module>\r\n    _ansiballz_main()\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 94, in _ansiballz_main\r\n    invoke_module(zipped_mod, temp_path, ANSIBALLZ_PARAMS)\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 40, in invoke_module\r\n    runpy.run_module(mod_name='ansible.modules.cloud.docker.docker_compose', init_globals=None, run_name='__main__', alter_sys=True)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 188, in run_module\r\n    fname, loader, pkg_name)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 82, in _run_module_code\r\n    mod_name, mod_fname, mod_loader, pkg_name)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 72, in _run_code\r\n    exec code in run_globals\r\n  File \"/tmp/ansible_docker_compose_payload_oSfl3K/ansible_docker_compose_payload.zip/ansible/modules/cloud/docker/docker_compose.py\", line 483, in <module>\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/cli/command.py\", line 12, in <module>\r\n    from .. import config\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/__init__.py\", line 6, in <module>\r\n    from .config import ConfigurationError\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/config.py\", line 50, in <module>\r\n    from .validation import match_named_volumes\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/validation.py\", line 12, in <module>\r\n    from jsonschema import Draft4Validator\r\n  File \"/usr/local/lib/python2.7/dist-packages/jsonschema/__init__.py\", line 33, in <module>\r\n    import importlib_metadata as metadata\r\n  File \"/usr/local/lib/python2.7/dist-packages/importlib_metadata/__init__.py\", line 9, in <module>\r\n    import zipp\r\n  File \"/usr/local/lib/python2.7/dist-packages/zipp.py\", line 12, in <module>\r\n    import more_itertools\r\n  File \"/usr/local/lib/python2.7/dist-packages/more_itertools/__init__.py\", line 1, in <module>\r\n    from more_itertools.more import *  # noqa\r\n  File \"/usr/local/lib/python2.7/dist-packages/more_itertools/more.py\", line 460\r\n    yield from iterable\r\n             ^\r\nSyntaxError: invalid syntax\r\n", "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error", "rc": 1}
+```
+  - Проблема проявилась только для docker-compose на python2.
+  - Выполнена адаптация [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) для работы с python3
+  - Пересборка базового образа и редеплой хоста
+  ```shell
+  make packer_build PACKER_VAR_FILE=packer/variables-stage-server.json
+  cd terraform/stage
+  terraform taint "module.stage-server.google_compute_instance.instance[0]"
+  cd ../../
+  make terraform_apply
+  yes
+  ```
+- Попытка накатить плейбук `cd ./ansible && ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/stage-server.yml`
+- УРА! Новыя ошибка))
+```log
+"Error starting project 400 Client Error: Bad Request (\"no such image: comment:: invalid reference format\")"
+```
+образов нет в регистри или неверно формируется имя образа
+TODO: пора спать
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
