@@ -30,7 +30,7 @@ module "gitlab-runner" {
   name_prefix         = "gitlab-runner"
   machine_type        = "g1-small"
   instance_disk_image = "gitlab-runner-base"
-  tags                = ["gitlab-runner-shell"]
+  tags                = ["gitlab-runner"]
   tcp_ports           = ["22"]
   vpc_network_name    = var.vpc_network_name
   use_static_ip       = false
