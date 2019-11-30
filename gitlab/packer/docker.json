@@ -1,8 +1,8 @@
 {
   "variables": {
     "project_id": null,
-    "source_image_family": null,
-    "image_family": null,
+    "source_image_family": "ubuntu-1604-lts",
+    "image_family": "docker-base",
     "machine_type": "f1-micro",
     "zone": "europe-west1-d",
     "disk_size": "10",

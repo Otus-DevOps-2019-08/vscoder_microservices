@@ -1,8 +1,2 @@
 project                   = "project_id_here"
 environment               = "stage"
-docker_app_disk_image     = "gitlab-docker-base"
-docker_app_instance_count = 1
-docker_app_tags           = ["gitlab-docker-app"]
-docker_app_tcp_ports      = ["80", "443", "2222"]
-docker_app_machine_type   = "n1-standard-1"
-docker_app_name_prefix    = "gitlab"

@@ -4029,7 +4029,18 @@ make: *** [Makefile:11: build_post] Error 1
 
 - В [gitlab/packer/docker.json](gitlab/packer/docker.json) параметризован параметр `image_family`
 - Создан файл [gitlab/packer/variables-gitlab-runner.json](gitlab/packer/variables-gitlab-runner.json) со значениями для образа с gitlab-runner
+- **ЗАМЕЧАНИЕ** переменная `project_id` осталась в файле `variables.json`
 - В [gitlab/packer/docker.json](gitlab/packer/docker.json) параметризован параметр `playbook_file` для провиженинга образа. Необходимо указывать имя файла плейбука относительно директории `gitlab/ansible/playbooks/docker.yml`. По умолчанию `docker.yml`
+- В [gitlab/packer/docker.json](gitlab/packer/docker.json) заданы значения по умолчанию для переменных
+```json
+{
+  ...
+  "source_image_family": "ubuntu-1604-lts",
+  "image_family": "docker-base",
+  ...
+}
+```
+- Переменные,, относящиеся к образу gitlab-сервера, вынесены в отдельный файл [gitlab/packer/variables-gitlab.json](gitlab/packer/variables-gitlab.json)
 - Создан плейбук [gitlab/ansible/playbooks/packer-gitlab-runner.yml](gitlab/ansible/playbooks/packer-gitlab-runner.yml), устанавливающий докер и гитлаб-раннер
 ```yaml
 ---
@@ -4042,21 +4053,78 @@ make: *** [Makefile:11: build_post] Error 1
 ```
 - В зависимости ансибл [gitlab/ansible/environments/stage/requirements.yml](gitlab/ansible/environments/stage/requirements.yml) добавлена зависимость от роли 
 - Установлены зависимости ansible `make ansible_install_requirements`
-- Makefile target `packer_build` параметризован переменной `PACKER_VAR_FILE?=packer/variables.json`
+- В Makefile targets `packer_build` и `packer_validate` добавлено использование переменный из `packer/variables.json`
+- В Makefile targets `packer_build` и `packer_validate`, помимо предыдущего пункта, добавлено использование переменных из `PACKER_VAR_FILE?=packer/variables-gitlab-runner.json`
 ```json
 {
-  "project_id": "<project_id_here>",
   "source_image_family": "ubuntu-1604-lts",
   "image_family": "gitlab-runner-base",
   "machine_type": "n1-standard-1",
   "disk_size": "40",
   "playbook_name": "packer-gitlab-runner.yml"
 }
-
 ```
+- В [gitlab/packer/scripts/ansible-playbook.sh](gitlab/packer/scripts/ansible-playbook.sh) исправлен путь к исполняемому файлу `ansible`
 - Выполнена сборка packer-образа gitlab-runner `make packer_build PACKER_VAR_FILE=packer/variables-gitlab-runner.json`
   - **ОШИБКА** `Version '12.5.2' for 'gitlab-runner' was not found`
   - из [gitlab/ansible/playbooks/packer-gitlab-runner.yml](gitlab/ansible/playbooks/packer-gitlab-runner.yml) удален параметр версии `gitlab_runner_package_version`
   - сборка прошла успешно
 - В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) создан ещё один хост
-TODO описать конфиг
+```hcl
+# Gitlab Runner
+module "gitlab-runner" {
+  instance_count      = 1
+  source              = "../modules/instance"
+  project             = var.project
+  zone                = var.zone
+  environment         = var.environment
+  name_prefix         = "gitlab-runner"
+  machine_type        = "g1-small"
+  instance_disk_image = "gitlab-runner-base"
+  tags                = ["gitlab-runner"]
+  tcp_ports           = ["22"]
+  vpc_network_name    = var.vpc_network_name
+  use_static_ip       = false
+}
+```
+- В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) часть параметров хостов задаётся явно, а не из переменных
+- Создан инстанс хоста для gitlab-runner `make terraform_apply`
+```log
+Outputs:
+
+docker_app_external_ip = [
+  "35.195.25.130",
+]
+```
+- Проверяем что ансибл увидел хост
+```shell
+make ansible_inventory_list
+```
+```json
+...
+    "all": {
+        "children": [
+            "env_stage",
+            "gitlab_docker_app",
+            "gitlab_runner_shell",
+            "ungrouped"
+        ]
+    },
+    "env_stage": {
+        "hosts": [
+            "gitlab-runner-stage-001",
+            "gitlab-stage-001"
+        ]
+    },
+    "gitlab_docker_app": {
+        "hosts": [
+            "gitlab-stage-001"
+        ]
+    },
+    "gitlab_runner_shell": {
+        "hosts": [
+            "gitlab-runner-stage-001"
+        ]
+    }
+...
+```

@@ -11,11 +11,27 @@ module "docker-app" {
   project             = var.project
   zone                = var.zone
   environment         = var.environment
-  name_prefix         = var.docker_app_name_prefix
-  machine_type        = var.docker_app_machine_type
-  instance_disk_image = var.docker_app_disk_image
-  tags                = var.docker_app_tags
-  tcp_ports           = var.docker_app_tcp_ports
+  name_prefix         = "gitlab"
+  machine_type        = "n1-standard-1"
+  instance_disk_image = "gitlab-docker-base"
+  tags                = ["gitlab-docker-app"]
+  tcp_ports           = ["80", "443", "22", "2222"]
   vpc_network_name    = var.vpc_network_name
   use_static_ip       = true
+}
+
+# Gitlab Runner
+module "gitlab-runner" {
+  instance_count      = 1
+  source              = "../modules/instance"
+  project             = var.project
+  zone                = var.zone
+  environment         = var.environment
+  name_prefix         = "gitlab-runner"
+  machine_type        = "g1-small"
+  instance_disk_image = "gitlab-runner-base"
+  tags                = ["gitlab-runner-shell"]
+  tcp_ports           = ["22"]
+  vpc_network_name    = var.vpc_network_name
+  use_static_ip       = false
 }
