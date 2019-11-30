@@ -4248,4 +4248,10 @@ Error response from daemon: Get https://gitlab.vscoder.ru:5050/v2/: net/http: re
 подозрение на фаервол
 - В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) порт `5050` добавлен в список разрешённых для gitlab-сервера. Конфигурация применена `make terraform_apply`. **НА БУДУЩЕЕ** Правильным будет создание отдельного правила, разрешающего доступ к регистри только с раннеров. Но подобные правила удобнее использовать при плоской (без использования модулей) структуре проекта terraform.
 - Сохранены изменения в [.gitlab-ci.yml](.gitlab-ci.yml), удаляющие установку `make` из `build_job`
-- Следующая попытка выполнить пайплайн ...
+- Следующая попытка выполнить пайплайн `make push_gitlab`
+```log
+Error response from daemon: Get https://gitlab.vscoder.ru:5050/v2/: dial tcp 35.195.25.130:5050: connect: connection refused
+```
+похоже что порт registry не проброшен при запуске gitlab-server
+- маппинг порта `5050:5050` добавлен в `docker-compose.yml` на хосте _gitlab.flexline.ru_. Гитлаб перезапущен `cd /srv/gitlab && sudo docker-compose restart`
+- Повторная попытка ...
