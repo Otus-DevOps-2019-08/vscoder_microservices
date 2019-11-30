@@ -121,6 +121,7 @@ vscoder microservices repository
           - [Попытка решить задачу в лоб (неудачная)](#%d0%9f%d0%be%d0%bf%d1%8b%d1%82%d0%ba%d0%b0-%d1%80%d0%b5%d1%88%d0%b8%d1%82%d1%8c-%d0%b7%d0%b0%d0%b4%d0%b0%d1%87%d1%83-%d0%b2-%d0%bb%d0%be%d0%b1-%d0%bd%d0%b5%d1%83%d0%b4%d0%b0%d1%87%d0%bd%d0%b0%d1%8f)
           - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-3)
           - [Подготовка хоста для docker runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d0%b4%d0%bb%d1%8f-docker-runner)
+          - [Подготовлен docker-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%bb%d0%b5%d0%bd-docker-runner)
 
 # Makefile
 
@@ -4106,7 +4107,7 @@ make ansible_inventory_list
         "children": [
             "env_stage",
             "gitlab_docker_app",
-            "gitlab_runner_shell",
+            "gitlab_runner",
             "ungrouped"
         ]
     },
@@ -4121,10 +4122,58 @@ make ansible_inventory_list
             "gitlab-stage-001"
         ]
     },
-    "gitlab_runner_shell": {
+    "gitlab_runner": {
         "hosts": [
             "gitlab-runner-stage-001"
         ]
     }
 ...
 ```
+
+###### Подготовлен docker-runner
+
+- Создан плейбук [gitlab/ansible/playbooks/gitlab-runner.yml](gitlab/ansible/playbooks/gitlab-runner.yml), запускающий и регистрирующий раннеры
+```yaml
+---
+- name: Provision image with docker and gitlab-runner
+  hosts: gitlab_runner
+  become: true
+  roles:
+    - role: riemers.gitlab-runner
+```
+- Создай файл [gitlab/ansible/environments/stage/group_vars/gitlab_runner](gitlab/ansible/environments/stage/group_vars/gitlab_runner), содержащий переменные необходимые для работы плейбука. При этом значение токена берётся из переменной окружения
+```yaml
+gitlab_runner_registration_token: "{{ lookup('env','GITLAB_RUNNER_REGISTRATION_TOKEN') }}"
+```
+
+- Применение плейбука завершается ошибкой
+```log
+TASK [riemers.gitlab-runner : Register runner to GitLab] *****************************************************************************************************************
+fatal: [gitlab-runner-stage-001]: FAILED! => {"censored": "the output has been hidden due to the fact that 'no_log: true' was specified for this result", "changed": true}
+```
+- Запуск в режиме дебага `ANSIBLE_DEBUG=true ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/gitlab-runner.yml` помог выявить ошибку: в [конфиге](gitlab/ansible/environments/stage/group_vars/gitlab_runner) раннеров с типом `docker` не был указан образ по умолчанию (парфметр `docker_image: `)
+- Новая ошибка
+```log
+TASK [riemers.gitlab-runner : Assemble new config.toml] ******************************************************************************************************************
+fatal: [gitlab-runner-stage-001]: FAILED! => {"changed": false, "msg": "failed to validate: rc:1 error:Runtime platform                                  \u001b[0;m  arch\u001b[0;m=amd64 os\u001b[0;m=linux pid\u001b[0;m=14766 revision\u001b[0;m=577f813d version\u001b[0;m=12.5.0\nRunning in system-mode.                           \u001b[0;m \n                                                  \u001b[0;m \n\u001b[31;1mFATAL: Near line 29 (last key parsed 'runners.docker.sysctls'): bare keys cannot contain '.'\u001b[0;m \n"}
+```
+проблема в наличии точек в параметрах `runners.docker.sysctls: `
+  - попытка поместить параметры в кавычки успехом не увенчалась
+  - принято решение убрать данные параметры из конфига в связи с отсутствием в них необходимости
+- новая ошибка
+```log
+TASK [riemers.gitlab-runner : Assemble new config.toml] ******************************************************************************************************************
+fatal: [gitlab-runner-stage-001]: FAILED! => {"changed": false, "msg": "failed to validate: rc:1 error:Runtime platform                                  \u001b[0;m  arch\u001b[0;m=amd64 os\u001b[0;m=linux pid\u001b[0;m=24632 revision\u001b[0;m=577f813d version\u001b[0;m=12.5.0\nRunning in system-mode.                           \u001b[0;m \n                                                  \u001b[0;m \n\u001b[31;1mFATAL: toml: cannot load TOML value of type map[string]interface {} into a Go string\u001b[0;m \n"}
+```
+- проблема была в раннере `GitLab Runner shell`
+```yaml
+  - name: "GitLab Runner shell"
+    executor: shell
+    tags:
+      - shell
+    run_untagged: false
+```
+данный раннер был исключён из списка, после чего плейбук успешно применился
+- в итоге было зарезервировано 2 раннера 
+  - `GitLab Runner dind` для сборки докер-образов
+  - `GitLab Runner docker` для запуска всего остального
