@@ -4550,6 +4550,7 @@ cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
   ```shell
   export ANSIBLE_SSH_PRIVATE_KEY_FILE="$SSH_PRIVATE_KEY"
   ```
+  - Указан пользователь `export ANSIBLE_SSH_USER=appuser`
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
