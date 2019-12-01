@@ -48,7 +48,7 @@ deploy_dev_job:
   stage: review
   image: cytopia/ansible:2.9
   script:
-    - pip3 install -r requirements.txt
+    - pip3 install requests google-auth
     - cd gitlab/ansible
     - ansible-galaxy install -r environments/stage/requirements.yml
     - ansible-inventory -i environments/stage/inventory.gcp.yml --list
