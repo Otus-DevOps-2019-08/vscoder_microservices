@@ -4495,6 +4495,9 @@ ansible-galaxy install -r environments/stage/requirements.yml
 - Ошибка, не находит `/root/.gce/docker-257914-ansible-inventory.json`
   - Добавлено отладочное сообщение `echo GCP_SERVICE_ACCOUNT_FILE=$GCP_SERVICE_ACCOUNT_FILE`
   - Отображает имя файла. Похоже баг инвентори-модуля
+  - Комментирование параметра `service_account_file` в [gitlab/ansible/environments/stage/inventory.gcp.yml](gitlab/ansible/environments/stage/inventory.gcp.yml) **помогло**
+  - Для раннера создан отдельный inventory [gitlab/ansible/environments/stage/runner-inventory.gcp.yml](gitlab/ansible/environments/stage/runner-inventory.gcp.yml) без указания `service_account_file`
+- 
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
