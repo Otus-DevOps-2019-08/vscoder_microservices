@@ -48,8 +48,9 @@ deploy_dev_job:
   stage: review
   image: cytopia/ansible:2.9
   script:
-    - echo 'Deploy'
-    - ls
+    - cd gitlab/ansible
+    - ansible-galaxy install -r environments/stage/requirements.yml
+    - ansible-invfentory -i environments/stage/inventory.gcp.yml list
   environment:
     name: dev
     url: http://dev.example.com

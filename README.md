@@ -4478,7 +4478,20 @@ TODO: пора спать
 - Пример `.gitlab-ci.yml` где ключ пердаётся переменной https://github.com/mikhno-s/gitlab-ci-deploy-ansible/blob/master/.gitlab-ci.yml
 - Похожее решение, но описанное в статье https://ealebed.github.io/posts/2017/gitlab-ci-часть-9-этап-deploy-в-.gitlab-ci.yml/ При этом ansible не используется -- но описан интересный способ проброса ключа
 
+Подробнее про работу ansible с gce https://docs.ansible.com/ansible/latest/scenario_guides/guide_gce.html
+
 Для деплоя выбран docker-образ [cytopia/ansible:2.9](https://hub.docker.com/r/cytopia/ansible). Преимущества описаны по ссылке. Анализ команд (глазками), использованных для сборки, противопоказаний не выявил. **ПРИМЕЧАНИЕ**: можно было бы прикрутить автоматизированный анализ на безопасность и проие плюшки -- но это правильнее оставлять на разработчиков образа. Образ достаточно популярный (10М+).
+
+Описание `deploy_dev_job`
+- Первым делом установка зависимостей
+```shell
+ansible-galaxy install -r environments/stage/requirements.yml
+```
+- Затем отобразим наш inventory, но для этого нужно раннеру передать gcp `credentials.json`
+  - В рамках проекта создана переменная `GCP_SERVICE_ACCOUNT_FILE` типа file с содержимым `~/.gce/docker-257914-ansible-inventory.json` в качестве значения
+  - показать inventory `ansible-invfentory -i environments/stage/inventory.gcp.yml list`
+
+
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
