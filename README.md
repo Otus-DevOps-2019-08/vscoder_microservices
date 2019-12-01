@@ -4567,6 +4567,10 @@ cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
   export ANSIBLE_REMOTE_USER=appuser
   export ANSIBLE_PRIVATE_KEY_FILE="$SSH_PRIVATE_KEY"
   ```
+  - Исправлены разрешения на private key
+  ```shell
+  chmod 0600 "$SSH_PRIVATE_KEY"
+  ```
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
