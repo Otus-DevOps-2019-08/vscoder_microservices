@@ -4531,7 +4531,18 @@ ansible-galaxy install -r environments/stage/requirements.yml
   - Собран новый базовый образ ВМ
   - terraform-инстанс переименован в dev-server
   - Пересоздан инстанс `make terraform_apply`
-  - Попытка выполнить пайплайн
+  - Ключ в [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) теперь берётся из файла вместо хардкода
+- Попытка выполнить пайплайн
+- Ошибка
+```shell
+$ echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+Error loading key "(stdin)": invalid format
+```
+Проблема в том, что тип переменной `file`. Исправлено на 
+```shell
+cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+```
+- Попытка выполнить пайплайн
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
