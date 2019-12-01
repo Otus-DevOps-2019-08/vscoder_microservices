@@ -4545,6 +4545,11 @@ cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
 - Попытка выполнить пайплайн
 - Успешно не выполнился)) `[WARNING]: Could not match supplied host pattern, ignoring: stage_server`
   - Исправлен целевой хост плейбука на `hosts: dev_server`
+- Ошибка: плейбук не видит ssh-ключ
+  - Вместо использования `ssh-agent`, путь к ssh ключу указан в переменной окружения
+  ```shell
+  export ANSIBLE_SSH_PRIVATE_KEY_FILE="$SSH_PRIVATE_KEY"
+  ```
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
