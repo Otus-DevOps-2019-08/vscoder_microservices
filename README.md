@@ -4500,6 +4500,24 @@ ansible-galaxy install -r environments/stage/requirements.yml
 - Пайплайн завершился успехом
 - Плейбук `gitlab/ansible/playbooks/stage-server.yml` переименован в [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml)
 - Следующим шагом применяем плейбук `ansible-playbook -i environments/stage/runner-inventory.gcp.yml playbooks/deploy-dev.yml -vvvv`
+  - **ЗАМЕЧЕНИЕ** не используется конфиг
+  ```log
+  [WARNING]: Ansible is being run in a world writable directory
+  (/builds/otus/example/gitlab/ansible), ignoring it as an ansible.cfg source.
+  For more information see
+  https://docs.ansible.com/ansible/devel/reference_appendices/config.html#cfg-in-
+  world-writable-dir
+  ansible-playbook 2.9.1
+    config file = None
+    configured module search path = ['/root/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+    ansible python module location = /usr/lib/python3.6/site-packages/ansible
+    executable location = /usr/bin/ansible-playbook
+    python version = 3.6.9 (default, Oct 17 2019, 11:10:22) [GCC 8.3.0]
+  No config file found; using defaults
+  ```
+- Ошибка `FileNotFoundError: [Errno 2] No such file or directory: b'ssh': b'ssh'`. Проблема -- отсутствие ssh-клиента
+  - Установка ssh-клиента `apk update && apk install openssh-client`
+
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
