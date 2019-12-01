@@ -4428,8 +4428,8 @@ output "stage_server_external_ip" {
 
 ###### Реализация
 
-- Создан плейбук [gitlab/ansible/playbooks/stage-server.yml](gitlab/ansible/playbooks/stage-server.yml)
-- Содержимое compose-файла скопировано из [src/docker-compose.yml](src/docker-compose.yml) в [gitlab/ansible/playbooks/stage-server.yml](gitlab/ansible/playbooks/stage-server.yml)
+- Создан плейбук [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml)
+- Содержимое compose-файла скопировано из [src/docker-compose.yml](src/docker-compose.yml) в [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml)
 - При запуске плейбука `ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/stage-server.yml --check` ошибка:
 ```log
 fatal: [stage-server-stage-001]: FAILED! => {"ansible_facts": {"discovered_interpreter_python": "/usr/bin/python"}, "changed": false, "msg": "Unable to find any of pip2, pip to use.  pip needs to be installed."}
@@ -4497,7 +4497,9 @@ ansible-galaxy install -r environments/stage/requirements.yml
   - Отображает имя файла. Похоже баг инвентори-модуля
   - Комментирование параметра `service_account_file` в [gitlab/ansible/environments/stage/inventory.gcp.yml](gitlab/ansible/environments/stage/inventory.gcp.yml) **помогло**
   - Для раннера создан отдельный inventory [gitlab/ansible/environments/stage/runner-inventory.gcp.yml](gitlab/ansible/environments/stage/runner-inventory.gcp.yml) без указания `service_account_file`
-- 
+- Пайплайн завершился успехом
+- Плейбук `gitlab/ansible/playbooks/stage-server.yml` переименован в [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml)
+- Следующим шагом применяем плейбук
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
