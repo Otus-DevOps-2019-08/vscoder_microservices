@@ -55,10 +55,13 @@ deploy_dev_job:
     - apk update && apk add openssh-client
     # - eval $(ssh-agent -s)
     # - cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - ANSIBLE_HOST_KEY_CHECKING=False \
-      ANSIBLE_SSH_USER=appuser \
-      ANSIBLE_SSH_PRIVATE_KEY_FILE="$SSH_PRIVATE_KEY" \
-      ansible-playbook -i environments/stage/runner-inventory.gcp.yml playbooks/deploy-dev.yml -vvvv
+    - export ANSIBLE_HOST_KEY_CHECKING=False
+    - export ANSIBLE_SSH_USER=appuser
+    - export ANSIBLE_SSH_PRIVATE_KEY_FILE="$SSH_PRIVATE_KEY"
+    - echo $ANSIBLE_HOST_KEY_CHECKING
+    - echo $ANSIBLE_SSH_USER
+    - echo $ANSIBLE_SSH_PRIVATE_KEY_FILE
+    - ansible-playbook -i environments/stage/runner-inventory.gcp.yml playbooks/deploy-dev.yml -vvvv
   environment:
     name: dev
     url: http://dev.example.com
