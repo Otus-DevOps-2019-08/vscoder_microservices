@@ -4543,6 +4543,8 @@ Error loading key "(stdin)": invalid format
 cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
 ```
 - Попытка выполнить пайплайн
+- Успешно не выполнился)) `[WARNING]: Could not match supplied host pattern, ignoring: stage_server`
+  - Исправлен целевой хост плейбука на `hosts: dev_server`
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 

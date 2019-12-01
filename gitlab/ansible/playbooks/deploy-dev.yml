@@ -1,6 +1,6 @@
 ---
-- name: Deploy app from branch on stage-server
-  hosts: stage_server
+- name: Deploy app from branch on dev-server
+  hosts: dev_server
   become: true
   gather_facts: no
   vars:
