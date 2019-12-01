@@ -48,6 +48,7 @@ deploy_dev_job:
   stage: review
   image: cytopia/ansible:2.9
   script:
+    - echo GCP_SERVICE_ACCOUNT_FILE=$GCP_SERVICE_ACCOUNT_FILE
     - pip3 install requests google-auth
     - cd gitlab/ansible
     - ansible-galaxy install -r environments/stage/requirements.yml
