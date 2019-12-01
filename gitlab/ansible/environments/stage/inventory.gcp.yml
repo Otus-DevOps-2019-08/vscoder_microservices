@@ -2,7 +2,7 @@ plugin: gcp_compute
 projects:
   - docker-257914
 auth_kind: serviceaccount
-service_account_file: ~/.gce/docker-257914-ansible-inventory.json
+#service_account_file: ~/.gce/docker-257914-ansible-inventory.json
 hostnames:
   # List host by name instead of the default public ip
   - name

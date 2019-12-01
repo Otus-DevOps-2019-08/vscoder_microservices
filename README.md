@@ -4492,7 +4492,9 @@ ansible-galaxy install -r environments/stage/requirements.yml
   - показать inventory `ansible-invfentory -i environments/stage/inventory.gcp.yml list`
 - Ошибка парсинга `inventory.gcp.yml` по причине отсутствия необходимых библиотек.
   - Ставим библиотеки `pip3 install requests google-auth`
-
+- Ошибка, не находит `/root/.gce/docker-257914-ansible-inventory.json`
+  - Добавлено отладочное сообщение `echo GCP_SERVICE_ACCOUNT_FILE=$GCP_SERVICE_ACCOUNT_FILE`
+  - Отображает имя файла. Похоже баг инвентори-модуля
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
