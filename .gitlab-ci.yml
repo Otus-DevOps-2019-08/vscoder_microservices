@@ -50,7 +50,7 @@ deploy_dev_job:
   script:
     - cd gitlab/ansible
     - ansible-galaxy install -r environments/stage/requirements.yml
-    - ansible-invfentory -i environments/stage/inventory.gcp.yml list
+    - ansible-inventory -i environments/stage/inventory.gcp.yml list
   environment:
     name: dev
     url: http://dev.example.com
