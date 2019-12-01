@@ -124,13 +124,14 @@ vscoder microservices repository
           - [Подготовлен docker-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%bb%d0%b5%d0%bd-docker-runner)
           - [Автоматизированная сборка образов](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
         - [Загрузка образов в gitlab registry](#%d0%97%d0%b0%d0%b3%d1%80%d1%83%d0%b7%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d0%b2-gitlab-registry)
-    - [Задание со \*: Деплой контейнера на созданный для ветки сервер (НЕ СДЕЛАНО)](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0-%d0%bd%d0%b0-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d0%b9-%d0%b4%d0%bb%d1%8f-%d0%b2%d0%b5%d1%82%d0%ba%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b5%d1%80-%d0%9d%d0%95-%d0%a1%d0%94%d0%95%d0%9b%d0%90%d0%9d%d0%9e)
+    - [Задание со \*: Деплой контейнера на созданный для ветки сервер](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0-%d0%bd%d0%b0-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d0%b9-%d0%b4%d0%bb%d1%8f-%d0%b2%d0%b5%d1%82%d0%ba%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b5%d1%80)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-3)
         - [Packer](#packer-1)
         - [Terraform](#terraform-1)
         - [Ansible](#ansible)
           - [Поиск решения](#%d0%9f%d0%be%d0%b8%d1%81%d0%ba-%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d1%8f)
           - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-4)
+          - [Подготовка gitlab-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-gitlab-runner)
     - [Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2-%d0%9d%d0%95-%d0%a1%d0%94%d0%95%d0%9b%d0%90%d0%9d%d0%9e)
     - [Задание со \*: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
 
@@ -4327,7 +4328,7 @@ build_job:
     - dind
 ```
 
-### Задание со \*: Деплой контейнера на созданный для ветки сервер (НЕ СДЕЛАНО)
+### Задание со \*: Деплой контейнера на созданный для ветки сервер
 
 Деплойте контейнер с reddit на созданный для ветки сервер.
 
@@ -4440,7 +4441,15 @@ fatal: [stage-server-stage-001]: FAILED! => {"ansible_facts": {"discovered_inter
 fatal: [stage-server-stage-001]: FAILED! => {"ansible_facts": {"discovered_interpreter_python": "/usr/bin/python"}, "changed": false, "module_stderr": "Shared connection to 35.240.27.254 closed.\r\n", "module_stdout": "\r\nTraceback (most recent call last):\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 102, in <module>\r\n    _ansiballz_main()\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 94, in _ansiballz_main\r\n    invoke_module(zipped_mod, temp_path, ANSIBALLZ_PARAMS)\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 40, in invoke_module\r\n    runpy.run_module(mod_name='ansible.modules.cloud.docker.docker_compose', init_globals=None, run_name='__main__', alter_sys=True)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 188, in run_module\r\n    fname, loader, pkg_name)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 82, in _run_module_code\r\n    mod_name, mod_fname, mod_loader, pkg_name)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 72, in _run_code\r\n    exec code in run_globals\r\n  File \"/tmp/ansible_docker_compose_payload_oSfl3K/ansible_docker_compose_payload.zip/ansible/modules/cloud/docker/docker_compose.py\", line 483, in <module>\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/cli/command.py\", line 12, in <module>\r\n    from .. import config\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/__init__.py\", line 6, in <module>\r\n    from .config import ConfigurationError\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/config.py\", line 50, in <module>\r\n    from .validation import match_named_volumes\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/validation.py\", line 12, in <module>\r\n    from jsonschema import Draft4Validator\r\n  File \"/usr/local/lib/python2.7/dist-packages/jsonschema/__init__.py\", line 33, in <module>\r\n    import importlib_metadata as metadata\r\n  File \"/usr/local/lib/python2.7/dist-packages/importlib_metadata/__init__.py\", line 9, in <module>\r\n    import zipp\r\n  File \"/usr/local/lib/python2.7/dist-packages/zipp.py\", line 12, in <module>\r\n    import more_itertools\r\n  File \"/usr/local/lib/python2.7/dist-packages/more_itertools/__init__.py\", line 1, in <module>\r\n    from more_itertools.more import *  # noqa\r\n  File \"/usr/local/lib/python2.7/dist-packages/more_itertools/more.py\", line 460\r\n    yield from iterable\r\n             ^\r\nSyntaxError: invalid syntax\r\n", "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error", "rc": 1}
 ```
   - Проблема проявилась только для docker-compose на python2.
-  - Выполнена адаптация [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) для работы с python3
+  - Выполнена адаптация [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) для работы с python3. Для этогоъ
+    - В play задана переменная `ansible_python_interpreter: /usr/bin/python3`
+    - Установлены необходимые для docker-compose пакеты
+    ```yaml
+    - python3-pip
+    - libffi-dev
+    - libssl-dev
+    ```
+    - Для модуля `pip: ` задан параметр `executable: /usr/bin/pip3`
   - Пересборка базового образа и редеплой хоста
   ```shell
   make packer_build PACKER_VAR_FILE=packer/variables-stage-server.json
@@ -4456,7 +4465,20 @@ fatal: [stage-server-stage-001]: FAILED! => {"ansible_facts": {"discovered_inter
 "Error starting project 400 Client Error: Bad Request (\"no such image: comment:: invalid reference format\")"
 ```
 образов нет в регистри или неверно формируется имя образа
-TODO: пора спать
+TODO: пора спать 
+**ПРИЧИНА** загрузка образов должна осуществляться на gitlab-runner для корректной подстановки переменных
+- В [.gitlab-ci.yml](.gitlab-ci.yml) будем работать с `deploy_dev_job: `
+
+###### Подготовка gitlab-runner
+
+Задача - деплой с gitlab-runner средствами ansible
+
+Варианты решения:
+- Проброс ssh-ключей с раннера в контейнер https://www.bevuta.com/en/blog/continuous-delivery-with-gitlab-ci-and-ansible-part-1/
+- Пример `.gitlab-ci.yml` где ключ пердаётся переменной https://github.com/mikhno-s/gitlab-ci-deploy-ansible/blob/master/.gitlab-ci.yml
+- Похожее решение, но описанное в статье https://ealebed.github.io/posts/2017/gitlab-ci-часть-9-этап-deploy-в-.gitlab-ci.yml/ При этом ansible не используется -- но описан интересный способ проброса ключа
+
+Для деплоя выбран docker-образ [cytopia/ansible:2.9](https://hub.docker.com/r/cytopia/ansible). Преимущества описаны по ссылке. Анализ команд (глазками), использованных для сборки, противопоказаний не выявил. **ПРИМЕЧАНИЕ**: можно было бы прикрутить автоматизированный анализ на безопасность и проие плюшки -- но это правильнее оставлять на разработчиков образа. Образ достаточно популярный (10М+).
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 

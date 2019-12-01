@@ -46,11 +46,14 @@ test_integration_job:
 
 deploy_dev_job:
   stage: review
+  image: cytopia/ansible:2.9
   script:
     - echo 'Deploy'
+    - ls
   environment:
     name: dev
     url: http://dev.example.com
+  tags: docker
 
 branch review:
   stage: review
