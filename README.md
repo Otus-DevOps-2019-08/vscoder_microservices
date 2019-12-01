@@ -4491,7 +4491,7 @@ ansible-galaxy install -r environments/stage/requirements.yml
   - В рамках проекта создана переменная `GCP_SERVICE_ACCOUNT_FILE` типа file с содержимым `~/.gce/docker-257914-ansible-inventory.json` в качестве значения
   - показать inventory `ansible-invfentory -i environments/stage/inventory.gcp.yml list`
 - Ошибка парсинга `inventory.gcp.yml` по причине отсутствия необходимых библиотек.
-  - Ставим библиотеки `pip install -r requirements.txt`
+  - Ставим библиотеки `pip3 install -r requirements.txt`
 
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
