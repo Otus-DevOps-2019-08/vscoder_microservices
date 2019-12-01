@@ -4560,7 +4560,13 @@ cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
   <35.195.42.124> ESTABLISH SSH CONNECTION FOR USER: None
   <35.195.42.124> SSH: EXEC ssh -vvv -C -o ControlMaster=auto -o ControlPersist=60s -o StrictHostKeyChecking=no -o KbdInteractiveAuthentication=no -o PreferredAuthentications=gssapi-with-mic,gssapi-keyex,hostbased,publickey -o PasswordAuthentication=no -o ConnectTimeout=10 -o ControlPath=/root/.ansible/cp/1ae30ff2c4 35.195.42.124 '/bin/sh -c '"'"'echo ~ && sleep 0'"'"''
   ```
-   Похоже что переменные не имеют эффекта
+  Похоже что переменные не имеют эффекта
+  - НУЖНО ЧИТАТЬ ДОКУМЕНТАЦИЮ!!!
+  - Изменены имена переменных
+  ```shell
+  export ANSIBLE_REMOTE_USER=appuser
+  export ANSIBLE_PRIVATE_KEY_FILE="$SSH_PRIVATE_KEY"
+  ```
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
