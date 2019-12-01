@@ -4499,7 +4499,7 @@ ansible-galaxy install -r environments/stage/requirements.yml
   - Для раннера создан отдельный inventory [gitlab/ansible/environments/stage/runner-inventory.gcp.yml](gitlab/ansible/environments/stage/runner-inventory.gcp.yml) без указания `service_account_file`
 - Пайплайн завершился успехом
 - Плейбук `gitlab/ansible/playbooks/stage-server.yml` переименован в [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml)
-- Следующим шагом применяем плейбук
+- Следующим шагом применяем плейбук `ansible-playbook -i environments/stage/runner-inventory.gcp.yml playbooks/deploy-dev.yml -vvvv`
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
