@@ -48,11 +48,13 @@ deploy_dev_job:
   stage: review
   image: cytopia/ansible:2.9
   script:
-    - apk update && apk add openssh-client
     - pip3 install requests google-auth
     - cd gitlab/ansible
     - ansible-galaxy install -r environments/stage/requirements.yml
     - ansible-inventory -i environments/stage/runner-inventory.gcp.yml --list
+    - "which ssh-agent || (apk update && apk add openssh-client)"
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - export ANSIBLE_HOST_KEY_CHECKING=False
     - ansible-playbook -i environments/stage/runner-inventory.gcp.yml playbooks/deploy-dev.yml -vvvv
   environment:

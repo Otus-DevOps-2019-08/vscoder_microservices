@@ -4516,9 +4516,22 @@ ansible-galaxy install -r environments/stage/requirements.yml
   No config file found; using defaults
   ```
 - Ошибка `FileNotFoundError: [Errno 2] No such file or directory: b'ssh': b'ssh'`. Проблема -- отсутствие ssh-клиента
-  - Установка ssh-клиента `apk update && apk add openssh-client`
+  - Установка ssh-клиента `"which ssh-agent || (apk update && apk add openssh-client)"`
 - Ошибка `Host key verification failed.`
   - Игнорирование ключа хоста `export ANSIBLE_HOST_KEY_CHECKING=False`
+- Ошибка `Permission denied (publickey).` Нужно пробросить ключ.
+  - Необходимо пробросить ключ. Ссылка по теме https://docs.gitlab.com/ce/ci/ssh_keys/
+  - Использовать ключ с паролем возможно, но пароль должен быть передан через переменную. Вприанты описаны [здесь](https://unix.stackexchange.com/questions/90853/how-can-i-run-ssh-add-automatically-without-a-password-prompt). Но для production-среды нужно использовать другие механизмы
+  - Сгенерирован ключ без пароля (чтобы не вводить излишних усложнений)
+  ```shell
+  ssh-keygen -t rsa -f ~/.ssh/id_rsa_appuser_deploy_stage
+  ```
+  - В gitlab проект добавлена переменная `SSH_PRIVATE_KEY`, типа `file`, содержащая приватный ssh-ключ для подключения к stage-server
+  - В [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) -- плейбук, используемый при прожиге образа packer-ом, реализовано добавление ssh-ключа для деплоя
+  - Собран новый базовый образ ВМ
+  - terraform-инстанс переименован в dev-server
+  - Пересоздан инстанс `make terraform_apply`
+  - Попытка выполнить пайплайн
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 

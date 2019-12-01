@@ -6,6 +6,7 @@
   become: true
   vars:
     ansible_python_interpreter: /usr/bin/python3
+    deploy_ssh_key: "lookup('file', '~/.ssh/id_rsa_appuser_deploy_stage.pub')"
   tasks:
     - name: Ensure necessary packages are installed
       apt:
@@ -22,3 +23,9 @@
           - docker
           - docker-compose
         state: present
+
+    - name: Add ssh public key to deploy app
+      authorized_key:
+        user: appuser
+        state: present
+        key: "{{ deploy_ssh_key }}"
