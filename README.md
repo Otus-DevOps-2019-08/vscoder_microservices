@@ -4516,7 +4516,7 @@ ansible-galaxy install -r environments/stage/requirements.yml
   No config file found; using defaults
   ```
 - Ошибка `FileNotFoundError: [Errno 2] No such file or directory: b'ssh': b'ssh'`. Проблема -- отсутствие ssh-клиента
-  - Установка ssh-клиента `apk update && apk install openssh-client`
+  - Установка ssh-клиента `apk update && apk add openssh-client`
 
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)

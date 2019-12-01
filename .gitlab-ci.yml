@@ -48,7 +48,7 @@ deploy_dev_job:
   stage: review
   image: cytopia/ansible:2.9
   script:
-    - apk update && apk install openssh-client
+    - apk update && apk add openssh-client
     - pip3 install requests google-auth
     - cd gitlab/ansible
     - ansible-galaxy install -r environments/stage/requirements.yml
