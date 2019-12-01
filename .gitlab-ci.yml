@@ -53,6 +53,7 @@ deploy_dev_job:
     - cd gitlab/ansible
     - ansible-galaxy install -r environments/stage/requirements.yml
     - ansible-inventory -i environments/stage/runner-inventory.gcp.yml --list
+    - export ANSIBLE_HOST_KEY_CHECKING=False
     - ansible-playbook -i environments/stage/runner-inventory.gcp.yml playbooks/deploy-dev.yml -vvvv
   environment:
     name: dev

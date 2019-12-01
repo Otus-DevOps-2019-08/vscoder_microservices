@@ -4517,7 +4517,8 @@ ansible-galaxy install -r environments/stage/requirements.yml
   ```
 - Ошибка `FileNotFoundError: [Errno 2] No such file or directory: b'ssh': b'ssh'`. Проблема -- отсутствие ssh-клиента
   - Установка ssh-клиента `apk update && apk add openssh-client`
-
+- Ошибка `Host key verification failed.`
+  - Игнорирование ключа хоста `export ANSIBLE_HOST_KEY_CHECKING=False`
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
