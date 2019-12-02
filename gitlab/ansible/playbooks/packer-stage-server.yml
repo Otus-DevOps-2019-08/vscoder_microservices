@@ -1,12 +1,15 @@
 ---
 - import_playbook: docker.yml
+  vars:
+    docker_users:
+      - appuser
 
 - name: Install docker on all hosts
   hosts: all
   become: true
   vars:
     ansible_python_interpreter: /usr/bin/python3
-    deploy_ssh_key: "lookup('file', '~/.ssh/id_rsa_appuser_deploy_stage.pub')"
+    deploy_ssh_key: "{{ lookup('file', '~/.ssh/id_rsa_appuser_deploy_stage.pub') }}"
   tasks:
     - name: Ensure necessary packages are installed
       apt:

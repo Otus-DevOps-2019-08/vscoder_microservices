@@ -4571,6 +4571,35 @@ cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
   ```shell
   chmod 0600 "$SSH_PRIVATE_KEY"
   ```
+- Результат последнего пайплайна: ошибка
+```log
+"msg": "Error connecting: Error while fetching server API version: ('Connection aborted.', PermissionError(13, 'Permission denied'))"
+```
+  - предполагаемая причина: невозможность подключиться к docker-демону из под текущего пользователя
+  - Варианты решения:
+    - [x] дать права пользователю appuser
+    - [ ] запускать композ с `become: yes`
+  - Выбран первый вариант как наиболее правильный с точки зрения безопасности
+    - В [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) при импорте плейбука `docker.yml` добавлены переменные
+      ```yaml
+      - import_playbook: docker.yml
+        vars:
+          docker_users:
+            - appuser
+      ...
+      ```
+  - Пересборка packer-образа, пересоздание инстанса
+  ```shell
+  # packer
+  make packer_validate packer_build PACKER_VAR_FILE=packer/variables-stage-server.json
+  # terraform
+  cd terraform/stage
+  terraform state list
+  terraform taint "module.dev-server.google_compute_instance.instance[0]"
+  cd -
+  make terraform_apply
+  ```
+  - Запуск пайплайна...
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
