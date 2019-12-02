@@ -4654,7 +4654,21 @@ tasks:
 В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) `module "dev-server"` список портов приведён к `tcp_ports = ["22", "9292"]`
 
 Приложение открылось, но не работают комментарии...
-TODO: fix it
+
+Предположительно, причиной является отсутствие сервиса (или алиаса) `comment_db`. Сервис создан:
+```yaml
+service:
+  ...
+  comment_db:
+    image: mongo:3.2
+    volumes:
+      - comment_db:/data/db
+    networks:
+        - reddit_back
+  ...
+```
+
+Запуск пайплайна...
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 

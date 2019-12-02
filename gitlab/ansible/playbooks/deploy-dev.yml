@@ -38,6 +38,12 @@
                 - post_db:/data/db
               networks:
                 - reddit_back
+            comment_db:
+              image: mongo:3.2
+              volumes:
+                - comment_db:/data/db
+              networks:
+                - reddit_back
             ui:
               image: "{{ ci_registry_image }}/ui:{{ ci_commit_ref_name }}"
               ports:
