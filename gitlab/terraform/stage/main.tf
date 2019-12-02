@@ -47,7 +47,7 @@ module "dev-server" {
   machine_type        = "g1-small"
   instance_disk_image = "stage-server-base"
   tags                = ["dev-server"]
-  tcp_ports           = ["22", "80", "443"]
+  tcp_ports           = ["22", "9292"]
   vpc_network_name    = var.vpc_network_name
   use_static_ip       = false
 }
