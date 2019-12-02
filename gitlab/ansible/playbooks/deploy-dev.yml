@@ -4,7 +4,14 @@
   gather_facts: no
   vars:
     ansible_python_interpreter: /usr/bin/python3
+    ci_registry_image: "{{ lookup('env','CI_REGISTRY_IMAGE') }}"
+    ci_commit_ref_name: "{{ lookup('env','CI_COMMIT_REF_NAME') }}"
   tasks:
+    - name: Debug vars
+      debug:
+        msg: |
+          ci_registry_image: {{ ci_registry_image }}
+          ci_commit_ref_name: {{ ci_commit_ref_name }}
     - name: Deploy reddit-app
       docker_compose:
         project_name: reddit
@@ -19,18 +26,18 @@
               networks:
                 - reddit_back
             ui:
-              image: ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME}
+              image: "{{ ci_registry_image }}/ui:{{ ci_commit_ref_name }}"
               ports:
                 - 9292:9292
               networks:
                 - reddit_front
             post:
-              image: ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME}
+              image: "{{ ci_registry_image }}/post:{{ ci_commit_ref_name }}"
               networks:
                 - reddit_front
                 - reddit_back
             comment:
-              image: ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}
+              image: "{{ ci_registry_image }}/comment:{{ ci_commit_ref_name }}"
               networks:
                 - reddit_front
                 - reddit_back

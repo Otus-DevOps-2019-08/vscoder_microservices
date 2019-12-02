@@ -4600,6 +4600,27 @@ cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
   make terraform_apply
   ```
   - Запуск пайплайна...
+- Ошибка
+```log
+"msg": "Error starting project 400 Client Error: Bad Request (\"no such image: ui:: invalid reference format\")"
+```
+проблема: не работает подстановка переменных
+  - Подстановка переменных выполнена через `lookup('env','VAR_NAME')` в [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml)
+  ```yaml
+  vars:
+    ...
+    ci_registry_image: "{{ lookup('env','CI_REGISTRY_IMAGE') }}"
+    ci_commit_ref_name: "{{ lookup('env','CI_COMMIT_REF_NAME') }}"
+  ```
+  - Добавлен дебаг значений переменных
+  ```yaml
+  - name: Debug vars
+      debug:
+        msg: |
+          ci_registry_image: {{ ci_registry_image }}
+          ci_commit_ref_name: {{ ci_commit_ref_name }}
+  ```
+- Запуск пайплайна: ожидается необходимосто логина в регистри
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
