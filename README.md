@@ -4621,6 +4621,28 @@ cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
           ci_commit_ref_name: {{ ci_commit_ref_name }}
   ```
 - Запуск пайплайна: ожидается необходимосто логина в регистри
+- Как и ожидалось, ошибка
+```log
+"msg": "Error starting project 500 Server Error: Internal Server Error (\"Get https://gitlab.vscoder.ru:5050/v2/otus/example/ui/manifests/gitlab-ci-1: denied: access forbidden\")"
+```
+лекарство: нужен [docker_login](https://docs.ansible.com/ansible/latest/modules/docker_login_module.html)
+- Добавлен логин в докер
+```yaml
+vars:
+  ci_registry: "{{ lookup('env','CI_REGISTRY') }}"
+  ci_registry_user: "{{ lookup('env','CI_REGISTRY_USER') }}"
+  ci_job_token: "{{ lookup('env','CI_JOB_TOKEN') }}"
+  ...
+tasks:
+  - name: Login to gitlab docker registry
+    docker_login:
+      username: "{{ ci_registry_user }}"
+      password: "{{ ci_job_token }}"
+      state: present
+      #debug: false
+      registry_url: "{{ ci_registry }}"
+```
+- Запускаем пайплайн...
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 

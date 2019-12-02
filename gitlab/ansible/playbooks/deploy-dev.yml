@@ -6,12 +6,25 @@
     ansible_python_interpreter: /usr/bin/python3
     ci_registry_image: "{{ lookup('env','CI_REGISTRY_IMAGE') }}"
     ci_commit_ref_name: "{{ lookup('env','CI_COMMIT_REF_NAME') }}"
+    ci_registry: "{{ lookup('env','CI_REGISTRY') }}"
+    ci_registry_user: "{{ lookup('env','CI_REGISTRY_USER') }}"
+    ci_job_token: "{{ lookup('env','CI_JOB_TOKEN') }}"
   tasks:
     - name: Debug vars
       debug:
         msg: |
           ci_registry_image: {{ ci_registry_image }}
           ci_commit_ref_name: {{ ci_commit_ref_name }}
+          ci_registry: {{ ci_registry }}
+          ci_registry_user: {{ ci_registry_user }}
+          ci_job_token: {{ ci_job_token }}
+    - name: Login to gitlab docker registry
+      docker_login:
+        username: "{{ ci_registry_user }}"
+        password: "{{ ci_job_token }}"
+        state: present
+        #debug: false
+        registry_url: "{{ ci_registry }}"
     - name: Deploy reddit-app
       docker_compose:
         project_name: reddit
