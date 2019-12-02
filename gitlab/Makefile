@@ -48,6 +48,12 @@ ansible_install_requirements:
 ansible_inventory_list:
 	cd ./ansible && ${ANSIBLE}-inventory --list
 
+ansible_lint:
+	cd ./ansible && find playbooks -name "*.yml" -type f -print0 | xargs -0 -n1 ${ANSIBLE}-lint
+
+ansible_syntax:
+	cd ./ansible && find playbooks -name "*.yml" -type f -print0 | xargs -0 -n1 ${ANSIBLE}-playbook -i environments/stage/inventory.gcp.yml --syntax-check
+
 
 push_gitlab:
 	git push gitlab gitlab-ci-1
