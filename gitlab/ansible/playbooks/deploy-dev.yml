@@ -63,6 +63,7 @@
 
           volumes:
             post_db:
+            comment_db:
 
           networks:
             reddit_front:
