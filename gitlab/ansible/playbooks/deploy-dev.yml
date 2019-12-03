@@ -113,14 +113,16 @@
         dest: /etc/nginx.conf
         mode: 0444
         content: |
-          server {
-            listen 80;
-            listen [::]:80;
+          http {
+            server {
+              listen 80;
+              listen [::]:80;
 
-            server_name {{ ci_commit_ref_name }}-branch.vscoder.ru;
+              server_name {{ ci_commit_ref_name }}-branch.vscoder.ru;
 
-            location / {
-                proxy_pass http://{{ hostvars['dev-server-stage-001']['ansible_default_ipv4']['address'] }}:9292/;
+              location / {
+                  proxy_pass http://{{ hostvars['dev-server-stage-001']['ansible_default_ipv4']['address'] }}:9292/;
+              }
             }
           }
 

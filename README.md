@@ -4731,14 +4731,16 @@ module "docker-app" {
         dest: /etc/nginx.conf
         mode: 0444
         content: |
-          server {
-            listen 8080;
-            listen [::]:8080;
+          http {
+            server {
+              listen 80;
+              listen [::]:80;
 
-            server_name {{ ci_commit_ref_name }}-branch.vscoder.ru;
+              server_name {{ ci_commit_ref_name }}-branch.vscoder.ru;
 
-            location / {
-                proxy_pass http://{{ hostvars['dev-server-stage-001']['default_ipv4'] }}:9292/;
+              location / {
+                  proxy_pass http://{{ hostvars['dev-server-stage-001']['ansible_default_ipv4']['address'] }}:9292/;
+              }
             }
           }
     - name: Login to gitlab docker registry
@@ -4849,6 +4851,26 @@ TASK [Provide nginx config] ****************************************************
 Запуск пайплайна... **УРА!!!** пайплайн отработал.
 
 Заходим на http://gitlab-ci-1-branch.vscoder.ru:8080/ и получаем connection reset. Потому что в конфиге nginx порт 8080, а у нас перенаправление на контейнер 80. Исправлен конфиг nginx.
+
+Запуск пайплайна... То же самое.
+```shell
+sudo docker ps
+```
+поазал отсутствие запущенного nginx
+```shell
+sudo docker ps -a
+```
+показал что контейнер остановлен
+```shell
+sudo docker logs branchproxy_nginx_1
+```
+```log
+2019/12/03 20:41:39 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/nginx.conf:1
+nginx: [emerg] "server" directive is not allowed here in /etc/nginx/nginx.conf:1
+2019/12/03 20:47:09 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/nginx.conf:1
+nginx: [emerg] "server" directive is not allowed here in /etc/nginx/nginx.conf:1
+```
+ну да, кривовато я конфиг написал)) Исправлено. Описано выше.
 
 Запуск пайплайна...
 
