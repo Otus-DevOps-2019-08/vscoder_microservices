@@ -114,8 +114,8 @@
         mode: 0444
         content: |
           server {
-            listen 8080;
-            listen [::]:8080;
+            listen 80;
+            listen [::]:80;
 
             server_name {{ ci_commit_ref_name }}-branch.vscoder.ru;
 
