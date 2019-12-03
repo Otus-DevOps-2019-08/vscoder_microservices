@@ -4816,8 +4816,33 @@ TASK [Provide nginx config] ****************************************************
 
 Добавляем `become: yes` в TASK [Provide nginx config]
 
-Запускаем пайплайн...
+Запускаем пайплайн... Ошибка:
+```log
+"msg": "Failed to import the required Python library (Docker SDK for Python: docker (Python >= 2.7) or docker-py (Python 2.6)) on gitlab-stage-001's Python /usr/bin/python3. Please read module documentation and install in the appropriate location. If the required library is installed, but Ansible is using the wrong Python interpreter, please consult the documentation on ansible_python_interpreter, for example via `pip install docker` or `pip install docker-py` (Python 2.6). The error was: No module named 'docker'"
+```
 
+Знакомые грабли))
+
+Утащено из [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) (но правильнее было бы добавить в базовый образ для gitlab-server)
+```yaml
+- name: Ensure necessary packages are installed
+  apt:
+    name:
+      - python3-pip
+      - libffi-dev
+      - libssl-dev
+    state: present
+
+- name: Ensure docker-compose and docker is installed
+  pip:
+    executable: /usr/bin/pip3
+    name:
+      - docker
+      - docker-compose
+    state: present
+```
+
+Запуск пайплайна...
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 

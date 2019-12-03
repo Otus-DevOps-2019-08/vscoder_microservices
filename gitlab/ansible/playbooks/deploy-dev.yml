@@ -123,6 +123,23 @@
                 proxy_pass http://{{ hostvars['dev-server-stage-001']['ansible_default_ipv4']['address'] }}:9292/;
             }
           }
+
+    - name: Ensure necessary packages are installed
+      apt:
+        name:
+          - python3-pip
+          - libffi-dev
+          - libssl-dev
+        state: present
+
+    - name: Ensure docker-compose and docker is installed
+      pip:
+        executable: /usr/bin/pip3
+        name:
+          - docker
+          - docker-compose
+        state: present
+
     - name: Login to gitlab docker registry
       docker_login:
         username: "{{ ci_registry_user }}"
