@@ -65,7 +65,7 @@ deploy_dev_job:
     - ansible-playbook -i environments/stage/runner-inventory.gcp.yml playbooks/deploy-dev.yml -vvvv
   environment:
     name: dev
-    url: http://dev.example.com
+    url: http://${CI_COMMIT_REF_NAME}-branch.vscoder.ru
   tags:
     - docker
 

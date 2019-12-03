@@ -80,3 +80,66 @@
           - "post.reddit_post_1.state.running"
           - "comment.reddit_comment_1.state.running"
           - "ui.reddit_ui_1.state.running"
+
+- name: "Provide nginx reverse-proxy for branch {{ ci_commit_ref_name }}"
+  hosts: branch_proxy
+  gather_facts: no
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    nginx_image_tag: "1.17.6-alpine"
+    ci_commit_ref_name: "{{ lookup('env','CI_COMMIT_REF_NAME') }}"
+    ci_registry: "{{ lookup('env','CI_REGISTRY') }}"
+    ci_registry_user: "{{ lookup('env','CI_REGISTRY_USER') }}"
+    ci_job_token: "{{ lookup('env','CI_JOB_TOKEN') }}"
+  tasks:
+    - name: Debug vars
+      debug:
+        msg: |
+          nginx_image_tag: {{ nginx_image_tag }}
+          ci_commit_ref_name: {{ ci_commit_ref_name }}
+          ci_registry: {{ ci_registry }}
+          ci_registry_user: {{ ci_registry_user }}
+          ci_job_token: {{ ci_job_token }}
+    - name: Provide nginx config
+      copy:
+        dest: /etc/nginx.conf
+        mode: 0444
+        content: |
+          server {
+            listen 8080;
+            listen [::]:8080;
+
+            server_name {{ ci_commit_ref_name }}-branch.vscoder.ru;
+
+            location / {
+                proxy_pass http://{{ hostvars['dev-server-stage-001']['default_ipv4'] }}:9292/;
+            }
+          }
+    - name: Login to gitlab docker registry
+      docker_login:
+        username: "{{ ci_registry_user }}"
+        password: "{{ ci_job_token }}"
+        state: present
+        #debug: false
+        registry_url: "{{ ci_registry }}"
+    - name: Deploy nginx
+      docker_compose:
+        project_name: branchproxy
+        debug: yes
+        definition:
+          version: "3.3"
+          services:
+            nginx:
+              image: "nginx:{{ nginx_image_tag }}"
+              ports:
+                - 8080:80
+              volumes:
+                - /etc/nginx.conf:/etc/nginx/nginx.conf:ro
+      register: output
+
+    - debug:
+        var: output
+
+    - assert:
+        that:
+          - "nginx.branchproxy_nginx_1.state.running"

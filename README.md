@@ -4680,6 +4680,106 @@ service:
 
 TODO: добвление корректной ссылки на environment
 
+Для добавления корректной ссылки, можно сделать следующее:
+- [x] в dns создана wildcard-запись `*.vscoder.ru  A 35.195.25.130`, указывающая на ip с gitlab-сервером
+- [ ] во время пайплайна на хосте 35.195.25.130 ansible-ом поднимать контейнер с nginx, который будет выступать в роли reverse-proxy к нашему dev-server
+  - ip of dev-server можно получать из ansible inventory
+  - для авторизации ansible на gitlab.vscoder.ru можно использовать ssh-ключ appuser_docker, который добавляется terraform-ом
+  - для деплоя контейнера с nginx можно использовать ansible-модуль `docker_container` или `docker_compose`. Будет использован `docker_compose` как уже провереный.
+
+Поехали:
+
+В terraform [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) добавлен тег к gitlab-server и открыт порт `8080`.
+
+```hcl
+...
+module "docker-app" {
+  ...
+  tags                = ["gitlab-server", "branch-proxy"]
+  tcp_ports           = ["80", "443", "22", "2222", "5050", "8080"]
+  ...
+}
+...
+```
+`make terraform_apply`
+
+В dns создана wildcard-запись `*.vscoder.ru  A 35.195.25.130`, указывающая на ip с gitlab-сервером
+
+В [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml) добавлен play
+```yaml
+- name: "Provide nginx reverse-proxy for branch {{ ci_commit_ref_name }}"
+  hosts: branch_proxy
+  gather_facts: no
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    nginx_image_tag: "1.17.6-alpine"
+    ci_commit_ref_name: "{{ lookup('env','CI_COMMIT_REF_NAME') }}"
+    ci_registry: "{{ lookup('env','CI_REGISTRY') }}"
+    ci_registry_user: "{{ lookup('env','CI_REGISTRY_USER') }}"
+    ci_job_token: "{{ lookup('env','CI_JOB_TOKEN') }}"
+  tasks:
+    - name: Debug vars
+      debug:
+        msg: |
+          nginx_image_tag: {{ nginx_image_tag }}
+          ci_commit_ref_name: {{ ci_commit_ref_name }}
+          ci_registry: {{ ci_registry }}
+          ci_registry_user: {{ ci_registry_user }}
+          ci_job_token: {{ ci_job_token }}
+    - name: Provide nginx config
+      copy:
+        dest: /etc/nginx.conf
+        mode: 0444
+        content: |
+          server {
+            listen 8080;
+            listen [::]:8080;
+
+            server_name {{ ci_commit_ref_name }}-branch.vscoder.ru;
+
+            location / {
+                proxy_pass http://{{ hostvars['dev-server-stage-001']['default_ipv4'] }}:9292/;
+            }
+          }
+    - name: Login to gitlab docker registry
+      docker_login:
+        username: "{{ ci_registry_user }}"
+        password: "{{ ci_job_token }}"
+        state: present
+        #debug: false
+        registry_url: "{{ ci_registry }}"
+    - name: Deploy nginx
+      docker_compose:
+        project_name: branchproxy
+        debug: yes
+        definition:
+          version: "3.3"
+          services:
+            nginx:
+              image: "nginx:{{ nginx_image_tag }}"
+              ports:
+                - 8080:80
+              volumes:
+                - /etc/nginx.conf:/etc/nginx/nginx.conf:ro
+      register: output
+
+    - debug:
+        var: output
+
+    - assert:
+        that:
+          - "nginx.branchproxy_nginx_1.state.running"
+```
+
+В [.gitlab-ci.yml](.gitlab-ci.yml) добавлен environment
+```yaml
+environment:
+  name: dev
+  url: http://${CI_COMMIT_REF_NAME}-branch.vscoder.ru
+```
+
+Запуск пайплайна...
+
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
 Продумайте автоматизацию развертывания и регистрации Gitlab CI Runner. В больших организациях количество Runners может превышать 50 и более, сетапить их руками становится проблематично.
