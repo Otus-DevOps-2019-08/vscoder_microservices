@@ -113,6 +113,9 @@
         dest: /etc/nginx.conf
         mode: 0444
         content: |
+          events {
+            worker_connections  1024;
+          }
           http {
             server {
               listen 80;

@@ -4731,6 +4731,9 @@ module "docker-app" {
         dest: /etc/nginx.conf
         mode: 0444
         content: |
+          events {
+            worker_connections  1024;
+          }
           http {
             server {
               listen 80;
@@ -4871,6 +4874,8 @@ nginx: [emerg] "server" directive is not allowed here in /etc/nginx/nginx.conf:1
 nginx: [emerg] "server" directive is not allowed here in /etc/nginx/nginx.conf:1
 ```
 ну да, кривовато я конфиг написал)) Исправлено. Описано выше.
+
+Запуск пайплайна... Ошибка конфига. Поправлено.
 
 Запуск пайплайна...
 
