@@ -85,6 +85,7 @@
 - name: "Provide nginx reverse-proxy for branch {{ ci_commit_ref_name }}"
   hosts: branch_proxy
   gather_facts: no
+  become: yes
   vars:
     ansible_python_interpreter: /usr/bin/python3
     nginx_image_tag: "1.17.6-alpine"
@@ -108,7 +109,6 @@
           ci_job_token: {{ ci_job_token }}
           branch_server_facts: {{ hostvars['dev-server-stage-001']['ansible_default_ipv4'] }}
     - name: Provide nginx config
-      become: yes
       copy:
         dest: /etc/nginx.conf
         mode: 0444
