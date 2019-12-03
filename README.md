@@ -4877,7 +4877,9 @@ nginx: [emerg] "server" directive is not allowed here in /etc/nginx/nginx.conf:1
 
 Запуск пайплайна... **IT WORKS!!!** по ссылке открылся сайт))
 
-Исправлена ссылка в `environment:` пайплайна
+Исправлена ссылка в `environment:` пайплайна. Сайт открывается по ссылке.
+
+TODO: рефакторинг [.gitlab-ci.yml](.gitlab-ci.yml)
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)
 
