@@ -108,6 +108,7 @@
           ci_job_token: {{ ci_job_token }}
           branch_server_facts: {{ hostvars['dev-server-stage-001']['ansible_default_ipv4'] }}
     - name: Provide nginx config
+      become: yes
       copy:
         dest: /etc/nginx.conf
         mode: 0444
