@@ -74,7 +74,8 @@
     - debug:
         var: output
 
-    - assert:
+    - name: Asserts
+      assert:
         that:
           - "post_db.reddit_post_db_1.state.running"
           - "post.reddit_post_1.state.running"
@@ -105,7 +106,7 @@
           ci_registry: {{ ci_registry }}
           ci_registry_user: {{ ci_registry_user }}
           ci_job_token: {{ ci_job_token }}
-          branch_server_facts: {{ hostvars['dev-server-stage-001'] }}
+          branch_server_facts: {{ hostvars['dev-server-stage-001']['ansible_default_ipv4'] }}
     - name: Provide nginx config
       copy:
         dest: /etc/nginx.conf
@@ -118,7 +119,7 @@
             server_name {{ ci_commit_ref_name }}-branch.vscoder.ru;
 
             location / {
-                proxy_pass http://{{ hostvars['dev-server-stage-001']['default_ipv4'] }}:9292/;
+                proxy_pass http://{{ hostvars['dev-server-stage-001']['ansible_default_ipv4']['address'] }}:9292/;
             }
           }
     - name: Login to gitlab docker registry
@@ -146,6 +147,7 @@
     - debug:
         var: output
 
-    - assert:
+    - name: Asserts
+      assert:
         that:
           - "nginx.branchproxy_nginx_1.state.running"
