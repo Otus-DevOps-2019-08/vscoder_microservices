@@ -4778,6 +4778,20 @@ environment:
   url: http://${CI_COMMIT_REF_NAME}-branch.vscoder.ru
 ```
 
+Запуск пайплайна... Ошибка:
+```log
+"msg": "The task includes an option with an undefined variable. The error was: 'ansible.vars.hostvars.HostVarsVars object' has no attribute 'default_ipv4'\n\nThe error appears to be in '/builds/otus/example/gitlab/ansible/playbooks/deploy-dev.yml': line 103, column 7, but may\nbe elsewhere in the file depending on the exact syntax problem.\n\nThe offending line appears to be:\n\n          ci_job_token: {{ ci_job_token }}\n    - name: Provide nginx config\n      ^ here\n"
+```
+Предполагаемая причина: не получены факты о хосте `dev-server-stage-001` в рамках данного play.
+
+Получаем факты:
+```yaml
+- name: "Get facts about {{ branch_server }}"
+  setup:
+  delegate_to: "{{ branch_server }}"
+  delegate_facts: yes
+```
+
 Запуск пайплайна...
 
 ### Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)

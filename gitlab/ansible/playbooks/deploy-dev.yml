@@ -87,11 +87,16 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
     nginx_image_tag: "1.17.6-alpine"
+    branch_server: dev-server-stage-001
     ci_commit_ref_name: "{{ lookup('env','CI_COMMIT_REF_NAME') }}"
     ci_registry: "{{ lookup('env','CI_REGISTRY') }}"
     ci_registry_user: "{{ lookup('env','CI_REGISTRY_USER') }}"
     ci_job_token: "{{ lookup('env','CI_JOB_TOKEN') }}"
   tasks:
+    - name: "Get facts about {{ branch_server }}"
+      setup:
+      delegate_to: "{{ branch_server }}"
+      delegate_facts: yes
     - name: Debug vars
       debug:
         msg: |
@@ -100,6 +105,7 @@
           ci_registry: {{ ci_registry }}
           ci_registry_user: {{ ci_registry_user }}
           ci_job_token: {{ ci_job_token }}
+          branch_server_facts: {{ hostvars['dev-server-stage-001'] }}
     - name: Provide nginx config
       copy:
         dest: /etc/nginx.conf
