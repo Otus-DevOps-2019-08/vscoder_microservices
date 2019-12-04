@@ -17,6 +17,7 @@ before_script:
   - bundle install
 
 build_job:
+  image: docker:19.03.1
   stage: build
   variables:
     DOCKER_HOST: unix:///var/run/docker.sock
