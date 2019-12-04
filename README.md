@@ -4922,3 +4922,19 @@ ERROR: The ruby:2.4.2 is not present on list of allowed images
 Причина - ограничение на раннере.
 
 Лечение: для build_job явно указан `image: docker:19.03.1` 
+
+Проверка пайплайна: `make push_gitlab`
+
+Ошибка
+```log
+$ bundle install
+/bin/sh: eval: line 94: bundle: not found
+ERROR: Job failed: exit code 127
+```
+Проблема: отсутствие в образ docker утилиты bundler, которая запускается `before_script`. Так как в рамках нашего pipeline в `build_job` не нужен bundler, пробуем переопределить `before_script` в `build_job`.
+```yaml
+before_script:
+  - echo 'Before script override for build_job'
+```
+
+Запуск пайплайна...

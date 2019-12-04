@@ -17,6 +17,8 @@ before_script:
   - bundle install
 
 build_job:
+  before_script:
+    - echo 'Before script override for build_job'
   image: docker:19.03.1
   stage: build
   variables:
