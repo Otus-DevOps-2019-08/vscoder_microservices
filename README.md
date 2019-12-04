@@ -138,6 +138,7 @@ vscoder microservices repository
       - [Проработка скейлинга раннеров](#%d0%9f%d1%80%d0%be%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%ba%d0%b0-%d1%81%d0%ba%d0%b5%d0%b9%d0%bb%d0%b8%d0%bd%d0%b3%d0%b0-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
     - [Задание со \*: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
     - [Прохождение тестов travis-ci](#%d0%9f%d1%80%d0%be%d1%85%d0%be%d0%b6%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d1%82%d0%b5%d1%81%d1%82%d0%be%d0%b2-travis-ci)
+    - [Прочее](#%d0%9f%d1%80%d0%be%d1%87%d0%b5%d0%b5)
 
 # Makefile
 
@@ -4973,3 +4974,8 @@ deploy_dev_job:
 Пайплайн travis-ci прошёл успешно.
 
 TODO: можно ли в сообщении так же слать ссылку на environment?
+
+
+### Прочее
+
+Добавлен [gitlab-ci/docker-compose.yml](gitlab-ci/docker-compose.yml) для развёртывания gitlab-сервера.
