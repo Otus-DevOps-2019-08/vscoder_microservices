@@ -135,6 +135,7 @@ vscoder microservices repository
           - [Проверка](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0)
           - [Создание Environment](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-environment)
     - [Задание со \*: Автоматизированное создание и регистрация раннеров (НЕ СДЕЛАНО)](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2-%d0%9d%d0%95-%d0%a1%d0%94%d0%95%d0%9b%d0%90%d0%9d%d0%9e)
+      - [Проработка скейлинга раннеров](#%d0%9f%d1%80%d0%be%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%ba%d0%b0-%d1%81%d0%ba%d0%b5%d0%b9%d0%bb%d0%b8%d0%bd%d0%b3%d0%b0-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
     - [Задание со \*: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
     - [Прохождение тестов travis-ci](#%d0%9f%d1%80%d0%be%d1%85%d0%be%d0%b6%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d1%82%d0%b5%d1%81%d1%82%d0%be%d0%b2-travis-ci)
 
@@ -4891,7 +4892,29 @@ nginx: [emerg] "server" directive is not allowed here in /etc/nginx/nginx.conf:1
 
 С целью соблюсти условия ДЗ, директория `gitlab/` переименована в `gitlab-ci/`, с исправлением ссылок в [.gitlab-ci.yml](.gitlab-ci.yml) и [README.md](README.md)
 
-Проверены все пайплайны...
+Проверены все пайплайны... успешно!
+
+#### Проработка скейлинга раннеров
+
+В terraform [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) количество инстансов `module "gitlab-runner"` установлено в 3.
+```hcl
+# Gitlab Runner
+module "gitlab-runner" {
+  instance_count      = 3
+  ...
+```
+Применена инфраструктура `make terraform_apply`
+Выполнен провиженинг раннеров `cd ./ansible && ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/gitlab-runner.yml`. Без ошибок.
+
+НО новые раннеры не зарегистрированы. Предположительная причина: переменная `gitlab_runner_registration_token` берётся из переменной окружения `$GITLAB_RUNNER_REGISTRATION_TOKEN` на машине, с которой запускается плейбук. Данная переменная не задана. Лечение:
+```shell
+export GITLAB_RUNNER_REGISTRATION_TOKEN="hereisatoken"
+```
+
+Заново запущен плейбук `ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/gitlab-runner.yml`
+
+Новые раннеры появились в списке.
+
 
 ### Задание со \*: Отправка уведомлений о работе pipeline в Slack
 

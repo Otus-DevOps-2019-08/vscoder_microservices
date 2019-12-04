@@ -22,7 +22,7 @@ module "docker-app" {
 
 # Gitlab Runner
 module "gitlab-runner" {
-  instance_count      = 1
+  instance_count      = 3
   source              = "../modules/instance"
   project             = var.project
   zone                = var.zone

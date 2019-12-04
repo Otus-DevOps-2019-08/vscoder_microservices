@@ -3,7 +3,7 @@ gitlab_runner_registration_token: "{{ lookup('env','GITLAB_RUNNER_REGISTRATION_T
 gitlab_runner_coordinator_url: https://gitlab.vscoder.ru/ci
 gitlab_runner_listen_address: 0.0.0.0
 gitlab_runner_runners:
-  - name: "GitLab Runner dind"
+  - name: "GitLab Runner dind on {{ ansible_host }}"
     executor: docker
     # image version from https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#use-docker-socket-binding
     docker_image: "docker:19.03.1"
@@ -17,7 +17,7 @@ gitlab_runner_runners:
       runners.docker:
         memory: 1024m
         allowed_images: ["docker:*"]
-  - name: "GitLab Runner docker"
+  - name: "GitLab Runner docker on {{ ansible_host }}"
     executor: docker
     docker_image: "alpine:latest"
     tags:
