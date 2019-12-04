@@ -18,6 +18,20 @@ packer_validate:
 	${PACKER} --version
 	${PACKER} validate -var-file=packer/variables.json -var-file=${PACKER_VAR_FILE} packer/docker.json
 
+packer_build_gitlab:
+	make packer_validate PACKER_VAR_FILE=packer/variables-gitlab.json
+	make packer_build PACKER_VAR_FILE=packer/variables-gitlab.json
+
+packer_build_gitlab_runner:
+	make packer_validate PACKER_VAR_FILE=packer/variables-gitlab-runner.json
+	make packer_build PACKER_VAR_FILE=packer/variables-gitlab-runner.json
+
+packer_build_dev_server:
+	make packer_validate PACKER_VAR_FILE=packer/variables-stage-server.json
+	make packer_build PACKER_VAR_FILE=packer/variables-stage-server.json
+
+packer_all: packer_build_gitlab packer_build_gitlab_runner packer_build_dev_server
+
 
 terraform_init:
 	cd ./terraform && ${TERRAFORM} init
