@@ -28,4 +28,4 @@
 | ansible_inventory_list       | ANSIBLE                 | Показать содержимое ansible-inventory ввформате json                                                                             |
 | ansible_lint                 | ANSIBLE                 | Выполнить ansible-lint для всех плейбуков                                                                                        |
 | ansible_syntax               | ANSIBLE                 | Проверить синтаксис всех плейбуков                                                                                               |
-| remote add                   |                         | Выполнить пуш ветки `gitlab-ci-1` в remote named `gitlab`                                                                        |
+| push_gitlab                  |                         | Выполнить пуш ветки `gitlab-ci-1` в remote named `gitlab`                                                                        |
