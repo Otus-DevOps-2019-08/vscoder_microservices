@@ -28,6 +28,7 @@
 | terraform_tflint             | TFLINT                                              | Выполнить tflint для всех окружений terraform                                                                                    |
 | terraform_apply              | ENV, TERRAFORM                                      | Применить инфраструктуру terraform для окружения `${ENV}`                                                                        |
 | terraform_destroy            | ENV, TERRAFORM                                      | Уничтожить инфраструктуру terraform для окружения `${ENV}`                                                                       |
+| terraform_all                | ENV, TERRAFOR, TFLINT                               | Выполнить инициализацию, проверить конфигурацию, применить инфраструктуру                                                        |
 | ansible_install_requirements | ANSIBLE                                             | Установить внешние роли ansible из [requirements.yml](docker-monolith/ansible/environments/stage/requirements.yml)               |
 | ansible_inventory_list       | ANSIBLE                                             | Показать содержимое ansible-inventory ввформате json                                                                             |
 | ansible_lint                 | ANSIBLE                                             | Выполнить ansible-lint для всех плейбуков                                                                                        |

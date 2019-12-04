@@ -55,6 +55,8 @@ terraform_apply:
 terraform_destroy:
 	cd ./terraform/${ENV} && ${TERRAFORM} destroy
 
+terraform_all: terraform_init terraform_validate terraform_tflint terraform_apply
+
 
 ansible_install_requirements:
 	cd ./ansible && ${ANSIBLE}-galaxy install -r environments/stage/requirements.yml
