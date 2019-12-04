@@ -4944,3 +4944,6 @@ deploy_dev_job:
     - echo 'Before script override for deploy_dev_job'
 ...
 ```
+
+Пайплайн gitlab-ci прошёл успешно.
+Пайплайн travis-ci прошёл успешно.
