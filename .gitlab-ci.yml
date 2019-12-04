@@ -53,6 +53,8 @@ test_integration_job:
     - echo 'Testing 2'
 
 deploy_dev_job:
+  before_script:
+    - echo 'Before script override for build_job'
   stage: review
   image: cytopia/ansible:2.9
   script:

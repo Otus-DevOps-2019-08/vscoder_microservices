@@ -4937,4 +4937,10 @@ before_script:
   - echo 'Before script override for build_job'
 ```
 
-Запуск пайплайна...
+Запуск пайплайна... Та же ошибка для deploy_dev_job. Fixed:
+```yaml
+deploy_dev_job:
+  before_script:
+    - echo 'Before script override for deploy_dev_job'
+...
+```
