@@ -1,4 +1,6 @@
 ---
+image: ruby:2.4.2
+
 stages:
   - build
   - test
@@ -11,6 +13,8 @@ variables:
 
 before_script:
   - echo 'Before script'
+  - cd reddit
+  - bundle install
 
 build_job:
   stage: build
@@ -38,6 +42,7 @@ test_unit_job:
     - mongo:latest
   script:
     - echo 'Testing 1'
+    - ruby simpletest.rb
 
 test_integration_job:
   stage: test
