@@ -3782,7 +3782,7 @@ branch review:
   - [x] Включить интеграцию с [Let’s Encrypt](https://docs.gitlab.com/omnibus/settings/ssl.html#lets-encrypt-integration)
     - [x] Создать привязку к доменному имени
       - [x] Создать постоянный ip средствами terraform
-      - [ ] В последствии, решить проблему с формированием url для `environment.url` в `.gitlab-ci.yml`
+      - [x] В последствии, решить проблему с формированием url для `environment.url` в `.gitlab-ci.yml`
   - [x] registry добжен включиться автоматически [GitLab Container Registry administration](https://docs.gitlab.com/ee/administration/packages/container_registry.html)
 - [x] Настроить в `.gitlab-ci.yml` автоматизированную сборку образов средствами [docker build](https://docs.docker.com/engine/reference/commandline/build/)
   - [x] решить проблему со сборкой образов раннером типа docker https://docs.gitlab.com/сe/ci/docker/using_docker_build.html
