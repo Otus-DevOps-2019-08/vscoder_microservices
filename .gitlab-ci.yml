@@ -54,12 +54,12 @@ test_integration_job:
 
 deploy_dev_job:
   before_script:
-    - echo 'Before script override for build_job'
+    - echo 'Before script override for deploy_dev_job'
   stage: review
   image: cytopia/ansible:2.9
   script:
     - pip3 install requests google-auth
-    - cd gitlab/ansible
+    - cd gitlab-ci/ansible
     - ansible-galaxy install -r environments/stage/requirements.yml
     - ansible-inventory -i environments/stage/runner-inventory.gcp.yml --list
     - apk update && apk add openssh-client

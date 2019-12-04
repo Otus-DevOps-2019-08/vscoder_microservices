@@ -3397,19 +3397,19 @@ To use multiple override files, or an override file with a different name, you c
 #### Подготовка хоста
 
 - Создана директория [gitlab](gitlab)
-- Создан [Makefile](gitlab/Makefile) с набором целей для развёртывания инфраструктуры под gitlab средствами packer, teraform и ansible
+- Создан [Makefile](gitlab-ci/Makefile) с набором целей для развёртывания инфраструктуры под gitlab средствами packer, teraform и ansible
 
 ##### ansible
 
-- На основе [docker-monolith/ansible](docker-monolith/ansible) создана директория [gitlab/ansible](gitlab/ansible)
+- На основе [docker-monolith/ansible](docker-monolith/ansible) создана директория [gitlab-ci/ansible](gitlab-ci/ansible)
 - Удалены лишние файлы и директории.
-- Оставлен только плейбук [gitlab/ansible/playbooks/docker.yml](gitlab/ansible/playbooks/docker.yml), необходимый для развёртывания docker в packer-образе
+- Оставлен только плейбук [gitlab-ci/ansible/playbooks/docker.yml](gitlab-ci/ansible/playbooks/docker.yml), необходимый для развёртывания docker в packer-образе
 - Установлены вынешние ansible-роли
 
 ##### packer
 
-- На основе [docker-monolith packer](docker-monolith/packer) создана директория [gitlab/packer](gitlab/packer)
-- Дополнен файл с примерами переменных [gitlab/packer/variables.json.example](gitlab/packer/variables.json.example)
+- На основе [docker-monolith packer](docker-monolith/packer) создана директория [gitlab-ci/packer](gitlab-ci/packer)
+- Дополнен файл с примерами переменных [gitlab-ci/packer/variables.json.example](gitlab-ci/packer/variables.json.example)
   ```json
   {
     "project_id": "docker-ID",
@@ -3418,7 +3418,7 @@ To use multiple override files, or an override file with a different name, you c
     "disk_size": "60"
   }
   ```
-- Заполнены переменные [gitlab/packer/variables.json](gitlab/packer/variables.json)
+- Заполнены переменные [gitlab-ci/packer/variables.json](gitlab-ci/packer/variables.json)
 - Проверена конфигурация packer
   ```shell
   # make packer_validate
@@ -3437,9 +3437,9 @@ To use multiple override files, or an override file with a different name, you c
 
 ##### terraform
 
-- Директория [docker-monolith/terraform](docker-monolith/terraform) скопирована в [gitlab/terraform](gitlab/terraform)
-- В [gitlab/terraform/stage/backend.tf](gitlab/terraform/stage/backend.tf) значение `prefix` установлено в `"terraform/gitlab/stage"`
-- В [gitlab/terraform/stage/terraform.tfvars.example](gitlab/terraform/stage/terraform.tfvars.example) изменены значения следующих переменных
+- Директория [docker-monolith/terraform](docker-monolith/terraform) скопирована в [gitlab-ci/terraform](gitlab-ci/terraform)
+- В [gitlab-ci/terraform/stage/backend.tf](gitlab-ci/terraform/stage/backend.tf) значение `prefix` установлено в `"terraform/gitlab/stage"`
+- В [gitlab-ci/terraform/stage/terraform.tfvars.example](gitlab-ci/terraform/stage/terraform.tfvars.example) изменены значения следующих переменных
   ```hcl
   docker_app_disk_image     = "gitlab-docker-base"
   docker_app_tags           = ["gitlab-docker-app"]
@@ -3450,7 +3450,7 @@ To use multiple override files, or an override file with a different name, you c
   docker_app_name_prefix    = "gitlab"
   docker_app_machine_type   = "n1-standard-1"
   ```
-- Те же переменные добавлены/изменены в [gitlab/terraform/terraform.tfvars](gitlab/terraform/terraform.tfvars)
+- Те же переменные добавлены/изменены в [gitlab-ci/terraform/terraform.tfvars](gitlab-ci/terraform/terraform.tfvars)
 - Выполнена инициализация terraform
   ```shell
   # make terraform_init
@@ -3514,7 +3514,7 @@ web:
 ##### Работа с репозиторием через ssh
 
 - Пользователю добавлен публичный ssh-ключ
-- В [gitlab/terraform/stage/terraform.tfvars](gitlab/terraform/stage/terraform.tfvars) разрешён порт `2222`
+- В [gitlab-ci/terraform/stage/terraform.tfvars](gitlab-ci/terraform/stage/terraform.tfvars) разрешён порт `2222`
   ```hcl
   docker_app_tcp_ports = ["80", "443", "2222"]
   ```
@@ -3768,7 +3768,7 @@ branch review:
 
 ### Вне заданий: улучшалки
 
-- Добавлен [gitlab/README.md](gitlab/README.md) с описанием Makefile целей и переменных
+- Добавлен [gitlab-ci/README.md](gitlab-ci/README.md) с описанием Makefile целей и переменных
 
 ### Задание со \*: Автоматизированная сборка приложения reddit
 
@@ -3798,7 +3798,7 @@ branch review:
 
 ##### Настройка terraform module instance
 
-- В [gitlab/terraform/modules/instance/main.tf](gitlab/terraform/modules/instance/main.tf) настроено использование статического ip
+- В [gitlab-ci/terraform/modules/instance/main.tf](gitlab-ci/terraform/modules/instance/main.tf) настроено использование статического ip
 ```hcl
 resource "google_compute_instance" "instance" {
   ...
@@ -3815,7 +3815,7 @@ resource "google_compute_address" "instance_ip" {
   count = var.use_static_ip ? 1 : 0
 }
 ```
-- В [gitlab/terraform/modules/instance/variables.tf](gitlab/terraform/modules/instance/variables.tf) добавлено описание переменной `use_static_ip`
+- В [gitlab-ci/terraform/modules/instance/variables.tf](gitlab-ci/terraform/modules/instance/variables.tf) добавлено описание переменной `use_static_ip`
 ```hcl
 variable use_static_ip {
   description = "Need to create static ip for instance?"
@@ -3825,7 +3825,7 @@ variable use_static_ip {
 
 ##### Настройка stage-окружения terraform
 
-- В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) включено использование статического ip для gitlab instance
+- В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) включено использование статического ip для gitlab instance
 ```hcl
 # GitLab instance
 module "docker-app" {
@@ -3945,7 +3945,7 @@ git remote rm gitlab
 git remote add gitlab ssh://git@gitlab.vscoder.ru:2222/otus/example.git
 git push gitlab gitlab-ci-1
 ```
-- В [gitlab/Makefile](gitlab/Makefile) добавлена цель `push_gitlab` для пуша в remote named _gitlab_
+- В [gitlab-ci/Makefile](gitlab-ci/Makefile) добавлена цель `push_gitlab` для пуша в remote named _gitlab_
 - Выполнен пуш в гитлаб
 - Ранее запущенный раннер оказался неактивен из за смены URL gitlab на https://gitlab.vscoder.ru
 - Выполнено подключение к контейнеру `sudo docker exec -it gitlab-runner bash`
@@ -4043,11 +4043,11 @@ make: *** [Makefile:11: build_post] Error 1
 
 ###### Подготовка хоста для docker runner
 
-- В [gitlab/packer/docker.json](gitlab/packer/docker.json) параметризован параметр `image_family`
-- Создан файл [gitlab/packer/variables-gitlab-runner.json](gitlab/packer/variables-gitlab-runner.json) со значениями для образа с gitlab-runner
+- В [gitlab-ci/packer/docker.json](gitlab-ci/packer/docker.json) параметризован параметр `image_family`
+- Создан файл [gitlab-ci/packer/variables-gitlab-runner.json](gitlab-ci/packer/variables-gitlab-runner.json) со значениями для образа с gitlab-runner
 - **ЗАМЕЧАНИЕ** переменная `project_id` осталась в файле `variables.json`
-- В [gitlab/packer/docker.json](gitlab/packer/docker.json) параметризован параметр `playbook_file` для провиженинга образа. Необходимо указывать имя файла плейбука относительно директории `gitlab/ansible/playbooks/docker.yml`. По умолчанию `docker.yml`
-- В [gitlab/packer/docker.json](gitlab/packer/docker.json) заданы значения по умолчанию для переменных
+- В [gitlab-ci/packer/docker.json](gitlab-ci/packer/docker.json) параметризован параметр `playbook_file` для провиженинга образа. Необходимо указывать имя файла плейбука относительно директории `gitlab-ci/ansible/playbooks/docker.yml`. По умолчанию `docker.yml`
+- В [gitlab-ci/packer/docker.json](gitlab-ci/packer/docker.json) заданы значения по умолчанию для переменных
 ```json
 {
   ...
@@ -4056,8 +4056,8 @@ make: *** [Makefile:11: build_post] Error 1
   ...
 }
 ```
-- Переменные,, относящиеся к образу gitlab-сервера, вынесены в отдельный файл [gitlab/packer/variables-gitlab.json](gitlab/packer/variables-gitlab.json)
-- Создан плейбук [gitlab/ansible/playbooks/packer-gitlab-runner.yml](gitlab/ansible/playbooks/packer-gitlab-runner.yml), устанавливающий докер и гитлаб-раннер
+- Переменные,, относящиеся к образу gitlab-сервера, вынесены в отдельный файл [gitlab-ci/packer/variables-gitlab.json](gitlab-ci/packer/variables-gitlab.json)
+- Создан плейбук [gitlab-ci/ansible/playbooks/packer-gitlab-runner.yml](gitlab-ci/ansible/playbooks/packer-gitlab-runner.yml), устанавливающий докер и гитлаб-раннер
 ```yaml
 ---
 - name: Provision image with docker and gitlab-runner
@@ -4067,7 +4067,7 @@ make: *** [Makefile:11: build_post] Error 1
     - role: geerlingguy.docker
     - role: riemers.gitlab-runner
 ```
-- В зависимости ансибл [gitlab/ansible/environments/stage/requirements.yml](gitlab/ansible/environments/stage/requirements.yml) добавлена зависимость от роли 
+- В зависимости ансибл [gitlab-ci/ansible/environments/stage/requirements.yml](gitlab-ci/ansible/environments/stage/requirements.yml) добавлена зависимость от роли 
 - Установлены зависимости ansible `make ansible_install_requirements`
 - В Makefile targets `packer_build` и `packer_validate` добавлено использование переменный из `packer/variables.json`
 - В Makefile targets `packer_build` и `packer_validate`, помимо предыдущего пункта, добавлено использование переменных из `PACKER_VAR_FILE?=packer/variables-gitlab-runner.json`
@@ -4080,12 +4080,12 @@ make: *** [Makefile:11: build_post] Error 1
   "playbook_name": "packer-gitlab-runner.yml"
 }
 ```
-- В [gitlab/packer/scripts/ansible-playbook.sh](gitlab/packer/scripts/ansible-playbook.sh) исправлен путь к исполняемому файлу `ansible`
+- В [gitlab-ci/packer/scripts/ansible-playbook.sh](gitlab-ci/packer/scripts/ansible-playbook.sh) исправлен путь к исполняемому файлу `ansible`
 - Выполнена сборка packer-образа gitlab-runner `make packer_build PACKER_VAR_FILE=packer/variables-gitlab-runner.json`
   - **ОШИБКА** `Version '12.5.2' for 'gitlab-runner' was not found`
-  - из [gitlab/ansible/playbooks/packer-gitlab-runner.yml](gitlab/ansible/playbooks/packer-gitlab-runner.yml) удален параметр версии `gitlab_runner_package_version`
+  - из [gitlab-ci/ansible/playbooks/packer-gitlab-runner.yml](gitlab-ci/ansible/playbooks/packer-gitlab-runner.yml) удален параметр версии `gitlab_runner_package_version`
   - сборка прошла успешно
-- В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) создан ещё один хост
+- В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) создан ещё один хост
 ```hcl
 # Gitlab Runner
 module "gitlab-runner" {
@@ -4103,7 +4103,7 @@ module "gitlab-runner" {
   use_static_ip       = false
 }
 ```
-- В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) часть параметров хостов задаётся явно, а не из переменных
+- В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) часть параметров хостов задаётся явно, а не из переменных
 - Создан инстанс хоста для gitlab-runner `make terraform_apply`
 ```log
 Outputs:
@@ -4147,7 +4147,7 @@ make ansible_inventory_list
 
 ###### Подготовлен docker-runner
 
-- Создан плейбук [gitlab/ansible/playbooks/gitlab-runner.yml](gitlab/ansible/playbooks/gitlab-runner.yml), запускающий и регистрирующий раннеры
+- Создан плейбук [gitlab-ci/ansible/playbooks/gitlab-runner.yml](gitlab-ci/ansible/playbooks/gitlab-runner.yml), запускающий и регистрирующий раннеры
 ```yaml
 ---
 - name: Provision image with docker and gitlab-runner
@@ -4156,7 +4156,7 @@ make ansible_inventory_list
   roles:
     - role: riemers.gitlab-runner
 ```
-- Создай файл [gitlab/ansible/environments/stage/group_vars/gitlab_runner](gitlab/ansible/environments/stage/group_vars/gitlab_runner), содержащий переменные необходимые для работы плейбука. При этом значение токена берётся из переменной окружения
+- Создай файл [gitlab-ci/ansible/environments/stage/group_vars/gitlab_runner](gitlab-ci/ansible/environments/stage/group_vars/gitlab_runner), содержащий переменные необходимые для работы плейбука. При этом значение токена берётся из переменной окружения
 ```yaml
 gitlab_runner_registration_token: "{{ lookup('env','GITLAB_RUNNER_REGISTRATION_TOKEN') }}"
 ```
@@ -4166,7 +4166,7 @@ gitlab_runner_registration_token: "{{ lookup('env','GITLAB_RUNNER_REGISTRATION_T
 TASK [riemers.gitlab-runner : Register runner to GitLab] *****************************************************************************************************************
 fatal: [gitlab-runner-stage-001]: FAILED! => {"censored": "the output has been hidden due to the fact that 'no_log: true' was specified for this result", "changed": true}
 ```
-- Запуск в режиме дебага `ANSIBLE_DEBUG=true ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/gitlab-runner.yml` помог выявить ошибку: в [конфиге](gitlab/ansible/environments/stage/group_vars/gitlab_runner) раннеров с типом `docker` не был указан образ по умолчанию (парфметр `docker_image: `)
+- Запуск в режиме дебага `ANSIBLE_DEBUG=true ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/gitlab-runner.yml` помог выявить ошибку: в [конфиге](gitlab-ci/ansible/environments/stage/group_vars/gitlab_runner) раннеров с типом `docker` не был указан образ по умолчанию (парфметр `docker_image: `)
 - Новая ошибка
 ```log
 TASK [riemers.gitlab-runner : Assemble new config.toml] ******************************************************************************************************************
@@ -4192,7 +4192,7 @@ fatal: [gitlab-runner-stage-001]: FAILED! => {"changed": false, "msg": "failed t
 - в итоге было зарезервировано 2 раннера 
   - `GitLab Runner dind` для сборки докер-образов
   - `GitLab Runner docker` для запуска всего остального
-- **ВАЖНО** было обнаркжено, что раннер `GitLab Runner docker` недоступен. После явного указания тега образа в конфиге раннера и перезапуска gitlab-runner.service, раннер снова связался с сервером. Соответствующие изменения внесены в переменные группы gitlab-runner[gitlab/ansible/environments/stage/group_vars/gitlab_runner](gitlab/ansible/environments/stage/group_vars/gitlab_runner)
+- **ВАЖНО** было обнаркжено, что раннер `GitLab Runner docker` недоступен. После явного указания тега образа в конфиге раннера и перезапуска gitlab-runner.service, раннер снова связался с сервером. Соответствующие изменения внесены в переменные группы gitlab-runner[gitlab-ci/ansible/environments/stage/group_vars/gitlab_runner](gitlab-ci/ansible/environments/stage/group_vars/gitlab_runner)
 
 ###### Автоматизированная сборка образов
 
@@ -4260,7 +4260,7 @@ build_job:
 Error response from daemon: Get https://gitlab.vscoder.ru:5050/v2/: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
 ```
 подозрение на фаервол
-- В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) порт `5050` добавлен в список разрешённых для gitlab-сервера. Конфигурация применена `make terraform_apply`. **НА БУДУЩЕЕ** Правильным будет создание отдельного правила, разрешающего доступ к регистри только с раннеров. Но подобные правила удобнее использовать при плоской (без использования модулей) структуре проекта terraform.
+- В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) порт `5050` добавлен в список разрешённых для gitlab-сервера. Конфигурация применена `make terraform_apply`. **НА БУДУЩЕЕ** Правильным будет создание отдельного правила, разрешающего доступ к регистри только с раннеров. Но подобные правила удобнее использовать при плоской (без использования модулей) структуре проекта terraform.
 - Сохранены изменения в [.gitlab-ci.yml](.gitlab-ci.yml), удаляющие установку `make` из `build_job`
 - Следующая попытка выполнить пайплайн `make push_gitlab`
 ```log
@@ -4346,7 +4346,7 @@ TODO: Анализ, Реализация
 
 ##### Packer
 
-- Создан playbook устанавливающий docker и необходимые для провиженинга ansible-ом пакеты [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml)
+- Создан playbook устанавливающий docker и необходимые для провиженинга ansible-ом пакеты [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml)
 ```yaml
 ---
 - import_playbook: docker.yml
@@ -4373,7 +4373,7 @@ TODO: Анализ, Реализация
           - docker-compose
         state: present
 ```
-- Создан [gitlab/packer/variables-stage-server.json](gitlab/packer/variables-stage-server.json) файл с переменными описывающими stage-сервер
+- Создан [gitlab-ci/packer/variables-stage-server.json](gitlab-ci/packer/variables-stage-server.json) файл с переменными описывающими stage-сервер
 ```json
 {
   "source_image_family": "ubuntu-1604-lts",
@@ -4388,7 +4388,7 @@ TODO: Анализ, Реализация
 
 ##### Terraform
 
-- В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) добавлен `Stage server`
+- В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) добавлен `Stage server`
 ```hcl
 # Stage server
 module "stage-server" {
@@ -4406,7 +4406,7 @@ module "stage-server" {
   use_static_ip       = false
 }
 ```
-- в [gitlab/terraform/stage/outputs.tf](gitlab/terraform/stage/outputs.tf) добавлено отображение внешнего ip
+- в [gitlab-ci/terraform/stage/outputs.tf](gitlab-ci/terraform/stage/outputs.tf) добавлено отображение внешнего ip
 ```hcl
 ...
 output "stage_server_external_ip" {
@@ -4431,20 +4431,20 @@ output "stage_server_external_ip" {
 
 ###### Реализация
 
-- Создан плейбук [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml)
-- Содержимое compose-файла скопировано из [src/docker-compose.yml](src/docker-compose.yml) в [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml)
+- Создан плейбук [gitlab-ci/ansible/playbooks/deploy-dev.yml](gitlab-ci/ansible/playbooks/deploy-dev.yml)
+- Содержимое compose-файла скопировано из [src/docker-compose.yml](src/docker-compose.yml) в [gitlab-ci/ansible/playbooks/deploy-dev.yml](gitlab-ci/ansible/playbooks/deploy-dev.yml)
 - При запуске плейбука `ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/stage-server.yml --check` ошибка:
 ```log
 fatal: [stage-server-stage-001]: FAILED! => {"ansible_facts": {"discovered_interpreter_python": "/usr/bin/python"}, "changed": false, "msg": "Unable to find any of pip2, pip to use.  pip needs to be installed."}
 ```
 - В результате был перепакован базовый образ. Подробности в описании packer
-- Применение плейбука `cd gitlab/ansible && ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/stage-server.yml`
+- Применение плейбука `cd gitlab-ci/ansible && ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/stage-server.yml`
 - Ошибка
 ```log
 fatal: [stage-server-stage-001]: FAILED! => {"ansible_facts": {"discovered_interpreter_python": "/usr/bin/python"}, "changed": false, "module_stderr": "Shared connection to 35.240.27.254 closed.\r\n", "module_stdout": "\r\nTraceback (most recent call last):\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 102, in <module>\r\n    _ansiballz_main()\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 94, in _ansiballz_main\r\n    invoke_module(zipped_mod, temp_path, ANSIBALLZ_PARAMS)\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 40, in invoke_module\r\n    runpy.run_module(mod_name='ansible.modules.cloud.docker.docker_compose', init_globals=None, run_name='__main__', alter_sys=True)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 188, in run_module\r\n    fname, loader, pkg_name)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 82, in _run_module_code\r\n    mod_name, mod_fname, mod_loader, pkg_name)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 72, in _run_code\r\n    exec code in run_globals\r\n  File \"/tmp/ansible_docker_compose_payload_oSfl3K/ansible_docker_compose_payload.zip/ansible/modules/cloud/docker/docker_compose.py\", line 483, in <module>\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/cli/command.py\", line 12, in <module>\r\n    from .. import config\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/__init__.py\", line 6, in <module>\r\n    from .config import ConfigurationError\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/config.py\", line 50, in <module>\r\n    from .validation import match_named_volumes\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/validation.py\", line 12, in <module>\r\n    from jsonschema import Draft4Validator\r\n  File \"/usr/local/lib/python2.7/dist-packages/jsonschema/__init__.py\", line 33, in <module>\r\n    import importlib_metadata as metadata\r\n  File \"/usr/local/lib/python2.7/dist-packages/importlib_metadata/__init__.py\", line 9, in <module>\r\n    import zipp\r\n  File \"/usr/local/lib/python2.7/dist-packages/zipp.py\", line 12, in <module>\r\n    import more_itertools\r\n  File \"/usr/local/lib/python2.7/dist-packages/more_itertools/__init__.py\", line 1, in <module>\r\n    from more_itertools.more import *  # noqa\r\n  File \"/usr/local/lib/python2.7/dist-packages/more_itertools/more.py\", line 460\r\n    yield from iterable\r\n             ^\r\nSyntaxError: invalid syntax\r\n", "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error", "rc": 1}
 ```
   - Проблема проявилась только для docker-compose на python2.
-  - Выполнена адаптация [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) для работы с python3. Для этогоъ
+  - Выполнена адаптация [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml) для работы с python3. Для этогоъ
     - В play задана переменная `ansible_python_interpreter: /usr/bin/python3`
     - Установлены необходимые для docker-compose пакеты
     ```yaml
@@ -4498,10 +4498,10 @@ ansible-galaxy install -r environments/stage/requirements.yml
 - Ошибка, не находит `/root/.gce/docker-257914-ansible-inventory.json`
   - Добавлено отладочное сообщение `echo GCP_SERVICE_ACCOUNT_FILE=$GCP_SERVICE_ACCOUNT_FILE`
   - Отображает имя файла. Похоже баг инвентори-модуля
-  - Комментирование параметра `service_account_file` в [gitlab/ansible/environments/stage/inventory.gcp.yml](gitlab/ansible/environments/stage/inventory.gcp.yml) **помогло**
-  - Для раннера создан отдельный inventory [gitlab/ansible/environments/stage/runner-inventory.gcp.yml](gitlab/ansible/environments/stage/runner-inventory.gcp.yml) без указания `service_account_file`
+  - Комментирование параметра `service_account_file` в [gitlab-ci/ansible/environments/stage/inventory.gcp.yml](gitlab-ci/ansible/environments/stage/inventory.gcp.yml) **помогло**
+  - Для раннера создан отдельный inventory [gitlab-ci/ansible/environments/stage/runner-inventory.gcp.yml](gitlab-ci/ansible/environments/stage/runner-inventory.gcp.yml) без указания `service_account_file`
 - Пайплайн завершился успехом
-- Плейбук `gitlab/ansible/playbooks/stage-server.yml` переименован в [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml)
+- Плейбук `gitlab-ci/ansible/playbooks/stage-server.yml` переименован в [gitlab-ci/ansible/playbooks/deploy-dev.yml](gitlab-ci/ansible/playbooks/deploy-dev.yml)
 - Следующим шагом применяем плейбук `ansible-playbook -i environments/stage/runner-inventory.gcp.yml playbooks/deploy-dev.yml -vvvv`
   - **ЗАМЕЧЕНИЕ** не используется конфиг
   ```log
@@ -4530,11 +4530,11 @@ ansible-galaxy install -r environments/stage/requirements.yml
   ssh-keygen -t rsa -f ~/.ssh/id_rsa_appuser_deploy_stage
   ```
   - В gitlab проект добавлена переменная `SSH_PRIVATE_KEY`, типа `file`, содержащая приватный ssh-ключ для подключения к stage-server
-  - В [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) -- плейбук, используемый при прожиге образа packer-ом, реализовано добавление ssh-ключа для деплоя
+  - В [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml) -- плейбук, используемый при прожиге образа packer-ом, реализовано добавление ssh-ключа для деплоя
   - Собран новый базовый образ ВМ
   - terraform-инстанс переименован в dev-server
   - Пересоздан инстанс `make terraform_apply`
-  - Ключ в [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) теперь берётся из файла вместо хардкода
+  - Ключ в [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml) теперь берётся из файла вместо хардкода
 - Попытка выполнить пайплайн
 - Ошибка
 ```shell
@@ -4583,7 +4583,7 @@ cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - [x] дать права пользователю appuser
     - [ ] запускать композ с `become: yes`
   - Выбран первый вариант как наиболее правильный с точки зрения безопасности
-    - В [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) при импорте плейбука `docker.yml` добавлены переменные
+    - В [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml) при импорте плейбука `docker.yml` добавлены переменные
       ```yaml
       - import_playbook: docker.yml
         vars:
@@ -4608,7 +4608,7 @@ cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
 "msg": "Error starting project 400 Client Error: Bad Request (\"no such image: ui:: invalid reference format\")"
 ```
 проблема: не работает подстановка переменных
-  - Подстановка переменных выполнена через `lookup('env','VAR_NAME')` в [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml)
+  - Подстановка переменных выполнена через `lookup('env','VAR_NAME')` в [gitlab-ci/ansible/playbooks/deploy-dev.yml](gitlab-ci/ansible/playbooks/deploy-dev.yml)
   ```yaml
   vars:
     ...
@@ -4653,7 +4653,7 @@ tasks:
 ###### Проверка
 
 Подключиться к http://34.76.75.218:9292/ не удалось. Причина - фаервол.
-В [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) `module "dev-server"` список портов приведён к `tcp_ports = ["22", "9292"]`
+В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) `module "dev-server"` список портов приведён к `tcp_ports = ["22", "9292"]`
 
 Приложение открылось, но не работают комментарии...
 
@@ -4688,7 +4688,7 @@ service:
 
 Поехали:
 
-В terraform [gitlab/terraform/stage/main.tf](gitlab/terraform/stage/main.tf) добавлен тег к gitlab-server и открыт порт `8080`.
+В terraform [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) добавлен тег к gitlab-server и открыт порт `8080`.
 
 ```hcl
 ...
@@ -4704,7 +4704,7 @@ module "docker-app" {
 
 В dns создана wildcard-запись `*.vscoder.ru  A 35.195.25.130`, указывающая на ip с gitlab-сервером
 
-В [gitlab/ansible/playbooks/deploy-dev.yml](gitlab/ansible/playbooks/deploy-dev.yml) добавлен play
+В [gitlab-ci/ansible/playbooks/deploy-dev.yml](gitlab-ci/ansible/playbooks/deploy-dev.yml) добавлен play
 ```yaml
 - name: "Provide nginx reverse-proxy for branch {{ ci_commit_ref_name }}"
   hosts: branch_proxy
@@ -4827,7 +4827,7 @@ TASK [Provide nginx config] ****************************************************
 
 Знакомые грабли))
 
-Утащено из [gitlab/ansible/playbooks/packer-stage-server.yml](gitlab/ansible/playbooks/packer-stage-server.yml) (но правильнее было бы добавить в базовый образ для gitlab-server)
+Утащено из [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml) (но правильнее было бы добавить в базовый образ для gitlab-server)
 ```yaml
 - name: Ensure necessary packages are installed
   apt:
@@ -4889,9 +4889,9 @@ nginx: [emerg] "server" directive is not allowed here in /etc/nginx/nginx.conf:1
 
 Реализовано в рамках задачи по сборке образов.
 
-TODO: скопировать файлы данной задачи в директорию `gitlab-ci` **или** преименовать директорию `gitlab` в `gitlab-ci` **или** оставить как есть.
+С целью соблюсти условия ДЗ, директория `gitlab/` переименована в `gitlab-ci/`, с исправлением ссылок в [.gitlab-ci.yml](.gitlab-ci.yml) и [README.md](README.md)
 
-Предпочитаемый вариант - реализовать данную задачу в отдельной директории. Это даст возможность в будущем реализовать подобную задачу минимальными усилиями.
+Проверены все пайплайны...
 
 ### Задание со \*: Отправка уведомлений о работе pipeline в Slack
 
