@@ -4422,7 +4422,7 @@ output "stage_server_external_ip" {
 
 ###### Поиск решения
 
-[Ansible Docker Guide](https://docs.ansible.com/ansible/latest/scenario_guides/)guide_docker.html
+[Ansible Docker Guide](https://docs.ansible.com/ansible/latest/scenario_guides/guide_docker.html)
 
 Для реализации задачи можно использовать модули:
 

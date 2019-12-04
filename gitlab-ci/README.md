@@ -33,4 +33,6 @@
 | ansible_inventory_list       | ANSIBLE                                             | Показать содержимое ansible-inventory ввформате json                                                                             |
 | ansible_lint                 | ANSIBLE                                             | Выполнить ansible-lint для всех плейбуков                                                                                        |
 | ansible_syntax               | ANSIBLE                                             | Проверить синтаксис всех плейбуков                                                                                               |
+| ansible_provision_runner     | ANSIBLE                                             | Выполнить провиженинг раннеров                                                                                                   |
+| ansible_all                  | ANSIBLE                                             | Выполнить ansible_install_requirements ansible_inventory_list ansible_lint ansible_syntax ansible_provision_runner               |
 | push_gitlab                  |                                                     | Выполнить пуш ветки `gitlab-ci-1` в remote named `gitlab`                                                                        |

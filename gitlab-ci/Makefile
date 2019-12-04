@@ -70,6 +70,10 @@ ansible_lint:
 ansible_syntax:
 	cd ./ansible && find playbooks -name "*.yml" -type f -print0 | xargs -0 -n1 ${ANSIBLE}-playbook -i environments/stage/inventory.gcp.yml --syntax-check
 
+ansible_provision_runner:
+	cd ./ansible && ${ANSIBLE}-playbook -i environments/stage/inventory.gcp.yml playbooks/gitlab-runner.yml
+
+ansible_all: ansible_install_requirements ansible_inventory_list ansible_lint ansible_syntax ansible_provision_runner
 
 push_gitlab:
 	git push gitlab gitlab-ci-1
