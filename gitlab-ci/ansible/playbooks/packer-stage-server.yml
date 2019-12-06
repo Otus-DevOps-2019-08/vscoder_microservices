@@ -1,0 +1,34 @@
+---
+- import_playbook: docker.yml
+  vars:
+    docker_users:
+      - appuser
+
+- name: Install docker on all hosts
+  hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    deploy_ssh_key: "{{ lookup('file', '~/.ssh/id_rsa_appuser_deploy_stage.pub') }}"
+  tasks:
+    - name: Ensure necessary packages are installed
+      apt:
+        name:
+          - python3-pip
+          - libffi-dev
+          - libssl-dev
+        state: present
+
+    - name: Ensure docker-compose and docker is installed
+      pip:
+        executable: /usr/bin/pip3
+        name:
+          - docker
+          - docker-compose
+        state: present
+
+    - name: Add ssh public key to deploy app
+      authorized_key:
+        user: appuser
+        state: present
+        key: "{{ deploy_ssh_key }}"

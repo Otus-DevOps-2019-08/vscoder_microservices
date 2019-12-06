@@ -1,0 +1,176 @@
+---
+- name: Deploy app from branch on dev-server
+  hosts: dev_server
+  gather_facts: no
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    ci_registry_image: "{{ lookup('env','CI_REGISTRY_IMAGE') }}"
+    ci_commit_ref_name: "{{ lookup('env','CI_COMMIT_REF_NAME') }}"
+    ci_registry: "{{ lookup('env','CI_REGISTRY') }}"
+    ci_registry_user: "{{ lookup('env','CI_REGISTRY_USER') }}"
+    ci_job_token: "{{ lookup('env','CI_JOB_TOKEN') }}"
+  tasks:
+    - name: Debug vars
+      debug:
+        msg: |
+          ci_registry_image: {{ ci_registry_image }}
+          ci_commit_ref_name: {{ ci_commit_ref_name }}
+          ci_registry: {{ ci_registry }}
+          ci_registry_user: {{ ci_registry_user }}
+          ci_job_token: {{ ci_job_token }}
+    - name: Login to gitlab docker registry
+      docker_login:
+        username: "{{ ci_registry_user }}"
+        password: "{{ ci_job_token }}"
+        state: present
+        #debug: false
+        registry_url: "{{ ci_registry }}"
+    - name: Deploy reddit-app
+      docker_compose:
+        project_name: reddit
+        debug: yes
+        definition:
+          version: "3.3"
+          services:
+            post_db:
+              image: mongo:3.2
+              volumes:
+                - post_db:/data/db
+              networks:
+                - reddit_back
+            comment_db:
+              image: mongo:3.2
+              volumes:
+                - comment_db:/data/db
+              networks:
+                - reddit_back
+            ui:
+              image: "{{ ci_registry_image }}/ui:{{ ci_commit_ref_name }}"
+              ports:
+                - 9292:9292
+              networks:
+                - reddit_front
+            post:
+              image: "{{ ci_registry_image }}/post:{{ ci_commit_ref_name }}"
+              networks:
+                - reddit_front
+                - reddit_back
+            comment:
+              image: "{{ ci_registry_image }}/comment:{{ ci_commit_ref_name }}"
+              networks:
+                - reddit_front
+                - reddit_back
+
+          volumes:
+            post_db:
+            comment_db:
+
+          networks:
+            reddit_front:
+            reddit_back:
+
+      register: output
+
+    - debug:
+        var: output
+
+    - name: Asserts
+      assert:
+        that:
+          - "post_db.reddit_post_db_1.state.running"
+          - "post.reddit_post_1.state.running"
+          - "comment.reddit_comment_1.state.running"
+          - "ui.reddit_ui_1.state.running"
+
+- name: "Provide nginx reverse-proxy for branch {{ ci_commit_ref_name }}"
+  hosts: branch_proxy
+  gather_facts: no
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    nginx_image_tag: "1.17.6-alpine"
+    branch_server: dev-server-stage-001
+    ci_commit_ref_name: "{{ lookup('env','CI_COMMIT_REF_NAME') }}"
+    ci_registry: "{{ lookup('env','CI_REGISTRY') }}"
+    ci_registry_user: "{{ lookup('env','CI_REGISTRY_USER') }}"
+    ci_job_token: "{{ lookup('env','CI_JOB_TOKEN') }}"
+  tasks:
+    - name: "Get facts about {{ branch_server }}"
+      setup:
+      delegate_to: "{{ branch_server }}"
+      delegate_facts: yes
+    - name: Debug vars
+      debug:
+        msg: |
+          nginx_image_tag: {{ nginx_image_tag }}
+          ci_commit_ref_name: {{ ci_commit_ref_name }}
+          ci_registry: {{ ci_registry }}
+          ci_registry_user: {{ ci_registry_user }}
+          ci_job_token: {{ ci_job_token }}
+          branch_server_facts: {{ hostvars['dev-server-stage-001']['ansible_default_ipv4'] }}
+    - name: Provide nginx config
+      copy:
+        dest: /etc/nginx.conf
+        mode: 0444
+        content: |
+          events {
+            worker_connections  1024;
+          }
+          http {
+            server {
+              listen 80;
+              listen [::]:80;
+
+              server_name {{ ci_commit_ref_name }}-branch.vscoder.ru;
+
+              location / {
+                  proxy_pass http://{{ hostvars['dev-server-stage-001']['ansible_default_ipv4']['address'] }}:9292/;
+              }
+            }
+          }
+
+    - name: Ensure necessary packages are installed
+      apt:
+        name:
+          - python3-pip
+          - libffi-dev
+          - libssl-dev
+        state: present
+
+    - name: Ensure docker-compose and docker is installed
+      pip:
+        executable: /usr/bin/pip3
+        name:
+          - docker
+          - docker-compose
+        state: present
+
+    - name: Login to gitlab docker registry
+      docker_login:
+        username: "{{ ci_registry_user }}"
+        password: "{{ ci_job_token }}"
+        state: present
+        #debug: false
+        registry_url: "{{ ci_registry }}"
+    - name: Deploy nginx
+      docker_compose:
+        project_name: branchproxy
+        debug: yes
+        definition:
+          version: "3.3"
+          services:
+            nginx:
+              image: "nginx:{{ nginx_image_tag }}"
+              ports:
+                - 8080:80
+              volumes:
+                - /etc/nginx.conf:/etc/nginx/nginx.conf:ro
+      register: output
+
+    - debug:
+        var: output
+
+    - name: Asserts
+      assert:
+        that:
+          - "nginx.branchproxy_nginx_1.state.running"

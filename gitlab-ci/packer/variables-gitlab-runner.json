@@ -1,0 +1,7 @@
+{
+  "source_image_family": "ubuntu-1604-lts",
+  "image_family": "gitlab-runner-base",
+  "machine_type": "n1-standard-1",
+  "disk_size": "40",
+  "playbook_name": "packer-gitlab-runner.yml"
+}

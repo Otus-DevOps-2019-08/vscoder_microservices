@@ -1,0 +1,19 @@
+plugin: gcp_compute
+projects:
+  - docker-257914
+auth_kind: serviceaccount
+hostnames:
+  # List host by name instead of the default public ip
+  - name
+compose:
+  # Set an inventory parameter to use the Public IP address to connect to the host
+  # For Private ip use "networkInterfaces[0].networkIP"
+  ansible_host: networkInterfaces[0].accessConfigs[0].natIP
+keyed_groups:
+  # Create groups from GCE labels
+  - prefix: "env"
+    separator: "_"
+    key: labels['env']
+  - prefix: ""
+    separator: ""
+    key: tags['items']

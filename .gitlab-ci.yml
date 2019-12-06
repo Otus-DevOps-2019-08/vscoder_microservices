@@ -1,0 +1,113 @@
+---
+image: ruby:2.4.2
+
+stages:
+  - build
+  - test
+  - review
+  - stage
+  - production
+
+variables:
+  DATABASE_URL: "mongodb://mongo/user_posts"
+
+before_script:
+  - echo 'Before script'
+  - cd reddit
+  - bundle install
+
+build_job:
+  before_script:
+    - echo 'Before script override for build_job'
+  image: docker:19.03.1
+  stage: build
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
+  script:
+    # login
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # build
+    - cd ./src
+    - docker build -t ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME} ./post-py
+    - docker build -t ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME} ./comment
+    - docker build -t ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME} ./ui
+    # push
+    - docker push ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME}
+  tags:
+    - dind
+
+test_unit_job:
+  stage: test
+  services:
+    - mongo:latest
+  script:
+    - echo 'Testing 1'
+    - ruby simpletest.rb
+
+test_integration_job:
+  stage: test
+  script:
+    - echo 'Testing 2'
+
+deploy_dev_job:
+  before_script:
+    - echo 'Before script override for deploy_dev_job'
+  stage: review
+  image: cytopia/ansible:2.9
+  script:
+    - pip3 install requests google-auth
+    - cd gitlab-ci/ansible
+    - ansible-galaxy install -r environments/stage/requirements.yml
+    - ansible-inventory -i environments/stage/runner-inventory.gcp.yml --list
+    - apk update && apk add openssh-client
+    # - eval $(ssh-agent -s)
+    # - cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - chmod 0600 "$SSH_PRIVATE_KEY"
+    - export ANSIBLE_HOST_KEY_CHECKING=False
+    - export ANSIBLE_REMOTE_USER=appuser
+    - export ANSIBLE_PRIVATE_KEY_FILE="$SSH_PRIVATE_KEY"
+    - echo $ANSIBLE_HOST_KEY_CHECKING
+    - echo $ANSIBLE_REMOTE_USER
+    - echo $ANSIBLE_PRIVATE_KEY_FILE
+    - ansible-playbook -i environments/stage/runner-inventory.gcp.yml playbooks/deploy-dev.yml -vvvv
+  environment:
+    name: ${CI_COMMIT_REF_NAME}
+    url: http://${CI_COMMIT_REF_NAME}-branch.vscoder.ru:8080
+  tags:
+    - docker
+
+branch review:
+  stage: review
+  script: echo "Deploy to $CI_ENVIRONMENT_SLUG"
+  environment:
+    name: branch/$CI_COMMIT_REF_NAME
+    url: http://$CI_ENVIRONMENT_SLUG.example.com
+  only:
+    - branches
+  except:
+    - master
+
+staging:
+  stage: stage
+  when: manual
+  only:
+    - /^\d+\.\d+\.\d+/
+  script:
+    - echo 'Deploy'
+  environment:
+    name: stage
+    url: https://beta.example.com
+
+production:
+  stage: production
+  when: manual
+  only:
+    - /^\d+\.\d+\.\d+/
+  script:
+    - echo 'Deploy'
+  environment:
+    name: production
+    url: https://example.com

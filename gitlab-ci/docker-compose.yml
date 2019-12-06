@@ -1,0 +1,18 @@
+web:
+  image: "gitlab/gitlab-ce:latest"
+  restart: always
+  hostname: "gitlab.example.com"
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      gitlab_rails['gitlab_shell_ssh_port'] = 2222
+      letsencrypt['enable'] = true
+      external_url "https://gitlab.vscoder.ru"
+  ports:
+    - "80:80"
+    - "443:443"
+    - "2222:22"
+    - "5050:5050"
+  volumes:
+    - "/srv/gitlab/config:/etc/gitlab"
+    - "/srv/gitlab/logs:/var/log/gitlab"
+    - "/srv/gitlab/data:/var/opt/gitlab"

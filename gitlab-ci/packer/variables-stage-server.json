@@ -1,0 +1,7 @@
+{
+  "source_image_family": "ubuntu-1604-lts",
+  "image_family": "stage-server-base",
+  "machine_type": "g1-small",
+  "disk_size": "40",
+  "playbook_name": "packer-stage-server.yml"
+}

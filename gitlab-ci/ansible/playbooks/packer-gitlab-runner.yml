@@ -1,0 +1,8 @@
+---
+- name: Provision image with docker and gitlab-runner
+  hosts: all
+  become: true
+  roles:
+    - role: geerlingguy.docker
+    - role: riemers.gitlab-runner
+      #gitlab_runner_package_version: 12.5.1

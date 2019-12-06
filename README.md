@@ -92,6 +92,53 @@ vscoder microservices repository
       - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-2)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-1)
     - [Вне заданий](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9)
+  - [HomeWork 15: Устройство Gitlab CI. Построение процесса непрерывной поставки](#homework-15-%d0%a3%d1%81%d1%82%d1%80%d0%be%d0%b9%d1%81%d1%82%d0%b2%d0%be-gitlab-ci-%d0%9f%d0%be%d1%81%d1%82%d1%80%d0%be%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d1%86%d0%b5%d1%81%d1%81%d0%b0-%d0%bd%d0%b5%d0%bf%d1%80%d0%b5%d1%80%d1%8b%d0%b2%d0%bd%d0%be%d0%b9-%d0%bf%d0%be%d1%81%d1%82%d0%b0%d0%b2%d0%ba%d0%b8)
+    - [Развёртывание gitlab](#%d0%a0%d0%b0%d0%b7%d0%b2%d1%91%d1%80%d1%82%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-gitlab)
+      - [Подготовка хоста](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d1%85%d0%be%d1%81%d1%82%d0%b0)
+        - [ansible](#ansible)
+        - [packer](#packer)
+        - [terraform](#terraform)
+      - [Развёртывание gitlab](#%d0%a0%d0%b0%d0%b7%d0%b2%d1%91%d1%80%d1%82%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-gitlab-1)
+      - [Первоначальная настройка](#%d0%9f%d0%b5%d1%80%d0%b2%d0%be%d0%bd%d0%b0%d1%87%d0%b0%d0%bb%d1%8c%d0%bd%d0%b0%d1%8f-%d0%bd%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0)
+        - [Работа с репозиторием через ssh](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d1%80%d0%b5%d0%bf%d0%be%d0%b7%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%b5%d0%bc-%d1%87%d0%b5%d1%80%d0%b5%d0%b7-ssh)
+    - [Создание проекта](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
+      - [CI/CD Pipeline](#cicd-pipeline)
+    - [Runner](#runner)
+    - [Тестирование Reddit](#%d0%a2%d0%b5%d1%81%d1%82%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-reddit)
+    - [Работа с окружениями](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f%d0%bc%d0%b8)
+      - [dev](#dev)
+      - [staging и production](#staging-%d0%b8-production)
+      - [Динамические окружения](#%d0%94%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+    - [Вне заданий: улучшалки](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9-%d1%83%d0%bb%d1%83%d1%87%d1%88%d0%b0%d0%bb%d0%ba%d0%b8)
+    - [Задание со \*: Автоматизированная сборка приложения reddit](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-reddit)
+      - [План](#%d0%9f%d0%bb%d0%b0%d0%bd)
+      - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-2)
+        - [Настройка terraform module instance](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-terraform-module-instance)
+        - [Настройка stage-окружения terraform](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-stage-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-terraform)
+        - [Применение инфраструктуры](#%d0%9f%d1%80%d0%b8%d0%bc%d0%b5%d0%bd%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b8%d0%bd%d1%84%d1%80%d0%b0%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d1%8b)
+        - [Интеграция с Let's Encrypt](#%d0%98%d0%bd%d1%82%d0%b5%d0%b3%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%81-lets-encrypt)
+        - [Настройка сборки образов в .gitlab-ci.yml](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b8-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d0%b2-gitlab-ciyml)
+          - [Попытка решить задачу в лоб (неудачная)](#%d0%9f%d0%be%d0%bf%d1%8b%d1%82%d0%ba%d0%b0-%d1%80%d0%b5%d1%88%d0%b8%d1%82%d1%8c-%d0%b7%d0%b0%d0%b4%d0%b0%d1%87%d1%83-%d0%b2-%d0%bb%d0%be%d0%b1-%d0%bd%d0%b5%d1%83%d0%b4%d0%b0%d1%87%d0%bd%d0%b0%d1%8f)
+          - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-3)
+          - [Подготовка хоста для docker runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d0%b4%d0%bb%d1%8f-docker-runner)
+          - [Подготовлен docker-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%bb%d0%b5%d0%bd-docker-runner)
+          - [Автоматизированная сборка образов](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
+        - [Загрузка образов в gitlab registry](#%d0%97%d0%b0%d0%b3%d1%80%d1%83%d0%b7%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d0%b2-gitlab-registry)
+    - [Задание со \*: Деплой контейнера на созданный для ветки сервер](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0-%d0%bd%d0%b0-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d0%b9-%d0%b4%d0%bb%d1%8f-%d0%b2%d0%b5%d1%82%d0%ba%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b5%d1%80)
+      - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-3)
+        - [Packer](#packer-1)
+        - [Terraform](#terraform-1)
+        - [Ansible](#ansible)
+          - [Поиск решения](#%d0%9f%d0%be%d0%b8%d1%81%d0%ba-%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d1%8f)
+          - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-4)
+          - [Подготовка gitlab-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-gitlab-runner)
+          - [Проверка](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0)
+          - [Создание Environment](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-environment)
+    - [Задание со \*: Автоматизированное создание и регистрация раннеров](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
+      - [Проработка скейлинга раннеров](#%d0%9f%d1%80%d0%be%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%ba%d0%b0-%d1%81%d0%ba%d0%b5%d0%b9%d0%bb%d0%b8%d0%bd%d0%b3%d0%b0-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
+    - [Задание со \*: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
+    - [Прохождение тестов travis-ci](#%d0%9f%d1%80%d0%be%d1%85%d0%be%d0%b6%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d1%82%d0%b5%d1%81%d1%82%d0%be%d0%b2-travis-ci)
+    - [Прочее](#%d0%9f%d1%80%d0%be%d1%87%d0%b5%d0%b5)
 
 # Makefile
 
@@ -3343,3 +3390,1595 @@ To use multiple override files, or an override file with a different name, you c
 - С целью улучшения читаемости, из [.travis.yml] в шелл-скрипты перенесены команды из секций
   - `install` в [.travis-scripts/install.sh](.travis-scripts/install.sh)
   - `before_script` в [.travis-scripts/before_script.sh](.travis-scripts/before_script.sh)
+
+
+## HomeWork 15: Устройство Gitlab CI. Построение процесса непрерывной поставки
+
+### Развёртывание gitlab
+
+#### Подготовка хоста
+
+- Создана директория [gitlab](gitlab)
+- Создан [Makefile](gitlab-ci/Makefile) с набором целей для развёртывания инфраструктуры под gitlab средствами packer, teraform и ansible
+
+##### ansible
+
+- На основе [docker-monolith/ansible](docker-monolith/ansible) создана директория [gitlab-ci/ansible](gitlab-ci/ansible)
+- Удалены лишние файлы и директории.
+- Оставлен только плейбук [gitlab-ci/ansible/playbooks/docker.yml](gitlab-ci/ansible/playbooks/docker.yml), необходимый для развёртывания docker в packer-образе
+- Установлены вынешние ansible-роли
+
+##### packer
+
+- На основе [docker-monolith packer](docker-monolith/packer) создана директория [gitlab-ci/packer](gitlab-ci/packer)
+- Дополнен файл с примерами переменных [gitlab-ci/packer/variables.json.example](gitlab-ci/packer/variables.json.example)
+  ```json
+  {
+    "project_id": "docker-ID",
+    "source_image_family": "ubuntu-1604-lts",
+    "machine_type": "n1-standart-1",
+    "disk_size": "60"
+  }
+  ```
+- Заполнены переменные [gitlab-ci/packer/variables.json](gitlab-ci/packer/variables.json)
+- Проверена конфигурация packer
+  ```shell
+  # make packer_validate
+  ~/bin/packer --version
+  1.4.4
+  ~/bin/packer validate -var-file=packer/variables.json packer/docker.json
+  Template validated successfully.
+  ```
+- Собран образ `"image_family": "gitlab-docker-base"`
+  ```shell
+  # make packer_build
+  ...
+  ==> Builds finished. The artifacts of successful builds are:
+  --> googlecompute: A disk image was created: gitlab-docker-base-1574589582
+  ```
+
+##### terraform
+
+- Директория [docker-monolith/terraform](docker-monolith/terraform) скопирована в [gitlab-ci/terraform](gitlab-ci/terraform)
+- В [gitlab-ci/terraform/stage/backend.tf](gitlab-ci/terraform/stage/backend.tf) значение `prefix` установлено в `"terraform/gitlab/stage"`
+- В [gitlab-ci/terraform/stage/terraform.tfvars.example](gitlab-ci/terraform/stage/terraform.tfvars.example) изменены значения следующих переменных
+  ```hcl
+  docker_app_disk_image     = "gitlab-docker-base"
+  docker_app_tags           = ["gitlab-docker-app"]
+  docker_app_tcp_ports      = ["80", "443"]
+  ```
+- Так же добавлены переменные
+  ```hcl
+  docker_app_name_prefix    = "gitlab"
+  docker_app_machine_type   = "n1-standard-1"
+  ```
+- Те же переменные добавлены/изменены в [gitlab-ci/terraform/terraform.tfvars](gitlab-ci/terraform/terraform.tfvars)
+- Выполнена инициализация terraform
+  ```shell
+  # make terraform_init
+  ...
+  Terraform has been successfully initialized!
+  ...
+  ```
+- Выполнена валидация `make terraform_validate`
+- Выполнен линтинг `make terraform_tflint`
+- Создана инфраструктура `make terraform_apply`
+  ```json
+  Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+  Outputs:
+
+  docker_app_external_ip = [
+    "34.76.206.37",
+  ]
+  ```
+
+#### Развёртывание gitlab
+
+Все действия выполняются на удалённой машине, развёрнутой в предыдущем пункте
+
+- Созданы необходимые директории
+  ```shell
+  sudo mkdir -p /srv/gitlab/config /srv/gitlab/data /srv/gitlab/logs
+  cd /srv/gitlab/
+  sudo touch docker-compose.yml
+  ```
+- Содержимое `docker-compose.yml`
+```yaml
+web:
+  image: 'gitlab/gitlab-ce:latest'
+  restart: always
+  hostname: 'gitlab.example.com'
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      external_url 'http://34.76.206.37'
+      gitlab_rails['gitlab_shell_ssh_port'] = 2222
+  ports:
+    - '80:80'
+    - '443:443'
+    - '2222:22'
+  volumes:
+    - '/srv/gitlab/config:/etc/gitlab'
+    - '/srv/gitlab/logs:/var/log/gitlab'
+    - '/srv/gitlab/data:/var/opt/gitlab'
+```
+- Запущено развёртывание `sudo docker-compose up -d`
+- Спустя несколько минут установка завершена
+- Задан пароль для пользователя `root` (пользователь по умолчанию)
+- Успешно выполнен вход
+
+#### Первоначальная настройка
+
+- Отменена возможность регистрации новых пользователей
+  *settings -> general -> sign-up restrictions ->sign-up enabled = false*, *save changes*
+- Изменён логин пользователя *Administrator* чтобы усложнить подбор пароля перебором
+
+##### Работа с репозиторием через ssh
+
+- Пользователю добавлен публичный ssh-ключ
+- В [gitlab-ci/terraform/stage/terraform.tfvars](gitlab-ci/terraform/stage/terraform.tfvars) разрешён порт `2222`
+  ```hcl
+  docker_app_tcp_ports = ["80", "443", "2222"]
+  ```
+- В `docker-comnpose.yml` добавлен параметр `gitlab_rails['gitlab_shell_ssh_port'] = 2222` для работы с git-репозиторием через ssh по порту `2222`
+
+### Создание проекта
+
+- Создана приватная группа `homework`
+- Создан приватный проект `example`
+- В репозиторий `vscoder_microservices` добавлен удалённый репозиторий созданного проекта
+```shell
+git remote add gitlab ssh://git@34.76.206.37:2222/otus/example.git
+git push gitlab gitlab-ci-1
+```
+
+#### CI/CD Pipeline
+
+- Добавлен [.gitlab-ci.yml](.gitlab-ci.yml) содержащий шаблон пайплайна
+```yaml
+stages:
+  - build
+  - test
+  - deploy
+
+build_job:
+  stage: build
+  script:
+    - echo 'Building'
+
+test_unit_job:
+  stage: test
+  script:
+    - echo 'Testing 1'
+
+test_integration_job:
+  stage: test
+  script:
+    - echo 'Testing 2'
+
+deploy_job:
+  stage: deploy
+  script:
+    - echo 'Deploy'
+```
+
+### Runner
+
+- На хосте с gitlab запущен раннер
+```shell
+docker run -d --name gitlab-runner --restart always \
+  -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  gitlab/gitlab-runner:latest
+```
+- Раннер зарегистрирован в gitlab
+```shell
+docker exec -it gitlab-runner gitlab-runner register --run-untagged --locked=false
+```
+```shell
+> Runtime platform                                    arch=amd64 os=linux pid=13 revision=577f813d version=12.5.0
+> Running in system-mode.                            
+>                                                    
+> Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com/):
+http://34.76.206.37/
+> Please enter the gitlab-ci token for this runner:
+here_is_token
+> Please enter the gitlab-ci description for this runner:
+[b1ae79ee8481]: gce-docker-runnel
+> Please enter the gitlab-ci tags for this runner (comma separated):
+linux,xenial,ubuntu,docker
+> Registering runner... succeeded                     runner=QW4GxkHH
+> Please enter the executor: parallels, shell, virtualbox, docker+machine, docker-ssh+machine, custom, docker, docker-ssh, ssh, kubernetes:
+docker
+> Please enter the default Docker image (e.g. ruby:2.6):
+alpine:latest
+> Runner registered successfully. Feel free to start it, but if it's running already the config should be automatically reloaded!
+```
+- Пайплайн автоматически был запущен и выполнен успешно
+
+### Тестирование Reddit
+
+- Код приложения склонирован из репозитория
+```shell
+git clone https://github.com/express42/reddit.git && rm -rf ./reddit/.git
+git add reddit/
+git commit -m "Add reddit app"
+git push gitlab gitlab-ci-1
+```
+- В [.gitlab-ci.yml](.gitlab-ci.yml) добавлены элементы пайпалйна для тестирования приложения. Новое содержимое
+```yaml
+---
+image: ruby:2.4.2
+
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  DATABASE_URL: "mongodb://mongo/user_posts"
+
+before_script:
+  - cd reddit
+  - bundle install
+
+build_job:
+  stage: build
+  script:
+    - echo 'Building'
+
+test_unit_job:
+  stage: test
+  services:
+    - mongo:latest
+  script:
+    - ruby simpletest.rb
+    # - echo 'Testing 1'
+
+test_integration_job:
+  stage: test
+  script:
+    - echo 'Testing 2'
+
+deploy_job:
+  stage: deploy
+  script:
+    - echo 'Deploy'
+```
+- В [reddit/simpletest.rb](reddit/simpletest.rb) добавлен простой тест
+```ruby
+require_relative './app'
+require 'test/unit'
+require 'rack/test'
+
+set :environment, :test
+
+class MyAppTest < Test::Unit::TestCase
+  include Rack::Test::Methods
+
+  def app
+    Sinatra::Application
+  end
+
+  def test_get_request
+    get '/'
+    assert last_response.ok?
+  end
+end
+```
+- В [reddit/Gemfile](reddit/Gemfile) добавлена библиотека для тестирования
+```ruby
+gem 'rack-test'
+```
+- Изменения закоммичены и запушены в gitlab
+```shell
+git add .
+git ci -m"Add reddit app tests to pipeline"
+git push gitlab gitlab-ci-1
+```
+- Job succeeded
+
+### Работа с окружениями
+
+#### dev
+
+- В [.gitlab-ci.yml](.gitlab-ci.yml) stage `deploy` переименован в `review`
+```yaml
+stages:
+  - build
+  - test
+  - review
+```
+- Job `deploy_job` переименован в `deploy_dev_job` и приведён к следующему виду
+```yaml
+deploy_dev_job:
+  stage: review
+  script:
+    - echo 'Deploy'
+  environment:
+    name: dev
+    url: http://dev.example.com
+```
+- Выполнен commit и push
+```shell
+git add .
+git ci -m"Add deploy dev environment"
+git push gitlab gitlab-ci-1
+```
+- В проекте в *operations* -> *environments* появилось окружение **dev**
+- При нажатии на *View deployment* происходит переход на указанный url
+
+#### staging и production
+
+- В [.gitlab-ci.yml](.gitlab-ci.yml) добавлены jobs `staging` и `production`
+```yaml
+staging:
+  stage: stage
+  when: manual  # ручной запуск
+  script:
+    - echo 'Deploy'
+  environment:
+    name: stage
+    url: https://beta.example.com
+
+production:
+  stage: production
+  when: manual  # ручной запуск
+  script:
+    - echo 'Deploy'
+  environment:
+    name: production
+    url: https://example.com
+```
+- Стадии stage и production были запущены вручную
+- В оба стейджа добавлено условие возможности запуска только с тэгом, соответствуюжем трйм числам, раздёлённым точкой
+```yaml
+only:
+  - /^\d+\.\d+\.\d+/
+```
+- После пуша без тега, стадии stage и production недоступны
+- Выполнен пуш с тегом
+```shell
+git add .
+git commit -m "Add tag and push"
+git tag 2.4.10
+git push gitlab gitlab-ci-1
+git push gitlab gitlab-ci-1 --tags
+```
+- Для job-а с тегом снова доступны стадии stage и prod
+
+#### Динамические окружения
+
+- Добавлен job `branch review`
+```yaml
+branch review:
+  stage: review  # имя стадии
+  script: echo "Deploy to $CI_ENVIRONMENT_SLUG"
+  environment:
+    name: branch/$CI_COMMIT_REF_NAME  # имя бренча в имени окружения
+    url: http://$CI_ENVIRONMENT_SLUG.example.com  # имя бренча в url
+  only:
+    - branches  # запуск для каждой ветки репозитория
+  except:
+    - master  # не запускать для мастера
+```
+Этот job определяет динамическое окружение для каждой ветки в репозитории, кроме ветки master
+- Проверено: была создана ветка `new-feature`. Создалось 2 окружения
+  - `branch/gitlab-ci-1` для текущего бренча
+  - `branch/new-feature` для созданного бренча
+
+
+### Вне заданий: улучшалки
+
+- Добавлен [gitlab-ci/README.md](gitlab-ci/README.md) с описанием Makefile целей и переменных
+
+### Задание со \*: Автоматизированная сборка приложения reddit
+
+В шаг build добавить сборку контейнера с приложением reddit. Деплойте контейнер с reddit на созданный для ветки сервер.
+
+#### План
+
+- [x] Настроить [gitlab registry](https://docs.gitlab.com/ee/user/packages/container_registry/index.html)
+  - [x] Включить интеграцию с [Let’s Encrypt](https://docs.gitlab.com/omnibus/settings/ssl.html#lets-encrypt-integration)
+    - [x] Создать привязку к доменному имени
+      - [x] Создать постоянный ip средствами terraform
+      - [x] В последствии, решить проблему с формированием url для `environment.url` в `.gitlab-ci.yml`
+  - [x] registry добжен включиться автоматически [GitLab Container Registry administration](https://docs.gitlab.com/ee/administration/packages/container_registry.html)
+- [x] Настроить в `.gitlab-ci.yml` автоматизированную сборку образов средствами [docker build](https://docs.docker.com/engine/reference/commandline/build/)
+  - [x] решить проблему со сборкой образов раннером типа docker https://docs.gitlab.com/сe/ci/docker/using_docker_build.html
+- [x] Следующим шагом необходимо загрузить образ в registry, настроенный ранее
+- [x] Подготовить инфраструктуру:
+  - [x] создать сервер с установленным docker для деплоя ветки (terraform)
+- [x] создать ansible-playbook для деплоя приложения на созданный сервер средствами docker-compose
+- [x] реализовать деплой в `.gitlab-ci.yml`
+
+#### Реализация
+
+**ПРИМЕЧАНИЕ** Возможно, более правильно использовать `google_dns_managed_zone` для управления dns-записями на gitlab и branch-окружения. **TODO:** разобраться
+
+В рамках данного ДЗ, для интеграции Let's Encrypt будет использован постоянный IP и собственный домен `vscoder.ru`
+
+##### Настройка terraform module instance
+
+- В [gitlab-ci/terraform/modules/instance/main.tf](gitlab-ci/terraform/modules/instance/main.tf) настроено использование статического ip
+```hcl
+resource "google_compute_instance" "instance" {
+  ...
+  network_interface {
+    ...
+    access_config {
+      nat_ip = var.use_static_ip ? google_compute_address.instance_ip[0].address : null
+    }
+  }
+}
+...
+resource "google_compute_address" "instance_ip" {
+  name  = "reddit-app-ip-${var.environment}"
+  count = var.use_static_ip ? 1 : 0
+}
+```
+- В [gitlab-ci/terraform/modules/instance/variables.tf](gitlab-ci/terraform/modules/instance/variables.tf) добавлено описание переменной `use_static_ip`
+```hcl
+variable use_static_ip {
+  description = "Need to create static ip for instance?"
+  default     = false
+}
+```
+
+##### Настройка stage-окружения terraform
+
+- В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) включено использование статического ip для gitlab instance
+```hcl
+# GitLab instance
+module "docker-app" {
+  instance_count      = 1  # Количество 1 так как у нас единственный инстанс gitlab
+  ...
+  use_static_ip       = true
+}
+```
+
+##### Применение инфраструктуры
+
+- Применение
+```shell
+cd gitlab && make terraform_apply
+```
+```log
+module.docker-app.google_compute_address.instance_ip[0]: Creating...
+module.docker-app.google_compute_address.instance_ip[0]: Creation complete after 4s [id=docker-257914/europe-west1/reddit-app-ip-stage]
+module.docker-app.google_compute_instance.instance[0]: Modifying... [id=gitlab-stage-001]
+module.docker-app.google_compute_instance.instance[0]: Still modifying... [id=gitlab-stage-001, 10s elapsed]
+module.docker-app.google_compute_instance.instance[0]: Modifications complete after 16s [id=gitlab-stage-001]
+
+Apply complete! Resources: 1 added, 1 changed, 0 destroyed.
+
+Outputs:
+
+docker_app_external_ip = [
+  "35.195.25.130",
+]
+```
+- Создано доменная запись `gitlab.vscoder.ru A 35.195.25.130`
+- После истечения таймаута, GitLab доступен по адресу http://gitlab.vscoder.ru
+- Забыл пароль. Восстановление https://docs.gitlab.com/ee/security/reset_root_password.html
+```shell
+ssh -i ~/.ssh/<private_key> appuser@35.195.25.130
+cd /srv/gitlab
+sudo docker-compose exec web bash
+gitlab-rails console -e production
+```
+```ruby
+user = User.where(id: 1).first
+user.password = 'secret_pass'
+user.password_confirmation = 'secret_pass'
+user.save!
+```
+- Вход выполнен успешно
+
+##### Интеграция с Let's Encrypt
+
+- На хосте с gitlab в `/srv/gitlab/docker-compose.yml` включена [интеграция с Let's Encrypt](https://docs.gitlab.com/omnibus/settings/ssl.html#primary-gitlab-instance)
+```yaml
+...
+web:
+  ...
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      gitlab_rails['gitlab_shell_ssh_port'] = 2222
+      letsencrypt['enable'] = true
+      external_url "https://gitlab.vscoder.ru"
+```
+- Гитлаб перезапущен
+```sh
+sudo docker-compose down; sudo docker-compose up -d && sudo docker-compose logs -f
+# wait ~3-5min for ditlab starts
+```
+```log
+...
+Recipe: letsencrypt::enable
+   * crond_job[letsencrypt-renew] action create
+     * file[/var/opt/gitlab/crond/letsencrypt-renew] action create
+       - create new file /var/opt/gitlab/crond/letsencrypt-renew
+       - update content in file /var/opt/gitlab/crond/letsencrypt-renew from none to d7e87c
+       --- /var/opt/gitlab/crond/letsencrypt-renew      2019-11-27 16:19:49.916624624 +0000
+       +++ /var/opt/gitlab/crond/.chef-letsencrypt-renew20191127-22-k2j9ix      2019-11-27 16:19:49.916624624 +0000
+       @@ -1 +1,2 @@
+       +18 0 */4 * * root /opt/gitlab/bin/gitlab-ctl renew-le-certs
+       - change owner from '' to 'root'
+       - change group from '' to 'root'
+   
+   * ruby_block[display_le_message] action nothing (skipped due to action :nothing)
+   * ruby_block[save_auto_enabled] action run
+     - execute the ruby block save_auto_enabled
+...
+```
+- Успешно выполнен вход на https://gitlab.vscoder.ru/
+- В Admin Area видно, что встроенный Container Registry стал активным
+- Актуальный `docker-compose.yml`
+```yaml
+web:
+  image: 'gitlab/gitlab-ce:latest'
+  restart: always
+  hostname: 'gitlab.example.com'
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      gitlab_rails['gitlab_shell_ssh_port'] = 2222
+      letsencrypt['enable'] = true
+      external_url "https://gitlab.vscoder.ru"
+  ports:
+    - '80:80'
+    - '443:443'
+    - '2222:22'
+  volumes:
+    - '/srv/gitlab/config:/etc/gitlab'
+    - '/srv/gitlab/logs:/var/log/gitlab'
+    - '/srv/gitlab/data:/var/opt/gitlab'
+```
+
+##### Настройка сборки образов в .gitlab-ci.yml
+
+###### Попытка решить задачу в лоб (неудачная)
+
+- Удалён вызов фейковых тестов, добавленных ранее в качестве примера
+- В [.gitlab-ci.yml](.gitlab-ci.yml) в задачу `build_job` добавлена сборка всех контейнеров
+- В репозитории `vscoder_microservices` изменён удалённый репозиторий созданного проекта
+```shell
+git remote rm gitlab
+git remote add gitlab ssh://git@gitlab.vscoder.ru:2222/otus/example.git
+git push gitlab gitlab-ci-1
+```
+- В [gitlab-ci/Makefile](gitlab-ci/Makefile) добавлена цель `push_gitlab` для пуша в remote named _gitlab_
+- Выполнен пуш в гитлаб
+- Ранее запущенный раннер оказался неактивен из за смены URL gitlab на https://gitlab.vscoder.ru
+- Выполнено подключение к контейнеру `sudo docker exec -it gitlab-runner bash`
+- В конфиге раннера `/etc/gitlab-runner/gitlab.toml` изменён url с `url = "http://34.76.206.37/"` на `url = "https://gitlab.vscoder.ru/"`
+- Контейнер перезапущен
+```shell
+sudo docker restart gitlab-runner
+```
+- gitlab-rrunner `gce-docker-runnel` снова стал активен
+- pipeline завершилсф ошибкой
+```shell
+$ cd src && make build_all
+docker build -t vscoder/post:2.0-alpine ./post-py
+make: docker: Command not found
+```
+  - Причина - сборка в образе `image: ruby:2.4.2`
+- Попытка решения: использование [образа](https://hub.docker.com/_/docker) `docker:stable` для `build_job`
+- Ошибка `/bin/sh: eval: line 87: make: not found`
+- В [.gitlab-ci.yml](.gitlab-ci.yml) добавлена установка `make`
+```yaml
+script:
+  - echo 'Building'
+  - sudo apt install make
+  - cd src && make build_all
+```
+- Ошибка
+```log
+$ sudo apt install make
+/bin/sh: eval: line 87: sudo: not found
+```
+- убрал sudo
+```yaml
+script:
+  - echo 'Building'
+  - apt install make
+  - cd src && make build_all
+```
+- ошибка `/bin/sh: eval: line 87: apt: not found`
+- Мы же в alpine linux)) заменил `apt` на `apk`
+```yaml
+script:
+  - echo 'Building'
+  - apk install make
+  - cd src && make build_all
+```
+- ошибка `ERROR: 'install' is not an apk command. See 'apk --help'.`
+нет чтобы заглянуть в свой старый код (например сборку оборазов на основе alpine))
+- заменил `install` на `add`
+```yaml
+script:
+  - echo 'Building'
+  - apk add make
+  - cd src && make build_all
+```
+- ошибка
+```log
+docker build -t vscoder/post:2.0-alpine ./post-py
+time="2019-11-27T17:53:26Z" level=error msg="failed to dial gRPC: cannot connect to the Docker daemon. Is 'docker daemon' running on this host?: dial tcp: lookup docker on 169.254.169.254:53: no such host"
+error during connect: Post http://docker:2375/v1.40/build?buildargs=%7B%7D&cachefrom=%5B%5D&cgroupparent=&cpuperiod=0&cpuquota=0&cpusetcpus=&cpusetmems=&cpushares=0&dockerfile=Dockerfile&labels=%7B%7D&memory=0&memswap=0&networkmode=default&rm=1&session=d831lkik8627vo4jczmd2jqvm&shmsize=0&t=vscoder%2Fpost%3A2.0-alpine&target=&ulimits=null&version=1: context canceled
+make: *** [Makefile:11: build_post] Error 1
+```
+- попытка решения: указать `DOCKER_HOST: unix:///var/run/docker.sock` так как мы не используем сервис docker-in-docker
+- не сработало `Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?`
+
+###### Анализ
+
+- Конец танцам с бубном, время читать документацию: https://docs.gitlab.com/сe/ci/docker/using_docker_build.html
+- Самый простой способ -- [использовать shell executor](https://docs.gitlab.com/ce/ci/docker/using_docker_build.html#use-shell-executor)
+  - предполагается использование отдельного хоста
+  - By adding gitlab-runner to the docker group you are effectively granting gitlab-runner full root permissions
+- Так же возможно использовать [docker-in-docker workflow with Docker executor](https://docs.gitlab.com/ce/ci/docker/using_docker_build.html#use-docker-in-docker-workflow-with-docker-executor)
+  - Читать https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/ до просветления, почему так лучше не делать (TODO)
+- Тертий способ -- [Use Docker socket binding](https://docs.gitlab.com/ce/ci/docker/using_docker_build.html#use-docker-socket-binding)
+  - **WARNING** Docker in privileged mode
+
+Минусы решения **docker-in-docker**
+- Проблемы при использовании SElinux или AppArmor
+- Проблемы при использовании DeviceMapper (DM not namespaced)
+- Или отказ от использования кэша образов, или возможность повреждения данных в случае использования кэша хоста
+  > But try to do something more involved (pull the same image from two different instances…) and watch the world burn.
+- Рекомендации от автора статьи
+  > And the simplest way is to just expose the Docker socket to your CI container, by bind-mounting it with the -v flag.
+  > ...
+  > And the simplest way is to just expose the Docker socket to your CI container, by bind-mounting it with the -v flag.
+
+Минусы docker sockert binding
+
+> By sharing the docker daemon, you are effectively disabling all the security mechanisms of containers and exposing your host to privilege escalation which can lead to container breakout. For example, if a project ran docker rm -f $(docker ps -a -q) it would remove the GitLab Runner containers.
+
+> Concurrent jobs may not work; if your tests create containers with specific names, they may conflict with each other.
+
+> Sharing files and directories from the source repo into containers may not work as expected since volume mounting is done in the context of the host machine, not the build container. For example:
+
+Было принято решение поднять раннер на отдельном хосте
+
+###### Подготовка хоста для docker runner
+
+- В [gitlab-ci/packer/docker.json](gitlab-ci/packer/docker.json) параметризован параметр `image_family`
+- Создан файл [gitlab-ci/packer/variables-gitlab-runner.json](gitlab-ci/packer/variables-gitlab-runner.json) со значениями для образа с gitlab-runner
+- **ЗАМЕЧАНИЕ** переменная `project_id` осталась в файле `variables.json`
+- В [gitlab-ci/packer/docker.json](gitlab-ci/packer/docker.json) параметризован параметр `playbook_file` для провиженинга образа. Необходимо указывать имя файла плейбука относительно директории `gitlab-ci/ansible/playbooks/docker.yml`. По умолчанию `docker.yml`
+- В [gitlab-ci/packer/docker.json](gitlab-ci/packer/docker.json) заданы значения по умолчанию для переменных
+```json
+{
+  ...
+  "source_image_family": "ubuntu-1604-lts",
+  "image_family": "docker-base",
+  ...
+}
+```
+- Переменные,, относящиеся к образу gitlab-сервера, вынесены в отдельный файл [gitlab-ci/packer/variables-gitlab.json](gitlab-ci/packer/variables-gitlab.json)
+- Создан плейбук [gitlab-ci/ansible/playbooks/packer-gitlab-runner.yml](gitlab-ci/ansible/playbooks/packer-gitlab-runner.yml), устанавливающий докер и гитлаб-раннер
+```yaml
+---
+- name: Provision image with docker and gitlab-runner
+  hosts: all
+  become: true
+  roles:
+    - role: geerlingguy.docker
+    - role: riemers.gitlab-runner
+```
+- В зависимости ансибл [gitlab-ci/ansible/environments/stage/requirements.yml](gitlab-ci/ansible/environments/stage/requirements.yml) добавлена зависимость от роли 
+- Установлены зависимости ansible `make ansible_install_requirements`
+- В Makefile targets `packer_build` и `packer_validate` добавлено использование переменный из `packer/variables.json`
+- В Makefile targets `packer_build` и `packer_validate`, помимо предыдущего пункта, добавлено использование переменных из `PACKER_VAR_FILE?=packer/variables-gitlab-runner.json`
+```json
+{
+  "source_image_family": "ubuntu-1604-lts",
+  "image_family": "gitlab-runner-base",
+  "machine_type": "n1-standard-1",
+  "disk_size": "40",
+  "playbook_name": "packer-gitlab-runner.yml"
+}
+```
+- В [gitlab-ci/packer/scripts/ansible-playbook.sh](gitlab-ci/packer/scripts/ansible-playbook.sh) исправлен путь к исполняемому файлу `ansible`
+- Выполнена сборка packer-образа gitlab-runner `make packer_build PACKER_VAR_FILE=packer/variables-gitlab-runner.json`
+  - **ОШИБКА** `Version '12.5.2' for 'gitlab-runner' was not found`
+  - из [gitlab-ci/ansible/playbooks/packer-gitlab-runner.yml](gitlab-ci/ansible/playbooks/packer-gitlab-runner.yml) удален параметр версии `gitlab_runner_package_version`
+  - сборка прошла успешно
+- В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) создан ещё один хост
+```hcl
+# Gitlab Runner
+module "gitlab-runner" {
+  instance_count      = 1
+  source              = "../modules/instance"
+  project             = var.project
+  zone                = var.zone
+  environment         = var.environment
+  name_prefix         = "gitlab-runner"
+  machine_type        = "g1-small"
+  instance_disk_image = "gitlab-runner-base"
+  tags                = ["gitlab-runner"]
+  tcp_ports           = ["22"]
+  vpc_network_name    = var.vpc_network_name
+  use_static_ip       = false
+}
+```
+- В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) часть параметров хостов задаётся явно, а не из переменных
+- Создан инстанс хоста для gitlab-runner `make terraform_apply`
+```log
+Outputs:
+
+docker_app_external_ip = [
+  "35.195.25.130",
+]
+```
+- Проверяем что ансибл увидел хост
+```shell
+make ansible_inventory_list
+```
+```json
+...
+    "all": {
+        "children": [
+            "env_stage",
+            "gitlab_docker_app",
+            "gitlab_runner",
+            "ungrouped"
+        ]
+    },
+    "env_stage": {
+        "hosts": [
+            "gitlab-runner-stage-001",
+            "gitlab-stage-001"
+        ]
+    },
+    "gitlab_docker_app": {
+        "hosts": [
+            "gitlab-stage-001"
+        ]
+    },
+    "gitlab_runner": {
+        "hosts": [
+            "gitlab-runner-stage-001"
+        ]
+    }
+...
+```
+
+###### Подготовлен docker-runner
+
+- Создан плейбук [gitlab-ci/ansible/playbooks/gitlab-runner.yml](gitlab-ci/ansible/playbooks/gitlab-runner.yml), запускающий и регистрирующий раннеры
+```yaml
+---
+- name: Provision image with docker and gitlab-runner
+  hosts: gitlab_runner
+  become: true
+  roles:
+    - role: riemers.gitlab-runner
+```
+- Создай файл [gitlab-ci/ansible/environments/stage/group_vars/gitlab_runner](gitlab-ci/ansible/environments/stage/group_vars/gitlab_runner), содержащий переменные необходимые для работы плейбука. При этом значение токена берётся из переменной окружения
+```yaml
+gitlab_runner_registration_token: "{{ lookup('env','GITLAB_RUNNER_REGISTRATION_TOKEN') }}"
+```
+
+- Применение плейбука завершается ошибкой
+```log
+TASK [riemers.gitlab-runner : Register runner to GitLab] *****************************************************************************************************************
+fatal: [gitlab-runner-stage-001]: FAILED! => {"censored": "the output has been hidden due to the fact that 'no_log: true' was specified for this result", "changed": true}
+```
+- Запуск в режиме дебага `ANSIBLE_DEBUG=true ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/gitlab-runner.yml` помог выявить ошибку: в [конфиге](gitlab-ci/ansible/environments/stage/group_vars/gitlab_runner) раннеров с типом `docker` не был указан образ по умолчанию (парфметр `docker_image: `)
+- Новая ошибка
+```log
+TASK [riemers.gitlab-runner : Assemble new config.toml] ******************************************************************************************************************
+fatal: [gitlab-runner-stage-001]: FAILED! => {"changed": false, "msg": "failed to validate: rc:1 error:Runtime platform                                  \u001b[0;m  arch\u001b[0;m=amd64 os\u001b[0;m=linux pid\u001b[0;m=14766 revision\u001b[0;m=577f813d version\u001b[0;m=12.5.0\nRunning in system-mode.                           \u001b[0;m \n                                                  \u001b[0;m \n\u001b[31;1mFATAL: Near line 29 (last key parsed 'runners.docker.sysctls'): bare keys cannot contain '.'\u001b[0;m \n"}
+```
+проблема в наличии точек в параметрах `runners.docker.sysctls: `
+  - попытка поместить параметры в кавычки успехом не увенчалась
+  - принято решение убрать данные параметры из конфига в связи с отсутствием в них необходимости
+- новая ошибка
+```log
+TASK [riemers.gitlab-runner : Assemble new config.toml] ******************************************************************************************************************
+fatal: [gitlab-runner-stage-001]: FAILED! => {"changed": false, "msg": "failed to validate: rc:1 error:Runtime platform                                  \u001b[0;m  arch\u001b[0;m=amd64 os\u001b[0;m=linux pid\u001b[0;m=24632 revision\u001b[0;m=577f813d version\u001b[0;m=12.5.0\nRunning in system-mode.                           \u001b[0;m \n                                                  \u001b[0;m \n\u001b[31;1mFATAL: toml: cannot load TOML value of type map[string]interface {} into a Go string\u001b[0;m \n"}
+```
+- проблема была в раннере `GitLab Runner shell`
+```yaml
+  - name: "GitLab Runner shell"
+    executor: shell
+    tags:
+      - shell
+    run_untagged: false
+```
+данный раннер был исключён из списка, после чего плейбук успешно применился
+- в итоге было зарезервировано 2 раннера 
+  - `GitLab Runner dind` для сборки докер-образов
+  - `GitLab Runner docker` для запуска всего остального
+- **ВАЖНО** было обнаркжено, что раннер `GitLab Runner docker` недоступен. После явного указания тега образа в конфиге раннера и перезапуска gitlab-runner.service, раннер снова связался с сервером. Соответствующие изменения внесены в переменные группы gitlab-runner[gitlab-ci/ansible/environments/stage/group_vars/gitlab_runner](gitlab-ci/ansible/environments/stage/group_vars/gitlab_runner)
+
+###### Автоматизированная сборка образов
+
+- В [.gitlab-ci.yml](.gitlab-ci.yml) в `build_job` добавлен параметр `tags: ["dind"]` чтобы запуск билда выполнялся на правильном раннере. Так же:
+  - удалён пунки `image: ruby:2.4.2`
+- Сборка образов **прошла успешно**!
+
+##### Загрузка образов в gitlab registry
+
+https://docs.gitlab.com/ee/user/packages/container_registry/index.html
+
+https://docs.gitlab.com/ee/ci/variables/predefined_variables.html#variables-reference
+
+- Проверяем что registry включен для проекта _Packages_ > _Container Registry_ [документация](https://docs.gitlab.com/ee/user/packages/container_registry/index.html#enable-the-container-registry-for-your-project)
+- Логинимся, для этого в `build_job` `before_script` добавляем `docker login`
+```yaml
+...
+build_job:
+  stage: build
+  before_script:
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+...
+```
+- после прочтения документации https://docs.gitlab.com/ee/ci/yaml/#before_script-and-after_script логин в регистри перенесён в секцию `script`
+```yaml
+...
+build_job:
+  ...
+  script:
+    # login
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    ...
+...
+```
+- Изменена сборка образов. Теперь они собираются вручную, без использования make. **НА БУДУЩЕЕ** в целях избежания разбухания make-файла, сборка образов для гитлаб в него добавлена не была.
+```yaml
+build_job:
+  ...
+  script:
+    # login
+    ...
+    # build
+    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME} ./post
+    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME} ./comment
+    - cd src && docker build -t ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME} ./ui
+```
+- Добавлена загрузка образов в gitlab registry
+```yaml
+build_job:
+  ...
+  script:
+    # login
+    ...
+    # build
+    ...
+    # push
+    - docker push ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME}
+```
+- Попытка прогона пайплайна: ошибка
+```log
+Error response from daemon: Get https://gitlab.vscoder.ru:5050/v2/: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+```
+подозрение на фаервол
+- В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) порт `5050` добавлен в список разрешённых для gitlab-сервера. Конфигурация применена `make terraform_apply`. **НА БУДУЩЕЕ** Правильным будет создание отдельного правила, разрешающего доступ к регистри только с раннеров. Но подобные правила удобнее использовать при плоской (без использования модулей) структуре проекта terraform.
+- Сохранены изменения в [.gitlab-ci.yml](.gitlab-ci.yml), удаляющие установку `make` из `build_job`
+- Следующая попытка выполнить пайплайн `make push_gitlab`
+```log
+Error response from daemon: Get https://gitlab.vscoder.ru:5050/v2/: dial tcp 35.195.25.130:5050: connect: connection refused
+```
+похоже что порт registry не проброшен при запуске gitlab-server
+- маппинг порта `5050:5050` добавлен в `docker-compose.yml` на хосте _gitlab.flexline.ru_. Гитлаб перезапущен `cd /srv/gitlab && sudo docker-compose restart`
+- Повторная попытка ... та же ошибка
+- gitlab-сервер перезапущен через `sudo docker-compose down; docker-compose up -d` и логин прошёл успешно!
+- новая ошибка:
+```log
+unable to prepare context: path "./post" not found
+```
+  - добавлено немного дебага в пайплайн... больше дебага))
+  ```yaml
+  # debug
+  - pwd
+  - ls -la
+  - ls -la ./src
+  - apk add tree
+  - tree
+  ```
+  - при сборке образов использованы относительные пути с `./src` вместо `src`
+  - причина проблемы была в том, что директория с приложением `post` называется не `post`, а `post-py`. В - внимательность! Нужно было нормально скопипастить или проверить.
+  - Убран дебаг
+  - Исправлен путь на `./post-py`
+- При запуске пайплайна -- ошибка
+```log
+Successfully tagged gitlab.vscoder.ru:5050/otus/example/post:gitlab-ci-1
+$ cd ./src && docker build -t ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME} ./comment
+$ cd ./src && docker build -t ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME} ./ui
+$ docker push ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME}
+/bin/sh: cd: line 92: can't cd to ./src: No such file or directory
+/bin/sh: cd: line 94: can't cd to ./src: No such file or directory
+...
+$ docker push ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}
+The push refers to repository [gitlab.vscoder.ru:5050/otus/example/comment]
+An image does not exist locally with the tag: gitlab.vscoder.ru:5050/otus/example/comment
+```
+это вам не Makefile! все команды `script` выполняются в одном shell
+  - Пайплайн изменён. `cd` выполняется только один раз
+    ```yaml
+      # build
+      - cd ./src
+      - docker build
+    ```
+- **СБОРКА ПРОШЛА УСПЕШНО!!!**
+- Итоговый `build_job`
+```yaml
+build_job:
+  stage: build
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
+  script:
+    # login
+    - docker info
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    # build
+    - cd ./src
+    - docker build -t ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME} ./post-py
+    - docker build -t ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME} ./comment
+    - docker build -t ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME} ./ui
+    # push
+    - docker push ${CI_REGISTRY_IMAGE}/post:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/comment:${CI_COMMIT_REF_NAME}
+    - docker push ${CI_REGISTRY_IMAGE}/ui:${CI_COMMIT_REF_NAME}
+  tags:
+    - dind
+```
+
+### Задание со \*: Деплой контейнера на созданный для ветки сервер
+
+Деплойте контейнер с reddit на созданный для ветки сервер.
+
+TODO: Анализ, Реализация
+
+Примерный план:
+- в packer подготовить образ с docker
+- в terraform на базе образа описать хост
+- в ansible реализовать запуск приложения средствами `docker-compose` из ранее собранных образов
+
+#### Реализация
+
+##### Packer
+
+- Создан playbook устанавливающий docker и необходимые для провиженинга ansible-ом пакеты [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml)
+```yaml
+---
+- import_playbook: docker.yml
+
+- name: Install docker on all hosts
+  hosts: all
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  tasks:
+    - name: Ensure necessary packages are installed
+      apt:
+        name:
+          - python3-pip
+          - libffi-dev
+          - libssl-dev
+        state: present
+
+    - name: Ensure docker-compose and docker is installed
+      pip:
+        executable: /usr/bin/pip3
+        name:
+          - docker
+          - docker-compose
+        state: present
+```
+- Создан [gitlab-ci/packer/variables-stage-server.json](gitlab-ci/packer/variables-stage-server.json) файл с переменными описывающими stage-сервер
+```json
+{
+  "source_image_family": "ubuntu-1604-lts",
+  "image_family": "stage-server-base",
+  "machine_type": "g1-small",
+  "disk_size": "40",
+  "playbook_name": "packer-gitlab-runner.yml"
+}
+```
+- Валидация `make packer_validate PACKER_VAR_FILE=packer/variables-stage-server.json` успешна
+- Собран образ `make packer_build PACKER_VAR_FILE=packer/variables-stage-server.json`
+
+##### Terraform
+
+- В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) добавлен `Stage server`
+```hcl
+# Stage server
+module "stage-server" {
+  instance_count      = 1
+  source              = "../modules/instance"
+  project             = var.project
+  zone                = var.zone
+  environment         = var.environment
+  name_prefix         = "stage-server"
+  machine_type        = "g1-small"
+  instance_disk_image = "stage-server-base"
+  tags                = ["stage-server"]
+  tcp_ports           = ["22", "80", "443"]
+  vpc_network_name    = var.vpc_network_name
+  use_static_ip       = false
+}
+```
+- в [gitlab-ci/terraform/stage/outputs.tf](gitlab-ci/terraform/stage/outputs.tf) добавлено отображение внешнего ip
+```hcl
+...
+output "stage_server_external_ip" {
+  value = module.stage-server.instances_external_ip
+}
+```
+- terraform проинициализирован `make terraform_init`
+- инфраструктура применена `make terraform_apply`
+
+##### Ansible
+
+###### Поиск решения
+
+[Ansible Docker Guide](https://docs.ansible.com/ansible/latest/scenario_guides/guide_docker.html)
+
+Для реализации задачи можно использовать модули:
+
+- [docker_container](https://docs.ansible.com/ansible/latest/modules/docker_container_module.html)
+- [docker_compose](https://docs.ansible.com/ansible/latest/modules/docker_compose_module.html)
+
+После беглого изучения, было принято решение использовать `docker_compose` как более простое решение
+
+###### Реализация
+
+- Создан плейбук [gitlab-ci/ansible/playbooks/deploy-dev.yml](gitlab-ci/ansible/playbooks/deploy-dev.yml)
+- Содержимое compose-файла скопировано из [src/docker-compose.yml](src/docker-compose.yml) в [gitlab-ci/ansible/playbooks/deploy-dev.yml](gitlab-ci/ansible/playbooks/deploy-dev.yml)
+- При запуске плейбука `ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/stage-server.yml --check` ошибка:
+```log
+fatal: [stage-server-stage-001]: FAILED! => {"ansible_facts": {"discovered_interpreter_python": "/usr/bin/python"}, "changed": false, "msg": "Unable to find any of pip2, pip to use.  pip needs to be installed."}
+```
+- В результате был перепакован базовый образ. Подробности в описании packer
+- Применение плейбука `cd gitlab-ci/ansible && ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/stage-server.yml`
+- Ошибка
+```log
+fatal: [stage-server-stage-001]: FAILED! => {"ansible_facts": {"discovered_interpreter_python": "/usr/bin/python"}, "changed": false, "module_stderr": "Shared connection to 35.240.27.254 closed.\r\n", "module_stdout": "\r\nTraceback (most recent call last):\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 102, in <module>\r\n    _ansiballz_main()\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 94, in _ansiballz_main\r\n    invoke_module(zipped_mod, temp_path, ANSIBALLZ_PARAMS)\r\n  File \"/home/appuser/.ansible/tmp/ansible-tmp-1575154178.6186209-224854152348994/AnsiballZ_docker_compose.py\", line 40, in invoke_module\r\n    runpy.run_module(mod_name='ansible.modules.cloud.docker.docker_compose', init_globals=None, run_name='__main__', alter_sys=True)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 188, in run_module\r\n    fname, loader, pkg_name)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 82, in _run_module_code\r\n    mod_name, mod_fname, mod_loader, pkg_name)\r\n  File \"/usr/lib/python2.7/runpy.py\", line 72, in _run_code\r\n    exec code in run_globals\r\n  File \"/tmp/ansible_docker_compose_payload_oSfl3K/ansible_docker_compose_payload.zip/ansible/modules/cloud/docker/docker_compose.py\", line 483, in <module>\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/cli/command.py\", line 12, in <module>\r\n    from .. import config\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/__init__.py\", line 6, in <module>\r\n    from .config import ConfigurationError\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/config.py\", line 50, in <module>\r\n    from .validation import match_named_volumes\r\n  File \"/usr/local/lib/python2.7/dist-packages/compose/config/validation.py\", line 12, in <module>\r\n    from jsonschema import Draft4Validator\r\n  File \"/usr/local/lib/python2.7/dist-packages/jsonschema/__init__.py\", line 33, in <module>\r\n    import importlib_metadata as metadata\r\n  File \"/usr/local/lib/python2.7/dist-packages/importlib_metadata/__init__.py\", line 9, in <module>\r\n    import zipp\r\n  File \"/usr/local/lib/python2.7/dist-packages/zipp.py\", line 12, in <module>\r\n    import more_itertools\r\n  File \"/usr/local/lib/python2.7/dist-packages/more_itertools/__init__.py\", line 1, in <module>\r\n    from more_itertools.more import *  # noqa\r\n  File \"/usr/local/lib/python2.7/dist-packages/more_itertools/more.py\", line 460\r\n    yield from iterable\r\n             ^\r\nSyntaxError: invalid syntax\r\n", "msg": "MODULE FAILURE\nSee stdout/stderr for the exact error", "rc": 1}
+```
+  - Проблема проявилась только для docker-compose на python2.
+  - Выполнена адаптация [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml) для работы с python3. Для этогоъ
+    - В play задана переменная `ansible_python_interpreter: /usr/bin/python3`
+    - Установлены необходимые для docker-compose пакеты
+    ```yaml
+    - python3-pip
+    - libffi-dev
+    - libssl-dev
+    ```
+    - Для модуля `pip: ` задан параметр `executable: /usr/bin/pip3`
+  - Пересборка базового образа и редеплой хоста
+  ```shell
+  make packer_build PACKER_VAR_FILE=packer/variables-stage-server.json
+  cd terraform/stage
+  terraform taint "module.stage-server.google_compute_instance.instance[0]"
+  cd ../../
+  make terraform_apply
+  yes
+  ```
+- Попытка накатить плейбук `cd ./ansible && ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/stage-server.yml`
+- УРА! Новыя ошибка))
+```log
+"Error starting project 400 Client Error: Bad Request (\"no such image: comment:: invalid reference format\")"
+```
+образов нет в регистри или неверно формируется имя образа
+TODO: пора спать 
+**ПРИЧИНА** загрузка образов должна осуществляться на gitlab-runner для корректной подстановки переменных
+- В [.gitlab-ci.yml](.gitlab-ci.yml) будем работать с `deploy_dev_job: `
+
+###### Подготовка gitlab-runner
+
+Задача - деплой с gitlab-runner средствами ansible
+
+Варианты решения:
+- Проброс ssh-ключей с раннера в контейнер https://www.bevuta.com/en/blog/continuous-delivery-with-gitlab-ci-and-ansible-part-1/
+- Пример `.gitlab-ci.yml` где ключ пердаётся переменной https://github.com/mikhno-s/gitlab-ci-deploy-ansible/blob/master/.gitlab-ci.yml
+- Похожее решение, но описанное в статье https://ealebed.github.io/posts/2017/gitlab-ci-часть-9-этап-deploy-в-.gitlab-ci.yml/ При этом ansible не используется -- но описан интересный способ проброса ключа
+
+Подробнее про работу ansible с gce https://docs.ansible.com/ansible/latest/scenario_guides/guide_gce.html
+
+Для деплоя выбран docker-образ [cytopia/ansible:2.9](https://hub.docker.com/r/cytopia/ansible). Преимущества описаны по ссылке. Анализ команд (глазками), использованных для сборки, противопоказаний не выявил. **ПРИМЕЧАНИЕ**: можно было бы прикрутить автоматизированный анализ на безопасность и проие плюшки -- но это правильнее оставлять на разработчиков образа. Образ достаточно популярный (10М+).
+
+Описание `deploy_dev_job`
+- Первым делом установка зависимостей
+```shell
+ansible-galaxy install -r environments/stage/requirements.yml
+```
+- Затем отобразим наш inventory, но для этого нужно раннеру передать gcp `credentials.json`
+  - В рамках проекта создана переменная `GCP_SERVICE_ACCOUNT_FILE` типа file с содержимым `~/.gce/docker-257914-ansible-inventory.json` в качестве значения
+  - показать inventory `ansible-invfentory -i environments/stage/inventory.gcp.yml list`
+- Ошибка парсинга `inventory.gcp.yml` по причине отсутствия необходимых библиотек.
+  - Ставим библиотеки `pip3 install requests google-auth`
+- Ошибка, не находит `/root/.gce/docker-257914-ansible-inventory.json`
+  - Добавлено отладочное сообщение `echo GCP_SERVICE_ACCOUNT_FILE=$GCP_SERVICE_ACCOUNT_FILE`
+  - Отображает имя файла. Похоже баг инвентори-модуля
+  - Комментирование параметра `service_account_file` в [gitlab-ci/ansible/environments/stage/inventory.gcp.yml](gitlab-ci/ansible/environments/stage/inventory.gcp.yml) **помогло**
+  - Для раннера создан отдельный inventory [gitlab-ci/ansible/environments/stage/runner-inventory.gcp.yml](gitlab-ci/ansible/environments/stage/runner-inventory.gcp.yml) без указания `service_account_file`
+- Пайплайн завершился успехом
+- Плейбук `gitlab-ci/ansible/playbooks/stage-server.yml` переименован в [gitlab-ci/ansible/playbooks/deploy-dev.yml](gitlab-ci/ansible/playbooks/deploy-dev.yml)
+- Следующим шагом применяем плейбук `ansible-playbook -i environments/stage/runner-inventory.gcp.yml playbooks/deploy-dev.yml -vvvv`
+  - **ЗАМЕЧЕНИЕ** не используется конфиг
+  ```log
+  [WARNING]: Ansible is being run in a world writable directory
+  (/builds/otus/example/gitlab/ansible), ignoring it as an ansible.cfg source.
+  For more information see
+  https://docs.ansible.com/ansible/devel/reference_appendices/config.html#cfg-in-
+  world-writable-dir
+  ansible-playbook 2.9.1
+    config file = None
+    configured module search path = ['/root/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+    ansible python module location = /usr/lib/python3.6/site-packages/ansible
+    executable location = /usr/bin/ansible-playbook
+    python version = 3.6.9 (default, Oct 17 2019, 11:10:22) [GCC 8.3.0]
+  No config file found; using defaults
+  ```
+- Ошибка `FileNotFoundError: [Errno 2] No such file or directory: b'ssh': b'ssh'`. Проблема -- отсутствие ssh-клиента
+  - Установка ssh-клиента `"which ssh-agent || (apk update && apk add openssh-client)"`
+- Ошибка `Host key verification failed.`
+  - Игнорирование ключа хоста `export ANSIBLE_HOST_KEY_CHECKING=False`
+- Ошибка `Permission denied (publickey).` Нужно пробросить ключ.
+  - Необходимо пробросить ключ. Ссылка по теме https://docs.gitlab.com/ce/ci/ssh_keys/
+  - Использовать ключ с паролем возможно, но пароль должен быть передан через переменную. Вприанты описаны [здесь](https://unix.stackexchange.com/questions/90853/how-can-i-run-ssh-add-automatically-without-a-password-prompt). Но для production-среды нужно использовать другие механизмы
+  - Сгенерирован ключ без пароля (чтобы не вводить излишних усложнений)
+  ```shell
+  ssh-keygen -t rsa -f ~/.ssh/id_rsa_appuser_deploy_stage
+  ```
+  - В gitlab проект добавлена переменная `SSH_PRIVATE_KEY`, типа `file`, содержащая приватный ssh-ключ для подключения к stage-server
+  - В [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml) -- плейбук, используемый при прожиге образа packer-ом, реализовано добавление ssh-ключа для деплоя
+  - Собран новый базовый образ ВМ
+  - terraform-инстанс переименован в dev-server
+  - Пересоздан инстанс `make terraform_apply`
+  - Ключ в [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml) теперь берётся из файла вместо хардкода
+- Попытка выполнить пайплайн
+- Ошибка
+```shell
+$ echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+Error loading key "(stdin)": invalid format
+```
+Проблема в том, что тип переменной `file`. Исправлено на 
+```shell
+cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+```
+- Попытка выполнить пайплайн
+- Успешно не выполнился)) `[WARNING]: Could not match supplied host pattern, ignoring: stage_server`
+  - Исправлен целевой хост плейбука на `hosts: dev_server`
+- Ошибка: плейбук не видит ssh-ключ
+  - Вместо использования `ssh-agent`, путь к ssh ключу указан в переменной окружения
+  ```shell
+  export ANSIBLE_SSH_PRIVATE_KEY_FILE="$SSH_PRIVATE_KEY"
+  ```
+  - Указан пользователь 
+  ```shell
+  export ANSIBLE_SSH_USER=appuser
+  ```
+  - Отключен `become: true`
+  - Та же ошибка
+  ```log
+  <35.195.42.124> ESTABLISH SSH CONNECTION FOR USER: None
+  <35.195.42.124> SSH: EXEC ssh -vvv -C -o ControlMaster=auto -o ControlPersist=60s -o StrictHostKeyChecking=no -o KbdInteractiveAuthentication=no -o PreferredAuthentications=gssapi-with-mic,gssapi-keyex,hostbased,publickey -o PasswordAuthentication=no -o ConnectTimeout=10 -o ControlPath=/root/.ansible/cp/1ae30ff2c4 35.195.42.124 '/bin/sh -c '"'"'echo ~ && sleep 0'"'"''
+  ```
+  Похоже что переменные не имеют эффекта
+  - НУЖНО ЧИТАТЬ ДОКУМЕНТАЦИЮ!!!
+  - Изменены имена переменных
+  ```shell
+  export ANSIBLE_REMOTE_USER=appuser
+  export ANSIBLE_PRIVATE_KEY_FILE="$SSH_PRIVATE_KEY"
+  ```
+  - Исправлены разрешения на private key
+  ```shell
+  chmod 0600 "$SSH_PRIVATE_KEY"
+  ```
+- Результат последнего пайплайна: ошибка
+```log
+"msg": "Error connecting: Error while fetching server API version: ('Connection aborted.', PermissionError(13, 'Permission denied'))"
+```
+  - предполагаемая причина: невозможность подключиться к docker-демону из под текущего пользователя
+  - Варианты решения:
+    - [x] дать права пользователю appuser
+    - [ ] запускать композ с `become: yes`
+  - Выбран первый вариант как наиболее правильный с точки зрения безопасности
+    - В [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml) при импорте плейбука `docker.yml` добавлены переменные
+      ```yaml
+      - import_playbook: docker.yml
+        vars:
+          docker_users:
+            - appuser
+      ...
+      ```
+  - Пересборка packer-образа, пересоздание инстанса
+  ```shell
+  # packer
+  make packer_validate packer_build PACKER_VAR_FILE=packer/variables-stage-server.json
+  # terraform
+  cd terraform/stage
+  terraform state list
+  terraform taint "module.dev-server.google_compute_instance.instance[0]"
+  cd -
+  make terraform_apply
+  ```
+  - Запуск пайплайна...
+- Ошибка
+```log
+"msg": "Error starting project 400 Client Error: Bad Request (\"no such image: ui:: invalid reference format\")"
+```
+проблема: не работает подстановка переменных
+  - Подстановка переменных выполнена через `lookup('env','VAR_NAME')` в [gitlab-ci/ansible/playbooks/deploy-dev.yml](gitlab-ci/ansible/playbooks/deploy-dev.yml)
+  ```yaml
+  vars:
+    ...
+    ci_registry_image: "{{ lookup('env','CI_REGISTRY_IMAGE') }}"
+    ci_commit_ref_name: "{{ lookup('env','CI_COMMIT_REF_NAME') }}"
+  ```
+  - Добавлен дебаг значений переменных
+  ```yaml
+  - name: Debug vars
+      debug:
+        msg: |
+          ci_registry_image: {{ ci_registry_image }}
+          ci_commit_ref_name: {{ ci_commit_ref_name }}
+  ```
+- Запуск пайплайна: ожидается необходимосто логина в регистри
+- Как и ожидалось, ошибка
+```log
+"msg": "Error starting project 500 Server Error: Internal Server Error (\"Get https://gitlab.vscoder.ru:5050/v2/otus/example/ui/manifests/gitlab-ci-1: denied: access forbidden\")"
+```
+лекарство: нужен [docker_login](https://docs.ansible.com/ansible/latest/modules/docker_login_module.html)
+- Добавлен логин в докер
+```yaml
+vars:
+  ci_registry: "{{ lookup('env','CI_REGISTRY') }}"
+  ci_registry_user: "{{ lookup('env','CI_REGISTRY_USER') }}"
+  ci_job_token: "{{ lookup('env','CI_JOB_TOKEN') }}"
+  ...
+tasks:
+  - name: Login to gitlab docker registry
+    docker_login:
+      username: "{{ ci_registry_user }}"
+      password: "{{ ci_job_token }}"
+      state: present
+      #debug: false
+      registry_url: "{{ ci_registry }}"
+```
+- Запускаем пайплайн... **УРА!!!!!!!!!!**
+  ```log
+  Job succeeded
+  ```
+
+###### Проверка
+
+Подключиться к http://34.76.75.218:9292/ не удалось. Причина - фаервол.
+В [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) `module "dev-server"` список портов приведён к `tcp_ports = ["22", "9292"]`
+
+Приложение открылось, но не работают комментарии...
+
+Предположительно, причиной является отсутствие сервиса (или алиаса) `comment_db`. Сервис создан:
+```yaml
+service:
+  ...
+  comment_db:
+    image: mongo:3.2
+    volumes:
+      - comment_db:/data/db
+    networks:
+        - reddit_back
+  ...
+```
+
+Запуск пайплайна... ошибка, не было добавлено описание тома `comment_db` в `volumes:`. Fixed.
+Запуск пайплайна прошёл **успешно**.
+Проверка: http://34.76.75.218:9292
+Комментарии создаются. Комментарии видны.
+
+Данная задача **завершена успешно**!
+
+###### Создание Environment
+
+Для добавления корректной ссылки, можно сделать следующее:
+- [x] в dns создана wildcard-запись `*.vscoder.ru  A 35.195.25.130`, указывающая на ip с gitlab-сервером
+- [x] во время пайплайна на хосте 35.195.25.130 ansible-ом поднимать контейнер с nginx, который будет выступать в роли reverse-proxy к нашему dev-server
+  - ip of dev-server можно получать из ansible inventory
+  - для авторизации ansible на gitlab.vscoder.ru можно использовать ssh-ключ appuser_docker, который добавляется terraform-ом
+  - для деплоя контейнера с nginx можно использовать ansible-модуль `docker_container` или `docker_compose`. Будет использован `docker_compose` как уже провереный.
+
+Поехали:
+
+В terraform [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) добавлен тег к gitlab-server и открыт порт `8080`.
+
+```hcl
+...
+module "docker-app" {
+  ...
+  tags                = ["gitlab-server", "branch-proxy"]
+  tcp_ports           = ["80", "443", "22", "2222", "5050", "8080"]
+  ...
+}
+...
+```
+`make terraform_apply`
+
+В dns создана wildcard-запись `*.vscoder.ru  A 35.195.25.130`, указывающая на ip с gitlab-сервером
+
+В [gitlab-ci/ansible/playbooks/deploy-dev.yml](gitlab-ci/ansible/playbooks/deploy-dev.yml) добавлен play
+```yaml
+- name: "Provide nginx reverse-proxy for branch {{ ci_commit_ref_name }}"
+  hosts: branch_proxy
+  gather_facts: no
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    nginx_image_tag: "1.17.6-alpine"
+    ci_commit_ref_name: "{{ lookup('env','CI_COMMIT_REF_NAME') }}"
+    ci_registry: "{{ lookup('env','CI_REGISTRY') }}"
+    ci_registry_user: "{{ lookup('env','CI_REGISTRY_USER') }}"
+    ci_job_token: "{{ lookup('env','CI_JOB_TOKEN') }}"
+  tasks:
+    - name: Debug vars
+      debug:
+        msg: |
+          nginx_image_tag: {{ nginx_image_tag }}
+          ci_commit_ref_name: {{ ci_commit_ref_name }}
+          ci_registry: {{ ci_registry }}
+          ci_registry_user: {{ ci_registry_user }}
+          ci_job_token: {{ ci_job_token }}
+    - name: Provide nginx config
+      copy:
+        dest: /etc/nginx.conf
+        mode: 0444
+        content: |
+          events {
+            worker_connections  1024;
+          }
+          http {
+            server {
+              listen 80;
+              listen [::]:80;
+
+              server_name {{ ci_commit_ref_name }}-branch.vscoder.ru;
+
+              location / {
+                  proxy_pass http://{{ hostvars['dev-server-stage-001']['ansible_default_ipv4']['address'] }}:9292/;
+              }
+            }
+          }
+    - name: Login to gitlab docker registry
+      docker_login:
+        username: "{{ ci_registry_user }}"
+        password: "{{ ci_job_token }}"
+        state: present
+        #debug: false
+        registry_url: "{{ ci_registry }}"
+    - name: Deploy nginx
+      docker_compose:
+        project_name: branchproxy
+        debug: yes
+        definition:
+          version: "3.3"
+          services:
+            nginx:
+              image: "nginx:{{ nginx_image_tag }}"
+              ports:
+                - 8080:80
+              volumes:
+                - /etc/nginx.conf:/etc/nginx/nginx.conf:ro
+      register: output
+
+    - debug:
+        var: output
+
+    - assert:
+        that:
+          - "nginx.branchproxy_nginx_1.state.running"
+```
+
+В [.gitlab-ci.yml](.gitlab-ci.yml) добавлен environment
+```yaml
+environment:
+  name: dev
+  url: http://${CI_COMMIT_REF_NAME}-branch.vscoder.ru
+```
+
+Запуск пайплайна... Ошибка:
+```log
+"msg": "The task includes an option with an undefined variable. The error was: 'ansible.vars.hostvars.HostVarsVars object' has no attribute 'default_ipv4'\n\nThe error appears to be in '/builds/otus/example/gitlab/ansible/playbooks/deploy-dev.yml': line 103, column 7, but may\nbe elsewhere in the file depending on the exact syntax problem.\n\nThe offending line appears to be:\n\n          ci_job_token: {{ ci_job_token }}\n    - name: Provide nginx config\n      ^ here\n"
+```
+Предполагаемая причина: не получены факты о хосте `dev-server-stage-001` в рамках данного play.
+
+Получаем факты:
+```yaml
+- name: "Get facts about {{ branch_server }}"
+  setup:
+  delegate_to: "{{ branch_server }}"
+  delegate_facts: yes
+```
+
+Запуск пайплайна... Ошибка та же. Но дебаг - штука хорошая)
+
+Исправлена переменная, получающая ip o fbranch_server
+```log
+hostvars['dev-server-stage-001']['ansible_default_ipv4']['address']
+```
+
+Запуск пайплайна... Ошибка
+```log
+appuser@35.195.25.130: Permission denied (publickey).
+```
+Причина: для gitlab-runner у нас свой ssh-ключ без пароля.
+
+Необходимо доставить ключ на gitlab-server. На данном этапе это будет сделано руками, так как пересборка образа packer-ом повлечёт пересоздание инстанса gitlab, что в свою очередь обнулит конфигурацию gitlab. TODO: продумать возможность вносить подобные изменения без потери данных.
+
+Ключ добавлен. Запускаем пайплайн... Ошибка
+```log
+TASK [Provide nginx config] ****************************************************
+...
+"msg": "Destination /etc not writable"
+```
+
+Добавляем `become: yes` в TASK [Provide nginx config]
+
+Запускаем пайплайн... Ошибка:
+```log
+"msg": "Failed to import the required Python library (Docker SDK for Python: docker (Python >= 2.7) or docker-py (Python 2.6)) on gitlab-stage-001's Python /usr/bin/python3. Please read module documentation and install in the appropriate location. If the required library is installed, but Ansible is using the wrong Python interpreter, please consult the documentation on ansible_python_interpreter, for example via `pip install docker` or `pip install docker-py` (Python 2.6). The error was: No module named 'docker'"
+```
+
+Знакомые грабли))
+
+Утащено из [gitlab-ci/ansible/playbooks/packer-stage-server.yml](gitlab-ci/ansible/playbooks/packer-stage-server.yml) (но правильнее было бы добавить в базовый образ для gitlab-server)
+```yaml
+- name: Ensure necessary packages are installed
+  apt:
+    name:
+      - python3-pip
+      - libffi-dev
+      - libssl-dev
+    state: present
+
+- name: Ensure docker-compose and docker is installed
+  pip:
+    executable: /usr/bin/pip3
+    name:
+      - docker
+      - docker-compose
+    state: present
+```
+
+Запуск пайплайна... снова нехватает пермишнов.
+
+Добавил `become: yes` на уровень play, так как appuser на gitlab-server не в группе docker
+
+Запуск пайплайна... **УРА!!!** пайплайн отработал.
+
+Заходим на http://gitlab-ci-1-branch.vscoder.ru:8080/ и получаем connection reset. Потому что в конфиге nginx порт 8080, а у нас перенаправление на контейнер 80. Исправлен конфиг nginx.
+
+Запуск пайплайна... То же самое.
+```shell
+sudo docker ps
+```
+поазал отсутствие запущенного nginx
+```shell
+sudo docker ps -a
+```
+показал что контейнер остановлен
+```shell
+sudo docker logs branchproxy_nginx_1
+```
+```log
+2019/12/03 20:41:39 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/nginx.conf:1
+nginx: [emerg] "server" directive is not allowed here in /etc/nginx/nginx.conf:1
+2019/12/03 20:47:09 [emerg] 1#1: "server" directive is not allowed here in /etc/nginx/nginx.conf:1
+nginx: [emerg] "server" directive is not allowed here in /etc/nginx/nginx.conf:1
+```
+ну да, кривовато я конфиг написал)) Исправлено. Описано выше.
+
+Запуск пайплайна... Ошибка конфига. Поправлено.
+
+Запуск пайплайна... **IT WORKS!!!** по ссылке открылся сайт))
+
+Исправлена ссылка в `environment:` пайплайна. Сайт открывается по ссылке.
+
+Рефакторинг [.gitlab-ci.yml](.gitlab-ci.yml) произведён не будет. Дебаг переменных, подробный вывод и прочие отладочные сообщения остаются в качестве примера для использования в будущем. Главное -- кож рабочий и задокументирован.
+
+В [.gitlab-ci.yml](.gitlab-ci.yml) `deploy_dev_job` имя environment-а теперь задаётся значением `${CI_COMMIT_REF_NAME}`
+Протестировано.
+
+### Задание со \*: Автоматизированное создание и регистрация раннеров
+
+Продумайте автоматизацию развертывания и регистрации Gitlab CI Runner. В больших организациях количество Runners может превышать 50 и более, сетапить их руками становится проблематично.
+Реализацию функционала добавьте в репозиторий в папку gitlab-ci;
+
+Реализовано в рамках задачи по сборке образов.
+
+С целью соблюсти условия ДЗ, директория `gitlab/` переименована в `gitlab-ci/`, с исправлением ссылок в [.gitlab-ci.yml](.gitlab-ci.yml) и [README.md](README.md)
+
+Проверены все пайплайны... успешно!
+
+#### Проработка скейлинга раннеров
+
+В terraform [gitlab-ci/terraform/stage/main.tf](gitlab-ci/terraform/stage/main.tf) количество инстансов `module "gitlab-runner"` установлено в 3.
+```hcl
+# Gitlab Runner
+module "gitlab-runner" {
+  instance_count      = 3
+  ...
+```
+Применена инфраструктура `make terraform_apply`
+Выполнен провиженинг раннеров `cd ./ansible && ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/gitlab-runner.yml`. Без ошибок.
+
+НО новые раннеры не зарегистрированы. Предположительная причина: переменная `gitlab_runner_registration_token` берётся из переменной окружения `$GITLAB_RUNNER_REGISTRATION_TOKEN` на машине, с которой запускается плейбук. Данная переменная не задана. Лечение:
+```shell
+export GITLAB_RUNNER_REGISTRATION_TOKEN="hereisatoken"
+```
+
+Заново запущен плейбук `ansible-playbook -i environments/stage/inventory.gcp.yml playbooks/gitlab-runner.yml`
+
+Новые раннеры появились в списке.
+
+Все пайплайны пройдены успешно. Пйплайны отработали на новых раннерах.
+
+### Задание со \*: Отправка уведомлений о работе pipeline в Slack
+
+Настройте интеграцию вашего Pipeline с тестовым Slack-чатом, который вы использовали ранее. Для этого перейдите в Project Settings > Integrations > Slack notifications. Нужно установить active, выбрать события и заполнить поля с URL вашего Slack webhook.
+Добавьте ссылку на канал в слаке, в котором можно проверить работу оповещений, в файл README.md;
+
+Про slack webhooks https://api.slack.com/messaging/webhooks
+
+1. Create a Slack app (if you don't have one already). Link is in docs
+2. Enable Incoming Webhooks
+3. Create an Incoming Webhook
+4. webhook прописан в gitlab
+> Slack notifications activated.
+
+Ссылка на канал: https://devops-team-otus.slack.com/archives/CMZK1KA02
+
+
+### Прохождение тестов travis-ci
+
+В [.gitlab-ci.yml](.gitlab-ci.yml) возвращены ранее удалённые команды, необходимые для запуска фейкового тестирования приложения reddit.
+Тесты travis-ci проходят.
+
+Запущен пайплайн в gitlab - ошибка:
+```log
+ERROR: The ruby:2.4.2 is not present on list of allowed images
+- docker:*
+```
+Причина - ограничение на раннере.
+
+Лечение: для build_job явно указан `image: docker:19.03.1` 
+
+Проверка пайплайна: `make push_gitlab`
+
+Ошибка
+```log
+$ bundle install
+/bin/sh: eval: line 94: bundle: not found
+ERROR: Job failed: exit code 127
+```
+Проблема: отсутствие в образ docker утилиты bundler, которая запускается `before_script`. Так как в рамках нашего pipeline в `build_job` не нужен bundler, пробуем переопределить `before_script` в `build_job`.
+```yaml
+before_script:
+  - echo 'Before script override for build_job'
+```
+
+Запуск пайплайна... Та же ошибка для deploy_dev_job. Fixed:
+```yaml
+deploy_dev_job:
+  before_script:
+    - echo 'Before script override for deploy_dev_job'
+...
+```
+
+Пайплайн gitlab-ci прошёл успешно.
+Пайплайн travis-ci прошёл успешно.
+
+TODO: можно ли в сообщении так же слать ссылку на environment?
+
+
+### Прочее
+
+Добавлен [gitlab-ci/docker-compose.yml](gitlab-ci/docker-compose.yml) для развёртывания gitlab-сервера.
