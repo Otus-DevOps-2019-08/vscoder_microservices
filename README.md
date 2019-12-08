@@ -5939,6 +5939,9 @@ scrape_configs:
         - 'comment:9292'
 ```
 
+- Файл [monitoring/prometheus/Dockerfile](monitoring/prometheus/Dockerfile) исправлен в соответсвии с указаниями линтера (replace `ADD` with `COPY`)
+
+
 
 ### Сбор метрик хоста с использованием экспортера
 
