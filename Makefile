@@ -110,3 +110,17 @@ docker_machine_rm:
 	${DOCKER_MACHINE} rm ${DOCKER_MACHINE_NAME}
 	${DOCKER_MACHINE} env --unset
 
+###
+# Build
+###
+build_comment:
+	cd src/comment && bash ./docker_build.sh
+
+build_post:
+	cd src/post-py && bash ./docker_build.sh
+
+build_ui:
+	cd src/ui && bash ./docker_build.sh
+
+build: build_post build_comment build_ui
+

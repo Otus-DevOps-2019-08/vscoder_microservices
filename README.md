@@ -151,8 +151,11 @@ vscoder microservices repository
       - [Создание Docker образа](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-docker-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
       - [Конфигурация](#%d0%9a%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d1%83%d1%80%d0%b0%d1%86%d0%b8%d1%8f)
       - [Создаем образ](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%b5%d0%bc-%d0%be%d0%b1%d1%80%d0%b0%d0%b7)
+      - [Образы микросервисов](#%d0%9e%d0%b1%d1%80%d0%b0%d0%b7%d1%8b-%d0%bc%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%be%d0%b2)
+      - [Соберем images](#%d0%a1%d0%be%d0%b1%d0%b5%d1%80%d0%b5%d0%bc-images)
     - [Сбор метрик хоста с использованием экспортера](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-%d1%8d%d0%ba%d1%81%d0%bf%d0%be%d1%80%d1%82%d0%b5%d1%80%d0%b0)
     - [Задания со \*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
+      - [Makefile](#makefile-1)
 
 # Makefile
 
@@ -5953,6 +5956,51 @@ docker build -t $USER_NAME/prometheus .
 
 В конце занятия нужно будет запушить на DockerHub собранные вами на этом занятии образы.
 
+#### Образы микросервисов
+
+В коде микросервисов есть healthcheck-и для проверки работоспособности приложения.
+
+Сборку образов теперь необходимо производить при помощи скриптов `docker_build.sh`, которые есть в директории каждого сервиса. С его помощью мы добавим информацию из Git в наш healthcheck.
+
+Пример скрипта
+```shell
+#!/bin/bash
+
+echo `git show --format="%h" HEAD | head -1` > build_info.txt
+echo `git rev-parse --abbrev-ref HEAD` >> build_info.txt
+
+docker build -t $USER_NAME/ui .
+```
+
+#### Соберем images
+
+Выполните сборку образов при помощи скриптов `docker_build.sh` в директории каждого сервиса.
+```shell
+cd src/comment && bash ./docker_build.sh && cd -
+cd src/post-py && bash ./docker_build.sh && cd -
+cd src/ui && bash ./docker_build.sh && cd -
+```
+
+Или все сразу из корня репозитория
+```shell
+for i in ui post-py comment; do cd src/$i; bash docker_build.sh cd -; done
+```
+
+В [Makefile](Makefile) добавлены цели для сборки всех образов по отдельности и вместе.
+
+Образы собраны `make build`
+
 ### Сбор метрик хоста с использованием экспортера
 
 ### Задания со \*
+
+#### Makefile
+
+В [Makefile](Makefile) добавлены цели
+
+| Цель          | Описание              |
+| ------------- | --------------------- |
+| build_comment | Собрать образ comment |
+| build_post    | Собрать образ post    |
+| build_ui      | Собрать образ ui      |
+| build         | Собрать все образы    |
