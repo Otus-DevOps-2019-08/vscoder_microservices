@@ -154,6 +154,7 @@ vscoder microservices repository
       - [Образы микросервисов](#%d0%9e%d0%b1%d1%80%d0%b0%d0%b7%d1%8b-%d0%bc%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%be%d0%b2)
       - [Соберем images](#%d0%a1%d0%be%d0%b1%d0%b5%d1%80%d0%b5%d0%bc-images)
       - [docker-compose.yml](#docker-composeyml-1)
+      - [Запуск микросервисов](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bc%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%be%d0%b2)
     - [Сбор метрик хоста с использованием экспортера](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-%d1%8d%d0%ba%d1%81%d0%bf%d0%be%d1%80%d1%82%d0%b5%d1%80%d0%b0)
     - [Задания со \*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
       - [Makefile](#makefile-1)
@@ -6028,6 +6029,15 @@ volumes:
 
 Файлы `.env*` перемещены из [src/](src/) в [docker/](docker/)
 
+Версии сервисов в [docker/.env](docker/.env) заменены на `latest`
+
+#### Запуск микросервисов
+
+Поднимем сервисы, определенные в docker/dockercompose.yml
+
+```shell
+cd docker && docker-compose up -d
+```
 
 ### Сбор метрик хоста с использованием экспортера
 
