@@ -139,6 +139,11 @@ vscoder microservices repository
     - [Задание со \*: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
     - [Прохождение тестов travis-ci](#%d0%9f%d1%80%d0%be%d1%85%d0%be%d0%b6%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d1%82%d0%b5%d1%81%d1%82%d0%be%d0%b2-travis-ci)
     - [Прочее](#%d0%9f%d1%80%d0%be%d1%87%d0%b5%d0%b5)
+  - [HomeWork 16: Введение в мониторинг. Системы мониторинга.](#homework-16-%d0%92%d0%b2%d0%b5%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b2-%d0%bc%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d0%a1%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d1%8b-%d0%bc%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3%d0%b0)
+    - [Prometheus: запуск, конфигурация, знакомство с Web UI](#prometheus-%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%ba%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d1%83%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d0%b7%d0%bd%d0%b0%d0%ba%d0%be%d0%bc%d1%81%d1%82%d0%b2%d0%be-%d1%81-web-ui)
+    - [Мониторинг состояния микросервисов](#%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d1%81%d0%be%d1%81%d1%82%d0%be%d1%8f%d0%bd%d0%b8%d1%8f-%d0%bc%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%be%d0%b2)
+    - [Сбор метрик хоста с использованием экспортера](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-%d1%8d%d0%ba%d1%81%d0%bf%d0%be%d1%80%d1%82%d0%b5%d1%80%d0%b0)
+    - [Задания со \*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
 
 # Makefile
 
@@ -4982,3 +4987,34 @@ TODO: можно ли в сообщении так же слать ссылку 
 ### Прочее
 
 Добавлен [gitlab-ci/docker-compose.yml](gitlab-ci/docker-compose.yml) для развёртывания gitlab-сервера.
+
+## HomeWork 16: Введение в мониторинг. Системы мониторинга.
+
+### Prometheus: запуск, конфигурация, знакомство с Web UI
+
+Создадим правило фаервола для Prometheus и Puma:
+
+```shell
+gcloud compute firewall-rules create prometheus-default --allow tcp:9090
+gcloud compute firewall-rules create puma-default --allow tcp:9292
+```
+
+Создадим Docker хост в GCE и настроим локальное окружение на работу с ним
+```shell
+export GOOGLE_PROJECT=<project_id>
+
+docker-machine create --driver google \
+  --google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+  --google-machine-type n1-standard-1 \
+  --google-zone europe-west1-b \
+  docker-host
+
+eval $(docker-machine env docker-host)
+```
+
+
+### Мониторинг состояния микросервисов
+
+### Сбор метрик хоста с использованием экспортера
+
+### Задания со \*
