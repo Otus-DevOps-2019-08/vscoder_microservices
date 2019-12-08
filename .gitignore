@@ -43,3 +43,4 @@ venv
 # Docker
 ####
 env
+.env

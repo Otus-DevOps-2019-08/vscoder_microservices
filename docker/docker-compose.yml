@@ -29,16 +29,19 @@ services:
       - reddit_front
       - reddit_back
 
-prometheus:
-  image: ${USERNAME}/prometheus
-  ports:
-    - "9090:9090"
-  volumes:
-    - prometheus_data:/prometheus
-  command:
-    - "--config.file=/etc/prometheus/prometheus.yml"
-    - "--storage.tsdb.path=/prometheus"
-    - "--storage.tsdb.retention=1d"
+  prometheus:
+    image: ${USERNAME}/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+    networks:
+      - reddit_front
+      - reddit_back
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention=1d"
 
 volumes:
   post_db:
