@@ -149,6 +149,7 @@ vscoder microservices repository
     - [Мониторинг состояния микросервисов](#%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d1%81%d0%be%d1%81%d1%82%d0%be%d1%8f%d0%bd%d0%b8%d1%8f-%d0%bc%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%be%d0%b2)
       - [Переупорядочим структуру директорий](#%d0%9f%d0%b5%d1%80%d0%b5%d1%83%d0%bf%d0%be%d1%80%d1%8f%d0%b4%d0%be%d1%87%d0%b8%d0%bc-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d1%83-%d0%b4%d0%b8%d1%80%d0%b5%d0%ba%d1%82%d0%be%d1%80%d0%b8%d0%b9)
       - [Создание Docker образа](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-docker-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
+      - [Конфигурация](#%d0%9a%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d1%83%d1%80%d0%b0%d1%86%d0%b8%d1%8f)
     - [Сбор метрик хоста с использованием экспортера](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-%d1%8d%d0%ba%d1%81%d0%bf%d0%be%d1%80%d1%82%d0%b5%d1%80%d0%b0)
     - [Задания со \*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
 
@@ -5910,6 +5911,34 @@ mkdir -p monitoring/prometheus && touch Dockerfile
 FROM prom/prometheus:v2.1.0
 ADD prometheus.yml /etc/prometheus/
 ```
+
+#### Конфигурация
+
+Вся конфигурация Prometheus, в отличие от многих других систем мониторинга, происходит через файлы конфигурации и опции командной строки.
+
+Мы определим простой конфигурационный файл для сбора метрик с наших микросервисов. В директории [monitoring/prometheus](monitoring/prometheus) создан файл [prometheus.yml](monitoring/prometheus/prometheus.yml) со следующим содержимым:
+```yaml
+---
+global:
+  scrape_interval: '5s'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets:
+        - 'localhost:9090'
+
+  - job_name: 'ui'
+    static_configs:
+      - targets:
+        - 'ui:9292'
+
+  - job_name: 'comment'
+    static_configs:
+      - targets:
+        - 'comment:9292'
+```
+
 
 ### Сбор метрик хоста с использованием экспортера
 
