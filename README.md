@@ -150,6 +150,7 @@ vscoder microservices repository
       - [Переупорядочим структуру директорий](#%d0%9f%d0%b5%d1%80%d0%b5%d1%83%d0%bf%d0%be%d1%80%d1%8f%d0%b4%d0%be%d1%87%d0%b8%d0%bc-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d1%83-%d0%b4%d0%b8%d1%80%d0%b5%d0%ba%d1%82%d0%be%d1%80%d0%b8%d0%b9)
       - [Создание Docker образа](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-docker-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
       - [Конфигурация](#%d0%9a%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d1%83%d1%80%d0%b0%d1%86%d0%b8%d1%8f)
+      - [Создаем образ](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%b5%d0%bc-%d0%be%d0%b1%d1%80%d0%b0%d0%b7)
     - [Сбор метрик хоста с использованием экспортера](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-%d1%8d%d0%ba%d1%81%d0%bf%d0%be%d1%80%d1%82%d0%b5%d1%80%d0%b0)
     - [Задания со \*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
 
@@ -5941,7 +5942,16 @@ scrape_configs:
 
 - Файл [monitoring/prometheus/Dockerfile](monitoring/prometheus/Dockerfile) исправлен в соответсвии с указаниями линтера (replace `ADD` with `COPY`)
 
+#### Создаем образ
 
+В директории prometheus собираем Docker образ:
+```shell
+export USER_NAME=dockerhub_login
+cd monitoring/prometheus
+docker build -t $USER_NAME/prometheus .
+```
+
+В конце занятия нужно будет запушить на DockerHub собранные вами на этом занятии образы.
 
 ### Сбор метрик хоста с использованием экспортера
 
