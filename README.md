@@ -141,6 +141,9 @@ vscoder microservices repository
     - [Прочее](#%d0%9f%d1%80%d0%be%d1%87%d0%b5%d0%b5)
   - [HomeWork 16: Введение в мониторинг. Системы мониторинга.](#homework-16-%d0%92%d0%b2%d0%b5%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b2-%d0%bc%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d0%a1%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d1%8b-%d0%bc%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3%d0%b0)
     - [Prometheus: запуск, конфигурация, знакомство с Web UI](#prometheus-%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%ba%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d1%83%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d0%b7%d0%bd%d0%b0%d0%ba%d0%be%d0%bc%d1%81%d1%82%d0%b2%d0%be-%d1%81-web-ui)
+      - [Запуск docker-machine хоста для prometheus](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-docker-machine-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d0%b4%d0%bb%d1%8f-prometheus)
+      - [Запуск prometheus](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-prometheus)
+      - [Web-интерфейс](#web-%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81)
     - [Мониторинг состояния микросервисов](#%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d1%81%d0%be%d1%81%d1%82%d0%be%d1%8f%d0%bd%d0%b8%d1%8f-%d0%bc%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%be%d0%b2)
     - [Сбор метрик хоста с использованием экспортера](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-%d1%8d%d0%ba%d1%81%d0%bf%d0%be%d1%80%d1%82%d0%b5%d1%80%d0%b0)
     - [Задания со \*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
@@ -4992,6 +4995,8 @@ TODO: можно ли в сообщении так же слать ссылку 
 
 ### Prometheus: запуск, конфигурация, знакомство с Web UI
 
+#### Запуск docker-machine хоста для prometheus
+
 Создадим правило фаервола для Prometheus и Puma:
 
 ```shell
@@ -5011,6 +5016,50 @@ docker-machine create --driver google \
 
 eval $(docker-machine env docker-host)
 ```
+
+#### Запуск prometheus
+
+Систему мониторинга Prometheus будем запускать внутри Docker контейнера. Для начального знакомства воспользуемся готовым образом с DockerHub (использована последняя версия - более новая версия, чем в ДЗ)
+```shell
+docker run --rm -p 9090:9090 -d --name prometheus prom/prometheus:v2.14.0
+```
+```log
+Digest: sha256:907e20b3b0f8b0a76a33c088fe9827e8edc180e874bd2173c27089eade63d8b8
+Status: Downloaded newer image for prom/prometheus:v2.14.0
+ba7f92afa8bc8e3542d60f25faae8f76f1459fa3ea2aeb5c4e954b2bda73957c
+```
+
+Список запущенных контейнеров
+```shell
+docker ps
+```
+```log
+CONTAINER ID        IMAGE                     COMMAND                  CREATED             STATUS              PORTS                    NAMES
+ba7f92afa8bc        prom/prometheus:v2.14.0   "/bin/prometheus --c…"   49 seconds ago      Up 45 seconds       0.0.0.0:9090->9090/tcp   prometheus
+```
+
+#### Web-интерфейс
+
+IP запущенной docker-machine
+```shell
+docker-machine ip docker-host
+```
+```log
+34.76.241.120
+```
+
+Веб-интерфейс открыт http://34.76.241.120:9090
+
+По умолчанию prometheus собирает статистику о своей работе. Выберем, например, метрику `prometheus_build_info` и нажмем Execute, чтобы посмотреть информацию о версии.
+```log
+prometheus_build_info{branch="HEAD",goversion="go1.13.4",instance="localhost:9090",job="prometheus",revision="edeb7a44cbf745f1d8be4ea6f215e79e651bfe19",version="2.14.0"}	
+```
+
+`prometheus_build_info` - название метрики - идентификатор собранной информации.
+
+`branch`, `goversion`, `instance`, etc... - лейбл - добавляет метаданных метрике, уточняет ее. Использование лейблов дает нам возможность не ограничиваться лишь одним названием метрик для идентификации получаемой информации. Лейблы содержаться в `{}` скобках и представлены наборами "ключ=значение".
+
+`"HEAD"`, `"go1.13.4"`, etc... - значение метрики - численное значение метрики, либо NaN, если значение недоступно
 
 
 ### Мониторинг состояния микросервисов
