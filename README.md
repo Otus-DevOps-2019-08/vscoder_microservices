@@ -6029,8 +6029,6 @@ volumes:
 
 Файлы `.env*` перемещены из [src/](src/) в [docker/](docker/)
 
-Версии сервисов в [docker/.env](docker/.env) заменены на `latest`
-
 #### Запуск микросервисов
 
 Поднимем сервисы, определенные в docker/dockercompose.yml
@@ -6038,6 +6036,88 @@ volumes:
 ```shell
 cd docker && docker-compose up -d
 ```
+
+Ошибка
+```log
+Pulling ui (vscoder/ui:1.0)...
+ERROR: manifest for vscoder/ui:1.0 not found: manifest unknown: manifest unknown
+```
+Причина -- отсутствие образов нужной версии?
+
+Версии сервисов в [docker/.env](docker/.env) заменены на `latest`
+
+Запуск
+```shell
+docker-compose up -d
+```
+Успешно!
+```log
+Creating docker_post_db_1    ... done
+Creating docker_post_1       ... done
+Creating docker_ui_1         ... done
+Creating docker_prometheus_1 ... done
+Creating docker_comment_1    ... done
+```
+
+**Ошибка!** Приложение не запустилось
+
+Диагностика:
+
+Список запущенных сервисов
+```shell
+docker-compose ps
+```
+```log
+       Name                      Command               State            Ports         
+--------------------------------------------------------------------------------------
+docker_comment_1      puma                             Exit 1                         
+docker_post_1         python3 post_app.py              Exit 2                         
+docker_post_db_1      docker-entrypoint.sh mongod      Up       27017/tcp             
+docker_prometheus_1   /bin/prometheus --config.f ...   Up       0.0.0.0:9090->9090/tcp
+docker_ui_1           puma --debug -w 2                Exit 1
+```
+
+Логи контейнеров:
+
+comment
+```shell
+docker logs docker_comment_1 
+```
+```log
+/usr/local/lib/ruby/site_ruby/2.2.0/bundler/definition.rb:33:in `build': /app/Gemfile not found (Bundler::GemfileNotFound)
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler.rb:135:in `definition'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler.rb:101:in `setup'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler/setup.rb:20:in `<top (required)>'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+        from /usr/local/bundle/bin/puma:27:in `<main>'
+```
+
+ui
+```shell
+docker logs docker_ui_1  
+```
+```log
+/usr/local/lib/ruby/site_ruby/2.2.0/bundler/definition.rb:33:in `build': /app/Gemfile not found (Bundler::GemfileNotFound)
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler.rb:135:in `definition'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler.rb:101:in `setup'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler/setup.rb:20:in `<top (required)>'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+        from /usr/local/bundle/bin/puma:27:in `<main>'
+```
+
+post
+```shell
+docker logs docker_post_1
+```
+```log
+python3: can't open file 'post_app.py': [Errno 2] No such file or directory
+```
+
+Причина [docker/docker-compose.override.yml](docker/docker-compose.override.yml), в котором указано монтирование директорий с кодом с локального хоста.
+
+TODO: починить!
 
 ### Сбор метрик хоста с использованием экспортера
 
