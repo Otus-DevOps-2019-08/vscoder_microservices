@@ -38,3 +38,8 @@ venv
 .molecule
 .cache
 .pytest_cache
+
+####
+# Docker
+####
+env
