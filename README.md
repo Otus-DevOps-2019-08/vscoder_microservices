@@ -4586,6 +4586,10 @@ cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
   ```shell
   chmod 0600 "$SSH_PRIVATE_KEY"
   ```
+- Параметризован пользователь `appuser`, с использованием значения по-умолчанию (**ВАЖНО!** добавлено позже, не тестировалось. Будет чем заняться вечером))
+  ```shell
+  export ANSIBLE_REMOTE_USER=${ANSIBLE_USER:-appuser}
+  ```
 - Результат последнего пайплайна: ошибка
 ```log
 "msg": "Error connecting: Error while fetching server API version: ('Connection aborted.', PermissionError(13, 'Permission denied'))"
