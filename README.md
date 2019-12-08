@@ -6117,7 +6117,51 @@ python3: can't open file 'post_app.py': [Errno 2] No such file or directory
 
 Причина [docker/docker-compose.override.yml](docker/docker-compose.override.yml), в котором указано монтирование директорий с кодом с локального хоста.
 
-TODO: починить!
+`docker/docker-compose.override.yml` переименован в [docker/docker-compose.override.yml.example](docker/docker-compose.override.yml.example)
+
+Перезапускаем всё
+Запуск
+```shell
+docker-compose down; docker-compose up -d
+```
+Успешно!
+```log
+Stopping docker_prometheus_1 ... done
+Stopping docker_post_db_1    ... done
+Removing docker_ui_1         ... done
+Removing docker_comment_1    ... done
+Removing docker_prometheus_1 ... done
+Removing docker_post_1       ... done
+Removing docker_post_db_1    ... done
+Removing network docker_reddit_back
+Removing network docker_reddit_front
+Creating network "docker_reddit_back" with the default driver
+Creating network "docker_reddit_front" with the default driver
+Creating docker_post_1       ... done
+Creating docker_prometheus_1 ... done
+Creating docker_post_db_1    ... done
+Creating docker_ui_1         ... done
+Creating docker_comment_1    ... done
+```
+
+Проверяем
+```shell
+docker ps
+```
+```log
+CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS              PORTS                    NAMES
+1571f4db0a45        vscoder/comment:latest   "puma"                   31 seconds ago      Up 27 seconds                                docker_comment_1
+acdd2f17984a        vscoder/prometheus       "/bin/prometheus --c…"   31 seconds ago      Up 28 seconds       0.0.0.0:9090->9090/tcp   docker_prometheus_1
+eb95127cf57e        vscoder/ui:latest        "puma"                   31 seconds ago      Up 26 seconds       0.0.0.0:9292->9292/tcp   docker_ui_1
+2071c6919eb5        mongo:3.2                "docker-entrypoint.s…"   31 seconds ago      Up 27 seconds       27017/tcp                docker_post_db_1
+65ad65dd8276        vscoder/post:latest      "python3 post_app.py"    31 seconds ago      Up 28 seconds                                docker_post_1
+```
+
+Приложение открывается http://34.76.241.120:9292/
+Prometheus доступен http://34.76.241.120:9090
+В prometheus появились активные endpoint-ы `comment` и `ui` http://34.76.241.120:9090/targets
+
+
 
 ### Сбор метрик хоста с использованием экспортера
 
