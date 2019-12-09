@@ -13,11 +13,11 @@ vscoder microservices repository
     - [Подготовка проекта. Интеграции](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0-%d0%98%d0%bd%d1%82%d0%b5%d0%b3%d1%80%d0%b0%d1%86%d0%b8%d0%b8)
     - [Установка docker](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0-docker)
     - [Работа с docker](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-docker)
-    - [Задание со \*: Отличия образа и контейнера](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bb%d0%b8%d1%87%d0%b8%d1%8f-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0-%d0%b8-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0)
+    - [Задание со *: Отличия образа и контейнера](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bb%d0%b8%d1%87%d0%b8%d1%8f-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0-%d0%b8-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0)
     - [Больше docker-команд](#%d0%91%d0%be%d0%bb%d1%8c%d1%88%d0%b5-docker-%d0%ba%d0%be%d0%bc%d0%b0%d0%bd%d0%b4)
-      - [Docker kill & stop](#docker-kill--stop)
+      - [Docker kill &amp; stop](#docker-kill-amp-stop)
       - [docker system df](#docker-system-df)
-      - [Docker rm & rmi](#docker-rm--rmi)
+      - [Docker rm &amp; rmi](#docker-rm-amp-rmi)
     - [Docker контейнеры](#docker-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d1%8b)
       - [GCE](#gce)
       - [Docker machine](#docker-machine)
@@ -28,7 +28,7 @@ vscoder microservices repository
       - [Dockerfile](#dockerfile)
       - [Запуск контейнера](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0)
     - [Docker hub](#docker-hub)
-    - [Задание со \*: IaC с использованием docker](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--iac-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-docker)
+    - [Задание со *: IaC с использованием docker](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--iac-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-docker)
       - [Packer](#packer)
       - [Terraform](#terraform)
         - [Project-wide объекты](#project-wide-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d1%8b)
@@ -57,11 +57,11 @@ vscoder microservices repository
       - [Новая структура приложения](#%d0%9d%d0%be%d0%b2%d0%b0%d1%8f-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
       - [Сборка образов](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
       - [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
-    - [Задание со \*: Переопределение сетевых алиасов](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9f%d0%b5%d1%80%d0%b5%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%82%d0%b5%d0%b2%d1%8b%d1%85-%d0%b0%d0%bb%d0%b8%d0%b0%d1%81%d0%be%d0%b2)
+    - [Задание со *: Переопределение сетевых алиасов](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9f%d0%b5%d1%80%d0%b5%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%82%d0%b5%d0%b2%d1%8b%d1%85-%d0%b0%d0%bb%d0%b8%d0%b0%d1%81%d0%be%d0%b2)
       - [Теория](#%d0%a2%d0%b5%d0%be%d1%80%d0%b8%d1%8f)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f)
     - [Образы](#%d0%9e%d0%b1%d1%80%d0%b0%d0%b7%d1%8b)
-    - [Задание со \*: Уменьшаем размер образа](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%a3%d0%bc%d0%b5%d0%bd%d1%8c%d1%88%d0%b0%d0%b5%d0%bc-%d1%80%d0%b0%d0%b7%d0%bc%d0%b5%d1%80-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
+    - [Задание со *: Уменьшаем размер образа](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%a3%d0%bc%d0%b5%d0%bd%d1%8c%d1%88%d0%b0%d0%b5%d0%bc-%d1%80%d0%b0%d0%b7%d0%bc%d0%b5%d1%80-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
       - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7)
       - [Сборка на основе alpine linux](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bd%d0%b0-%d0%be%d1%81%d0%bd%d0%be%d0%b2%d0%b5-alpine-linux)
         - [ui](#ui)
@@ -88,7 +88,7 @@ vscoder microservices repository
       - [docker-compose.yml](#docker-composeyml)
         - [Переменные окружения](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
         - [Имя проекта](#%d0%98%d0%bc%d1%8f-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
-    - [Задание со \*: docker-compose.override.yml](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--docker-composeoverrideyml)
+    - [Задание со *: docker-compose.override.yml](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--docker-composeoverrideyml)
       - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-2)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-1)
     - [Вне заданий](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9)
@@ -110,7 +110,7 @@ vscoder microservices repository
       - [staging и production](#staging-%d0%b8-production)
       - [Динамические окружения](#%d0%94%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
     - [Вне заданий: улучшалки](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9-%d1%83%d0%bb%d1%83%d1%87%d1%88%d0%b0%d0%bb%d0%ba%d0%b8)
-    - [Задание со \*: Автоматизированная сборка приложения reddit](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-reddit)
+    - [Задание со *: Автоматизированная сборка приложения reddit](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-reddit)
       - [План](#%d0%9f%d0%bb%d0%b0%d0%bd)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-2)
         - [Настройка terraform module instance](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-terraform-module-instance)
@@ -124,7 +124,7 @@ vscoder microservices repository
           - [Подготовлен docker-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%bb%d0%b5%d0%bd-docker-runner)
           - [Автоматизированная сборка образов](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
         - [Загрузка образов в gitlab registry](#%d0%97%d0%b0%d0%b3%d1%80%d1%83%d0%b7%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d0%b2-gitlab-registry)
-    - [Задание со \*: Деплой контейнера на созданный для ветки сервер](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0-%d0%bd%d0%b0-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d0%b9-%d0%b4%d0%bb%d1%8f-%d0%b2%d0%b5%d1%82%d0%ba%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b5%d1%80)
+    - [Задание со *: Деплой контейнера на созданный для ветки сервер](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0-%d0%bd%d0%b0-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d0%b9-%d0%b4%d0%bb%d1%8f-%d0%b2%d0%b5%d1%82%d0%ba%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b5%d1%80)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-3)
         - [Packer](#packer-1)
         - [Terraform](#terraform-1)
@@ -134,9 +134,9 @@ vscoder microservices repository
           - [Подготовка gitlab-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-gitlab-runner)
           - [Проверка](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0)
           - [Создание Environment](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-environment)
-    - [Задание со \*: Автоматизированное создание и регистрация раннеров](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
+    - [Задание со *: Автоматизированное создание и регистрация раннеров](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
       - [Проработка скейлинга раннеров](#%d0%9f%d1%80%d0%be%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%ba%d0%b0-%d1%81%d0%ba%d0%b5%d0%b9%d0%bb%d0%b8%d0%bd%d0%b3%d0%b0-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
-    - [Задание со \*: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
+    - [Задание со *: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
     - [Прохождение тестов travis-ci](#%d0%9f%d1%80%d0%be%d1%85%d0%be%d0%b6%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d1%82%d0%b5%d1%81%d1%82%d0%be%d0%b2-travis-ci)
     - [Прочее](#%d0%9f%d1%80%d0%be%d1%87%d0%b5%d0%b5)
   - [HomeWork 16: Введение в мониторинг. Системы мониторинга.](#homework-16-%d0%92%d0%b2%d0%b5%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b2-%d0%bc%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d0%a1%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d1%8b-%d0%bc%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3%d0%b0)
@@ -157,8 +157,10 @@ vscoder microservices repository
       - [Запуск микросервисов](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bc%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%be%d0%b2)
       - [Healthchecks](#healthchecks)
       - [Состояние сервиса UI](#%d0%a1%d0%be%d1%81%d1%82%d0%be%d1%8f%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%b0-ui)
+      - [Fix docker-machine from other host](#fix-docker-machine-from-other-host)
+      - [Состояние сервиса UI. Продолжение](#%d0%a1%d0%be%d1%81%d1%82%d0%be%d1%8f%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%b0-ui-%d0%9f%d1%80%d0%be%d0%b4%d0%be%d0%bb%d0%b6%d0%b5%d0%bd%d0%b8%d0%b5)
     - [Сбор метрик хоста с использованием экспортера](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-%d1%8d%d0%ba%d1%81%d0%bf%d0%be%d1%80%d1%82%d0%b5%d1%80%d0%b0)
-    - [Задания со \*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
+    - [Задания со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
       - [Makefile](#makefile-1)
 
 # Makefile
@@ -6190,7 +6192,78 @@ ui_health{branch="monitoring-1",commit_hash="2dec0f4",instance="ui:9292",job="ui
 **P.S.** Если у вас статус не равен 1, проверьте какой сервис
 недоступен (слайд 32), и что у вас заданы все aliases для DB.
 
-TODO: FixIt
+#### Fix docker-machine from other host
+
+В связи с тем, что работа продолжена с другого хоста, возникли проблемы с подключением к docker-machine. Команда `docker-machine ls` не видела созданных инстансов. Для того чтобы увидеть ранее созданный инстанс `docker-host`, с первого хоста была скопирована директория `~/.docker`, содержащая параметры docker-machine и текущий стейт.
+
+Так как инстанс ранее был остановлен `docker-machine stop docker-host`, его потребовалось запустить `docker-machine start docker-host`.
+
+При выполнении `docker-machine env docker-host` возникла ошибка
+```log
+Error checking TLS connection: Error checking and/or regenerating the certs: There was an error validating certificates for host "35.241.249.240:2376": x509: certificate is valid for 34.76.241.120, not 35.241.249.240
+You can attempt to regenerate them using 'docker-machine regenerate-certs [name]'.
+Be advised that this will trigger a Docker daemon restart which might stop running containers.
+```
+
+Причина: изменился внешний ip.
+
+Решение: перегенерируем сертификаты `docker-machine regenerate-certs docker-host`. После чего удалось успешно активировать окружение `docker-machine env docker-host`
+
+Но при заходе на `docker-host` по ssh `docker-machine ssh docker-host`, обнаружилось отсутствие запущзенных контейнеров.
+```shell
+sudo docker ps -a
+```
+```log
+CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS                    PORTS               NAMES
+1571f4db0a45        vscoder/comment:latest   "puma"                   24 hours ago        Exited (1) 20 hours ago                       docker_comment_1
+acdd2f17984a        vscoder/prometheus       "/bin/prometheus --c…"   24 hours ago        Exited (0) 20 hours ago                       docker_prometheus_1
+eb95127cf57e        vscoder/ui:latest        "puma"                   24 hours ago        Exited (1) 20 hours ago                       docker_ui_1
+2071c6919eb5        mongo:3.2                "docker-entrypoint.s…"   24 hours ago        Exited (0) 20 hours ago                       docker_post_db_1
+65ad65dd8276        vscoder/post:latest      "python3 post_app.py"    24 hours ago        Exited (0) 20 hours ago                       docker_post_1
+```
+
+Возможное решение: заново поднять все сервисы по описанной ранее инструкции в README.md
+```shell
+export GOOGLE_PROJECT=<project_id_here>
+docker run --rm -p 9090:9090 -d --name prometheus prom/prometheus:v2.14.0
+docker-machine ip docker-host
+http://35.241.249.240:9090/graph
+docker stop prometheus
+# И зачем я всё это делал? =)
+
+source ./.venv/bin/sctivate
+cd docker
+docker-compose up -d
+```
+
+Ошибка
+```log
+WARNING: The MONGO_VERSION variable is not set. Defaulting to a blank string.
+WARNING: The UI_APP_HOME variable is not set. Defaulting to a blank string.
+WARNING: The USERNAME variable is not set. Defaulting to a blank string.
+WARNING: The UI_VERSION variable is not set. Defaulting to a blank string.
+WARNING: The UI_PORT variable is not set. Defaulting to a blank string.
+WARNING: The POST_APP_HOME variable is not set. Defaulting to a blank string.
+WARNING: The POST_VERSION variable is not set. Defaulting to a blank string.
+WARNING: The COMMENT_APP_HOME variable is not set. Defaulting to a blank string.
+WARNING: The COMMENT_VERSION variable is not set. Defaulting to a blank string.
+ERROR: The Compose file './docker-compose.yml' is invalid because:
+services.ui.ports contains an invalid type, it should be a number, or an object
+```
+Причина: на новом хосте нет env-файла
+
+Решение: копировать с первого хоста
+```shell
+scp ...
+docker-compose up -d
+```
+Всё поднялось. Приложение доступно http://35.241.249.240:9292/
+
+Затрачено: ~25 мин.
+
+#### Состояние сервиса UI. Продолжение
+
+
 
 ### Сбор метрик хоста с использованием экспортера
 
