@@ -28,6 +28,8 @@ services:
     networks:
       - reddit_front
       - reddit_back
+    links:
+      - "post_db:comment_db"
 
   prometheus:
     image: ${USERNAME}/prometheus

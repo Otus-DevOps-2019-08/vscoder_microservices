@@ -6263,6 +6263,36 @@ docker-compose up -d
 
 #### Состояние сервиса UI. Продолжение
 
+Итак, `ui_health` равно 0.
+
+Причина: сервис comment ищет БД на хосте `comment_db`, которого нет.
+
+Решалось в HomeWork 15 поднятием отдельного инстанса с БД с правильным именем.
+
+В этот раз попробуем использовать [сетевые alias-ы](https://docs.docker.com/compose/networking/#links). В [docker/docker-compose.yml](docker/docker-compose.yml) сервису post_db добавлены `links:`
+```yaml
+services:
+  comment:
+    ...
+    links:
+      - "post_db:comment_db"
+```
+
+Тестируем:
+```shell
+docker-compose up -d
+```
+```log
+docker_ui_1 is up-to-date
+docker_prometheus_1 is up-to-date
+docker_post_1 is up-to-date
+docker_post_db_1 is up-to-date
+Recreating docker_comment_1 ... done
+```
+Сервис `docker_comment` был пересоздан. Проверяем: http://35.241.249.240:9090/graph?g0.range_input=1h&g0.expr=ui_health&g0.tab=0
+
+Значение `ui_health` теперь равно 1.
+
 
 
 ### Сбор метрик хоста с использованием экспортера
