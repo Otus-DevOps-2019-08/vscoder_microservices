@@ -6698,21 +6698,26 @@ make run
 mongodb_exporter_build_info{goversion="go1.11.13",instance="postdb-exporter:9216",job="post_db"}	
 ```
 
+
+
 #### Makefile
 
 В [Makefile](Makefile) добавлены цели
 
-| Цель             | Описание                                         |
-| ---------------- | ------------------------------------------------ |
-| build_comment    | Собрать образ comment                            |
-| build_post       | Собрать образ post                               |
-| build_ui         | Собрать образ ui                                 |
-| build_prometheus | Собрать prometheus с нашим конфигом              |
-| build            | Собрать все образы                               |
-| push_comment     | Пуш в докер-хаб образа `${USER_NAME}/comment`    |
-| push_post        | Пуш в докер-хаб образа `${USER_NAME}/post`       |
-| push_ui          | Пуш в докер-хаб образа `${USER_NAME}/ui`         |
-| push_prometheus  | Пуш в докер-хаб образа `${USER_NAME}/prometheus` |
-| push             | Пуш в докер-хаб всех образов                     |
+| Цель                          | Описание                                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------------------ |
+| build_comment                 | Собрать образ comment                                                                      |
+| build_post                    | Собрать образ post                                                                         |
+| build_ui                      | Собрать образ ui                                                                           |
+| build_prometheus              | Собрать prometheus с нашим конфигом                                                        |
+| build                         | Собрать все образы                                                                         |
+| push_comment                  | Пуш в докер-хаб образа `${USER_NAME}/comment`                                              |
+| push_post                     | Пуш в докер-хаб образа `${USER_NAME}/post`                                                 |
+| push_ui                       | Пуш в докер-хаб образа `${USER_NAME}/ui`                                                   |
+| push_prometheus               | Пуш в докер-хаб образа `${USER_NAME}/prometheus`                                           |
+| push                          | Пуш в докер-хаб всех образов                                                               |
+| mongodb_exporter_clone        | Клонирование репозитория https://github.com/percona/mongodb_exporter.git                   |
+| mongodb_exporter_docker_build | Сборка docker-образа с mongodb-exporter                                                    |
+| mongodb_exporter_push         | Пуш в докер-хаб образа `${MONGODB_EXPORTER_DOCKER_IMAGE_NAME}:${MONGODB_EXPORTER_VERSION}` |
 
 TODO: реализовать пуш образов с корректной версией
