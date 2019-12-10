@@ -122,5 +122,25 @@ build_post:
 build_ui:
 	cd src/ui && bash ./docker_build.sh
 
-build: build_post build_comment build_ui
+build_prometheus:
+	cd ./monitoring/prometheus && bash docker_build.sh
 
+build: build_post build_comment build_ui build_prometheus
+
+
+###
+# Push
+###
+push_comment:
+	docker push ${USER_NAME}/comment
+
+push_post:
+	docker push ${USER_NAME}/post
+
+push_ui:
+	docker push ${USER_NAME}/ui
+
+push_prometheus:
+	docker push ${USER_NAME}/prometheus
+
+push: push_comment push_post push_ui push_prometheus

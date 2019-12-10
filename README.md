@@ -162,7 +162,18 @@ vscoder microservices repository
         - [Проверка метрик](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba)
         - [Поиск проблемы](#%d0%9f%d0%be%d0%b8%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b)
         - [Самостоятельно](#%d0%a1%d0%b0%d0%bc%d0%be%d1%81%d1%82%d0%be%d1%8f%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be)
+        - [Пересоздание docker-machine](#%d0%9f%d0%b5%d1%80%d0%b5%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-docker-machine)
     - [Сбор метрик хоста с использованием экспортера](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-%d1%8d%d0%ba%d1%81%d0%bf%d0%be%d1%80%d1%82%d0%b5%d1%80%d0%b0)
+      - [Node exporter](#node-exporter)
+      - [docker-compose.yml](#docker-composeyml-2)
+      - [Дополнительно: параметризуем версии образов](#%d0%94%d0%be%d0%bf%d0%be%d0%bb%d0%bd%d0%b8%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be-%d0%bf%d0%b0%d1%80%d0%b0%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%b7%d1%83%d0%b5%d0%bc-%d0%b2%d0%b5%d1%80%d1%81%d0%b8%d0%b8-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
+      - [Дополнительно: Makefile target build_prometheus](#%d0%94%d0%be%d0%bf%d0%be%d0%bb%d0%bd%d0%b8%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be-makefile-target-buildprometheus)
+      - [prometheus.yml](#prometheusyml)
+      - [Пересоздадим наши сервисы](#%d0%9f%d0%b5%d1%80%d0%b5%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%b4%d0%b8%d0%bc-%d0%bd%d0%b0%d1%88%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d1%8b)
+      - [Получение информации](#%d0%9f%d0%be%d0%bb%d1%83%d1%87%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b8%d0%bd%d1%84%d0%be%d1%80%d0%bc%d0%b0%d1%86%d0%b8%d0%b8)
+    - [Завершение работы](#%d0%97%d0%b0%d0%b2%d0%b5%d1%80%d1%88%d0%b5%d0%bd%d0%b8%d0%b5-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d1%8b)
+      - [Makefile targets](#makefile-targets)
+      - [Пушим образы](#%d0%9f%d1%83%d1%88%d0%b8%d0%bc-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d1%8b)
     - [Задания со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
       - [Makefile](#makefile-1)
 
@@ -6344,7 +6355,248 @@ UI сервис тоже: `ui_health
 
 Попробоал потушить БД.
 
+##### Пересоздание docker-machine
+
+Машина `docker-host` удалена после окончания текущей задачи.
+
+На новом хосте заново поднят docker-host и всё приложение
+```shell
+make docker_machine_create
+eval $(docker-machine env docker-host)
+docker-machine ip docker-host
+```
+
+Собираем образы приложения
+```shell
+export USER_NAME=vscoder
+make build
+```
+
+
 ### Сбор метрик хоста с использованием экспортера
+
+Экспортер похож на вспомогательного агента для сбора метрик.
+
+В ситуациях, когда мы не можем реализовать отдачу метрик Prometheus в коде приложения, мы можем использовать экспортер, который будет транслировать метрики приложения или системы в формате доступном для чтения Prometheus.
+
+Экспортер это:
+- Программа, которая делает метрики доступными для сбора Prometheus
+- Дает возможность конвертировать метрики в нужный для Prometheus формат
+- Используется когда нельзя поменять код приложения
+- Примеры: PostgreSQL, RabbitMQ, Nginx, Node exporter, cAdvisor
+
+#### Node exporter
+
+Воспользуемся [Node экспортер](https://github.com/prometheus/node_exporter) для сбора информации о работе Docker хоста (виртуалки, где у нас запущены контейнеры) и предоставлению этой информации в Prometheus.
+
+#### docker-compose.yml
+
+Node экспортер будем запускать также в контейнере. Определим еще один сервис в [docker/docker-compose.yml](docker/docker-compose.yml) файле.
+
+Не забудьте также добавить определение сетей для сервиса node-exporter, чтобы обеспечить доступ Prometheus к экспортеру.
+
+```yaml
+services:
+  ...
+  node-exporter:
+    image: prom/node-exporter:v0.18.1
+    user: root
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - reddit_front
+      - reddit_back
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
+```
+
+#### Дополнительно: параметризуем версии образов
+
+Параметризованы версии `prometheus` и `node_exporter`
+[docker/docker-compose.yml](docker/docker-compose.yml)
+```yaml
+services:
+  ...
+  prometheus:
+    image: ${USERNAME}/prometheus:${PROMETHEUS_VERSION}
+    ...
+  node-exporter:
+    image: prom/node-exporter:${NODE_EXPORTER_VERSION}
+    ...
+```
+
+В [docker/.env.example](docker/.env.example) добавлены переменные
+```shell
+PROMETHEUS_VERSION=latest
+NODE_EXPORTER_VERSION=v0.18.1
+```
+
+#### Дополнительно: Makefile target build_prometheus
+
+Создан скрипт для сборки prometheus [monitoring/prometheus/docker_build.sh](monitoring/prometheus/docker_build.sh)
+```shell
+#!/bin/bash
+set -eu
+
+docker build -t $USER_NAME/prometheus .
+```
+
+В [Makefile](Makefile) добавлена новая цель `build_prometheus` для сборки prometheus с собственным конфигом
+
+Поднимаем приложение
+```shell
+cd ./docker && docker-compose up -d
+```
+
+#### prometheus.yml
+
+Чтобы сказать Prometheus следить за еще одним сервисом, нам нужно добавить информацию о нем в конфиг.
+
+Добавим еще один job:
+```yaml
+scrape_configs:
+  ...
+  - job_name: 'node'
+    static_configs:
+      - targets:
+      - 'node-exporter:9100'
+```
+
+Не забудем собрать новый Docker для Prometheus:
+```shell
+make build_prometheus
+```
+
+#### Пересоздадим наши сервисы
+
+```shell
+source ./.venv/bin/activate
+cd ./docker
+docker-compose down
+docker-compose up -d
+```
+```log
+Creating network "docker_reddit_back" with the default driver
+Creating network "docker_reddit_front" with the default driver
+Pulling node-exporter (prom/node-exporter:v0.18.1)...
+v0.18.1: Pulling from prom/node-exporter
+49a2d53aa1af: Pull complete
+3589a6efd9ce: Pull complete
+190160031744: Pull complete
+Digest: sha256:a2f29256e53cc3e0b64d7a472512600b2e9410347d53cdc85b49f659c17e02ee
+Status: Downloaded newer image for prom/node-exporter:v0.18.1
+Creating docker_post_1          ... done
+Creating docker_prometheus_1    ... done
+Creating docker_node-exporter_1 ... done
+Creating docker_ui_1            ... done
+Creating docker_post_db_1       ... done
+Creating docker_comment_1       ... done
+```
+
+web-интерфейс prometheus http://35.195.16.90:9090/ не открылся. Соединение сброшено.
+
+Диагностика:
+```shell
+docker-compose ps
+```
+```log
+         Name                       Command               State            Ports         
+-----------------------------------------------------------------------------------------
+docker_comment_1         puma                             Up                             
+docker_node-exporter_1   /bin/node_exporter --path. ...   Up       9100/tcp              
+docker_post_1            python3 post_app.py              Up                             
+docker_post_db_1         docker-entrypoint.sh mongod      Up       27017/tcp             
+docker_prometheus_1      /bin/prometheus --config.f ...   Exit 1                         
+docker_ui_1              puma                             Up       0.0.0.0:9292->9292/tcp
+```
+Сервис prometheus завершил работу. Смотрим логи
+```shell
+docker-compose logs prometheus
+```
+```log
+...
+prometheus_1     | level=error ts=2019-12-10T06:20:50.235Z caller=main.go:736 err="error loading config from \"/etc/prometheus/prometheus.yml\": couldn't load configuration (--config.file=\"/etc/prometheus/prometheus.yml\"): parsing YAML file /etc/prometheus/prometheus.yml: yaml: unmarshal errors:\n  line 24: cannot unmarshal !!str `node-ex...` into struct { Targets []string \"yaml:\\\"targets\\\"\"; Labels model.LabelSet \"yaml:\\\"labels\\\"\" }"
+```
+Причина: кривой [monitoring/prometheus/prometheus.yml](monitoring/prometheus/prometheus.yml)
+
+Исправлен:
+```yaml
+...
+  - job_name: "node"
+    static_configs:
+      - targets:
+          - "node-exporter:9100"
+```
+
+Собираем образ, запускаем приложения
+```shell
+cd .. && make build_prometheus && cd -
+docker-compose up -d
+```
+```log
+docker_post_1 is up-to-date
+docker_ui_1 is up-to-date
+Recreating docker_prometheus_1 ... 
+docker_node-exporter_1 is up-to-date
+docker_post_db_1 is up-to-date
+Recreating docker_prometheus_1 ... done
+```
+Проверяем
+```shell
+docker-compose ps
+```
+```log
+         Name                       Command               State           Ports         
+----------------------------------------------------------------------------------------
+docker_comment_1         puma                             Up                            
+docker_node-exporter_1   /bin/node_exporter --path. ...   Up      9100/tcp              
+docker_post_1            python3 post_app.py              Up                            
+docker_post_db_1         docker-entrypoint.sh mongod      Up      27017/tcp             
+docker_prometheus_1      /bin/prometheus --config.f ...   Up      0.0.0.0:9090->9090/tcp
+docker_ui_1              puma                             Up      0.0.0.0:9292->9292/tcp
+```
+
+Вроде всё в порядке. Проверяем web-интерфейс http://35.195.16.90:9090/graph открылся **успешно**
+
+Посмотрим, список endpoint-ов Prometheus http://35.195.16.90:9090/targets - должен появится еще один endpoint.
+
+#### Получение информации
+
+Получим информацию об использовании CPU: `node_load1`
+```log
+node_load1{instance="node-exporter:9100",job="node"}	0
+```
+
+Зайдем на хост: `docker-machine ssh docker-host`
+
+Добавим нагрузки: `yes > /dev/null`
+
+На графике http://35.195.16.90:9090/graph?g0.range_input=1h&g0.expr=node_load1&g0.tab=0 видно, что нагрузка возросла.
+
+### Завершение работы
+
+#### Makefile targets
+
+Добавлены цели:
+- push_comment
+- push_post
+- push_ui
+- push_prometheus
+- push
+
+#### Пушим образы
+
+Запушьте собранные вами образы на DockerHub (из корня проекта):
+```shell
+docker login
+make push
+```
+
+Ссылка на docker-hub https://hub.docker.com/u/vscoder
 
 ### Задания со \*
 
@@ -6352,9 +6604,17 @@ UI сервис тоже: `ui_health
 
 В [Makefile](Makefile) добавлены цели
 
-| Цель          | Описание              |
-| ------------- | --------------------- |
-| build_comment | Собрать образ comment |
-| build_post    | Собрать образ post    |
-| build_ui      | Собрать образ ui      |
-| build         | Собрать все образы    |
+| Цель             | Описание                                         |
+| ---------------- | ------------------------------------------------ |
+| build_comment    | Собрать образ comment                            |
+| build_post       | Собрать образ post                               |
+| build_ui         | Собрать образ ui                                 |
+| build_prometheus | Собрать prometheus с нашим конфигом              |
+| build            | Собрать все образы                               |
+| push_comment     | Пуш в докер-хаб образа `${USER_NAME}/comment`    |
+| push_post        | Пуш в докер-хаб образа `${USER_NAME}/post`       |
+| push_ui          | Пуш в докер-хаб образа `${USER_NAME}/ui`         |
+| push_prometheus  | Пуш в докер-хаб образа `${USER_NAME}/prometheus` |
+| push             | Пуш в докер-хаб всех образов                     |
+
+TODO: реализовать пуш образов с корректной версией
