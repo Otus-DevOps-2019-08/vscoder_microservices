@@ -53,12 +53,20 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
     networks:
-      - reddit_front
+      #- reddit_front
       - reddit_back
     command:
       - "--path.procfs=/host/proc"
       - "--path.sysfs=/host/sys"
       - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
+
+  postdb-exporter:
+    image: ${USERNAME}/mongodb-exporter:${MONGODB_EXPORTER_VERSION}
+    networks:
+      #- reddit_front
+      - reddit_back
+    environment:
+      MONGODB_URI: "mongodb://post_db:27017"
 
 volumes:
   post_db:

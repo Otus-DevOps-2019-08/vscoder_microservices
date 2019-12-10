@@ -41,6 +41,10 @@ HADOLINT_VERSION?=1.17.2
 HADOLINT_URL=https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-x86_64
 HADOLINT?=${BIN_DIR}/hadolint
 
+# mongodb_exporter
+MONGODB_EXPORTER_DOCKER_IMAGE_NAME?=${USER_NAME}/mongodb-exporter
+MONGODB_EXPORTER_VERSION?=v0.10.0
+
 debug:
 	echo BIN_DIR=${BIN_DIR}
 	echo TEMP_DIR=${TEMP_DIR}
@@ -125,7 +129,7 @@ build_ui:
 build_prometheus:
 	cd ./monitoring/prometheus && bash docker_build.sh
 
-build: build_post build_comment build_ui build_prometheus
+build: build_post build_comment build_ui build_prometheus mongodb_exporter_docker_build
 
 
 ###
@@ -143,4 +147,27 @@ push_ui:
 push_prometheus:
 	docker push ${USER_NAME}/prometheus
 
-push: push_comment push_post push_ui push_prometheus
+push: push_comment push_post push_ui push_prometheus mongodb_exporter_push
+
+
+###
+# mongodb_exporter
+###
+
+mongodb_exporter_clone:
+	cd ./monitoring \
+	&& git clone https://github.com/percona/mongodb_exporter.git
+
+mongodb_exporter_docker_build:
+	cd ./monitoring/mongodb_exporter \
+	&& git checkout ${MONGODB_EXPORTER_VERSION} \
+	&& make docker DOCKER_IMAGE_NAME=${MONGODB_EXPORTER_DOCKER_IMAGE_NAME} DOCKER_IMAGE_TAG=${MONGODB_EXPORTER_VERSION}
+
+mongodb_exporter_push:
+	docker push ${MONGODB_EXPORTER_DOCKER_IMAGE_NAME}:${MONGODB_EXPORTER_VERSION}
+
+###
+# app
+###
+run:
+	cd docker && ../.venv/bin/docker-compose up -d

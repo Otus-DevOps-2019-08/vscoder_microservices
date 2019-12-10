@@ -44,3 +44,8 @@ venv
 ####
 env
 .env
+
+####
+# Monitoring
+####
+monitoring/mongodb_exporter
