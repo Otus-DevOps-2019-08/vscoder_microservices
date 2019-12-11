@@ -4,9 +4,6 @@ TEMP_DIR?=/tmp
 # Environment name
 ENV?=stage
 
-# Application image version
-IMAGE_VERSION?=1.0
-
 # Docker-machine
 DOCKER_MACHINE_VERSION?=v0.16.0
 DOCKER_MACHINE_BASEURL=https://github.com/docker/machine/releases/download
@@ -48,6 +45,7 @@ MONGODB_EXPORTER_VERSION?=v0.10.0
 debug:
 	echo BIN_DIR=${BIN_DIR}
 	echo TEMP_DIR=${TEMP_DIR}
+	echo ENV=${ENV}
 	echo DOCKER_MACHINE_VERSION=${DOCKER_MACHINE_VERSION}
 	echo DOCKER_MACHINE_BASEURL=${DOCKER_MACHINE_BASEURL}
 	echo DOCKER_MACHINE_OS=${DOCKER_MACHINE_OS}
@@ -182,7 +180,12 @@ cloudprober_push:
 ###
 # app
 ###
-run:
+run: variables
 	cd docker && ../.venv/bin/docker-compose up -d
 
-
+###
+# copy variables from examples
+###
+variables:
+	cd docker \
+	&& (test -f .env || cp .env.examples .env)

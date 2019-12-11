@@ -180,6 +180,9 @@ vscoder microservices repository
       - [Cloudprober](#cloudprober)
         - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-5)
       - [Makefile](#makefile-1)
+    - [Запуск проекта](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
+      - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-2)
+      - [Запуск проекта](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0-1)
 
 # Makefile
 
@@ -6897,3 +6900,36 @@ failure_ratio `(rate(total[1m]) - rate(success[1m])) / rate(total[1m])` and avg_
 
 TODO: реализовать пуш образов с корректной версией
 
+### Запуск проекта
+
+#### Подготовка
+
+Предварительно необходимо заполнить `env` по примеру `env.example`, а так же выполнитб авторизацию в `gcloud`
+
+```shell
+# Установка docker-machine
+install_docker_machine
+
+# Создание docker-machine
+docker_machine_create
+
+# Исплоьзование docker-machine
+eval $(docker-machine env docker-host)
+
+# Узнать docker-machine ip
+make docker_machine_ip
+```
+
+#### Запуск проекта
+
+```shell
+# Сборка образов
+make build
+
+# Запуск приложения
+make run
+```
+
+Приложение: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:9292
+
+Мониторинг: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:9090/graph?g0.range_input=1h&g0.expr=(rate(total%5B1m%5D)%20-%20rate(success%5B1m%5D))%20%2F%20rate(total%5B1m%5D)&g0.tab=0&g1.range_input=1h&g1.expr=rate(latency%5B1m%5D)%20%2F%20rate(success%5B1m%5D)%20%2F%201000&g1.tab=0
