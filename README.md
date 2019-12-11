@@ -6880,23 +6880,24 @@ failure_ratio `(rate(total[1m]) - rate(success[1m])) / rate(total[1m])` and avg_
 
 В [Makefile](Makefile) добавлены цели
 
-| Цель                          | Описание                                                                                   |
-| ----------------------------- | ------------------------------------------------------------------------------------------ |
-| build_comment                 | Собрать образ comment                                                                      |
-| build_post                    | Собрать образ post                                                                         |
-| build_ui                      | Собрать образ ui                                                                           |
-| build_prometheus              | Собрать prometheus с нашим конфигом                                                        |
-| build                         | Собрать все образы                                                                         |
-| push_comment                  | Пуш в докер-хаб образа `${USER_NAME}/comment`                                              |
-| push_post                     | Пуш в докер-хаб образа `${USER_NAME}/post`                                                 |
-| push_ui                       | Пуш в докер-хаб образа `${USER_NAME}/ui`                                                   |
-| push_prometheus               | Пуш в докер-хаб образа `${USER_NAME}/prometheus`                                           |
-| push                          | Пуш в докер-хаб всех образов                                                               |
-| mongodb_exporter_clone        | Клонирование репозитория https://github.com/percona/mongodb_exporter.git                   |
-| mongodb_exporter_docker_build | Сборка docker-образа с mongodb-exporter                                                    |
-| mongodb_exporter_push         | Пуш в докер-хаб образа `${MONGODB_EXPORTER_DOCKER_IMAGE_NAME}:${MONGODB_EXPORTER_VERSION}` |
-| cloudprober_build             | Сборка docker-образа cloudprober                                                           |
-| cloudprober_push              | Пуш в докер-хаб образа `${USER_NAME}/cloudprober`                                          |
+| Цель                          | Описание                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| build_comment                 | Собрать образ comment                                                                            |
+| build_post                    | Собрать образ post                                                                               |
+| build_ui                      | Собрать образ ui                                                                                 |
+| build_prometheus              | Собрать prometheus с нашим конфигом                                                              |
+| build                         | Собрать все образы                                                                               |
+| push_comment                  | Пуш в докер-хаб образа `${USER_NAME}/comment`                                                    |
+| push_post                     | Пуш в докер-хаб образа `${USER_NAME}/post`                                                       |
+| push_ui                       | Пуш в докер-хаб образа `${USER_NAME}/ui`                                                         |
+| push_prometheus               | Пуш в докер-хаб образа `${USER_NAME}/prometheus`                                                 |
+| push                          | Пуш в докер-хаб всех образов                                                                     |
+| mongodb_exporter_clone        | Клонирование репозитория https://github.com/percona/mongodb_exporter.git                         |
+| mongodb_exporter_docker_build | Сборка docker-образа с mongodb-exporter                                                          |
+| mongodb_exporter_push         | Пуш в докер-хаб образа `${MONGODB_EXPORTER_DOCKER_IMAGE_NAME}:${MONGODB_EXPORTER_VERSION}`       |
+| cloudprober_build             | Сборка docker-образа cloudprober                                                                 |
+| cloudprober_push              | Пуш в докер-хаб образа `${USER_NAME}/cloudprober`                                                |
+| variables                     | Создание переменных `docker/.env` из `docker/.env.example`, если `docker/.env` ещё не существует |
 
 TODO: реализовать пуш образов с корректной версией
 
@@ -6924,6 +6925,7 @@ make docker_machine_ip
 
 ```shell
 # Сборка образов
+source ./env
 make build
 
 # Запуск приложения
