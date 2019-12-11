@@ -53,7 +53,6 @@ services:
       - /sys:/host/sys:ro
       - /:/rootfs:ro
     networks:
-      #- reddit_front
       - reddit_back
     command:
       - "--path.procfs=/host/proc"
@@ -63,10 +62,15 @@ services:
   postdb-exporter:
     image: ${USERNAME}/mongodb-exporter:${MONGODB_EXPORTER_VERSION}
     networks:
-      #- reddit_front
       - reddit_back
     environment:
       MONGODB_URI: "mongodb://post_db:27017"
+
+  cloudprober:
+    image: ${USERNAME}/cloudprober:${CLOUDPROBER_VERSION}
+    networks:
+      - reddit_back
+      - reddit_front
 
 volumes:
   post_db:

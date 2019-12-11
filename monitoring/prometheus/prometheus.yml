@@ -27,3 +27,9 @@ scrape_configs:
     static_configs:
       - targets:
           - "postdb-exporter:9216"
+
+  - job_name: "cloudprober"
+    scrape_interval: 10s
+    static_configs:
+      - targets:
+          - "cloudprober:9313"

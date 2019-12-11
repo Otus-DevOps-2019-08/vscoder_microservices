@@ -177,6 +177,8 @@ vscoder microservices repository
     - [Задания со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
       - [MongoDB exporter](#mongodb-exporter)
         - [Установка](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0-1)
+      - [Cloudprober](#cloudprober)
+        - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-5)
       - [Makefile](#makefile-1)
 
 # Makefile
@@ -6699,6 +6701,177 @@ mongodb_exporter_build_info{goversion="go1.11.13",instance="postdb-exporter:9216
 ```
 
 
+#### Cloudprober
+
+Было принято решение использовать cloudprober в связи с большим функционалом по сравнению с blackbox_exporter. В часности, возможность использовать "внешние" проверки скриптом, что может пригодиться впоследствии.
+
+Официальный сайт https://cloudprober.org/
+
+Ссылка на github https://github.com/google/cloudprober
+
+Docker-образ https://hub.docker.com/r/cloudprober/cloudprober
+
+Документация https://cloudprober.org/getting-started/
+
+##### Реализация
+
+Создан файл [monitoring/cloudprober/Dockerfile](monitoring/cloudprober/Dockerfile), добавляющий конфик в образ cloudprober
+```dockerfile
+FROM cloudprober/cloudprober:v0.10.5
+COPY cloudprober.cfg /etc/cloudprober.cfg
+```
+
+Создан файл [monitoring/cloudprober/cloudprober.cfg](monitoring/cloudprober/cloudprober.cfg), содержащий конфигурацию cloudprober
+```conf
+probe {
+  name: "ui"
+  type: HTTP
+  targets {
+    host_names: "ui:9292"
+  }
+  interval_msec: 5000  # 5s
+  timeout_msec: 1000   # 1s
+}
+probe {
+  name: "comment"
+  type: HTTP
+  targets {
+    host_names: "comment:9292"
+  }
+  interval_msec: 5000  # 5s
+  timeout_msec: 1000   # 1s
+}
+probe {
+  name: "post"
+  type: HTTP
+  targets {
+    host_names: "post:5000"
+  }
+  interval_msec: 5000  # 5s
+  timeout_msec: 1000   # 1s
+}
+```
+
+Создан файл [monitoring/cloudprober/docker_build.sh](monitoring/cloudprober/docker_build.sh), собирающий образ `$USER_NAME/cloudprober`
+```shell
+#!/bin/bash
+set -eu
+
+docker build -t $USER_NAME/cloudprober .
+```
+
+В [Makefile](Makefile) добавлены цели 
+- `cloudprober_build` для сборки образа
+```makefile
+cloudprober_build:
+	cd ./monitoring/cloudprober && bash docker_build.sh
+```
+- `cloudprober_push` для загрузки образ ана docker-hub
+```makefile
+cloudprober_push:
+	docker push ${USER_NAME}/cloudprober
+```
+
+Созданные цели добавлены в цели `build` и `push` соответственно.
+```makefile
+build: build_post build_comment build_ui build_prometheus mongodb_exporter_docker_build cloudprober_build
+
+push: push_comment push_post push_ui push_prometheus mongodb_exporter_push cloudprober_push
+```
+
+В [monitoring/prometheus/prometheus.yml](monitoring/prometheus/prometheus.yml) добавлена job
+```yaml
+  - job_name: "cloudprober"
+    scrape_interval: 10s
+    static_configs:
+      - targets:
+          - "cloudprober:9313"
+```
+
+В [docker/.env.example](docker/.env.example) добавлена переменная `CLOUDPROBER_VERSION=latest`
+
+В [docker/docker-compose.yml](docker/docker-compose.yml) добавлен сервис
+```yaml
+  cloudprober:
+    image: ${USERNAME}/cloudprober:${CLOUDPROBER_VERSION}
+    networks:
+      - reddit_back
+```
+
+Исправлена Makefile цель `mongodb_exporter_clone`. Теперь репозиторий c `mongodb_exporter` клонируется только если директория `monitoring/mongodb_exporter` не существует.
+
+Собрано всё
+```shell
+make build
+```
+
+Запуск приложения:
+```shell
+make run
+```
+
+Проверено:
+
+total http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=total&g0.tab=1
+```log
+total{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	114
+total{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	116
+total{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	116
+```
+
+success http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=success&g0.tab=1
+```log
+success{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	124
+success{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	126
+success{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	0
+```
+
+latency http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=latency&g0.tab=1
+```log
+latency{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	323976.069
+latency{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	436631.507
+latency{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	0
+```
+
+Проблема: сервис ui недоступен
+
+Причина: в [docker/docker-compose.yml](docker/docker-compose.yml) сервису `cloudprober` не добавлена сеть `reddit_front`. Исправлено
+```yaml
+  cloudprober:
+    image: ${USERNAME}/cloudprober:${CLOUDPROBER_VERSION}
+    networks:
+      - reddit_back
+      - reddit_front
+```
+
+Перезапускаем
+```shell
+make run
+```
+
+success http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=success&g0.tab=1
+```log
+success{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	6
+success{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	8
+success{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	8
+```
+
+total http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=total&g0.tab=1
+```log
+total{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	16
+total{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	18
+total{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	18
+```
+
+latency http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=latency&g0.tab=1
+```log
+latency{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	63902.087
+latency{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	91329.549
+latency{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	845258.711
+```
+
+failure_ratio `(rate(total[1m]) - rate(success[1m])) / rate(total[1m])` and avg_latency `rate(latency[1m]) / rate(success[1m]) / 1000` http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=(rate(total%5B1m%5D)%20-%20rate(success%5B1m%5D))%20%2F%20rate(total%5B1m%5D)&g0.tab=0&g1.range_input=1h&g1.expr=rate(latency%5B1m%5D)%20%2F%20rate(success%5B1m%5D)%20%2F%201000&g1.tab=0
+
 
 #### Makefile
 
@@ -6719,5 +6892,8 @@ mongodb_exporter_build_info{goversion="go1.11.13",instance="postdb-exporter:9216
 | mongodb_exporter_clone        | Клонирование репозитория https://github.com/percona/mongodb_exporter.git                   |
 | mongodb_exporter_docker_build | Сборка docker-образа с mongodb-exporter                                                    |
 | mongodb_exporter_push         | Пуш в докер-хаб образа `${MONGODB_EXPORTER_DOCKER_IMAGE_NAME}:${MONGODB_EXPORTER_VERSION}` |
+| cloudprober_build             | Сборка docker-образа cloudprober                                                           |
+| cloudprober_push              | Пуш в докер-хаб образа `${USER_NAME}/cloudprober`                                          |
 
 TODO: реализовать пуш образов с корректной версией
+

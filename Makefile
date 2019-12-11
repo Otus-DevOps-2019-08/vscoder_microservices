@@ -114,6 +114,9 @@ docker_machine_rm:
 	${DOCKER_MACHINE} rm ${DOCKER_MACHINE_NAME}
 	${DOCKER_MACHINE} env --unset
 
+docker_machine_ip:
+	${DOCKER_MACHINE} ip ${DOCKER_MACHINE_NAME}
+
 ###
 # Build
 ###
@@ -129,7 +132,7 @@ build_ui:
 build_prometheus:
 	cd ./monitoring/prometheus && bash docker_build.sh
 
-build: build_post build_comment build_ui build_prometheus mongodb_exporter_docker_build
+build: build_post build_comment build_ui build_prometheus mongodb_exporter_docker_build cloudprober_build
 
 
 ###
@@ -147,18 +150,17 @@ push_ui:
 push_prometheus:
 	docker push ${USER_NAME}/prometheus
 
-push: push_comment push_post push_ui push_prometheus mongodb_exporter_push
+push: push_comment push_post push_ui push_prometheus mongodb_exporter_push cloudprober_push
 
 
 ###
 # mongodb_exporter
 ###
-
 mongodb_exporter_clone:
 	cd ./monitoring \
-	&& git clone https://github.com/percona/mongodb_exporter.git
+	&& (test -d ./mongodb_exporter || git clone https://github.com/percona/mongodb_exporter.git)
 
-mongodb_exporter_docker_build:
+mongodb_exporter_docker_build: mongodb_exporter_clone
 	cd ./monitoring/mongodb_exporter \
 	&& git checkout ${MONGODB_EXPORTER_VERSION} \
 	&& make docker DOCKER_IMAGE_NAME=${MONGODB_EXPORTER_DOCKER_IMAGE_NAME} DOCKER_IMAGE_TAG=${MONGODB_EXPORTER_VERSION}
@@ -166,8 +168,21 @@ mongodb_exporter_docker_build:
 mongodb_exporter_push:
 	docker push ${MONGODB_EXPORTER_DOCKER_IMAGE_NAME}:${MONGODB_EXPORTER_VERSION}
 
+
+###
+# cloudprober
+###
+cloudprober_build:
+	cd ./monitoring/cloudprober && bash docker_build.sh
+
+cloudprober_push:
+	docker push ${USER_NAME}/cloudprober
+
+
 ###
 # app
 ###
 run:
 	cd docker && ../.venv/bin/docker-compose up -d
+
+
