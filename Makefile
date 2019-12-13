@@ -119,15 +119,19 @@ docker_machine_ip:
 # Build
 ###
 build_comment:
+	. ./env && \
 	cd src/comment && bash ./docker_build.sh
 
 build_post:
+	. ./env && \
 	cd src/post-py && bash ./docker_build.sh
 
 build_ui:
+	. ./env && \
 	cd src/ui && bash ./docker_build.sh
 
 build_prometheus:
+	. ./env && \
 	cd ./monitoring/prometheus && bash docker_build.sh
 
 build: build_post build_comment build_ui build_prometheus mongodb_exporter_docker_build cloudprober_build
@@ -137,15 +141,19 @@ build: build_post build_comment build_ui build_prometheus mongodb_exporter_docke
 # Push
 ###
 push_comment:
+	. ./env && \
 	docker push ${USER_NAME}/comment
 
 push_post:
+	. ./env && \
 	docker push ${USER_NAME}/post
 
 push_ui:
+	. ./env && \
 	docker push ${USER_NAME}/ui
 
 push_prometheus:
+	. ./env && \
 	docker push ${USER_NAME}/prometheus
 
 push: push_comment push_post push_ui push_prometheus mongodb_exporter_push cloudprober_push
@@ -181,10 +189,12 @@ cloudprober_push:
 # app
 ###
 run: variables
-	cd docker && ../.venv/bin/docker-compose up -d
+	cd docker \
+	&& ../.venv/bin/docker-compose up -d \
+	&& ../.venv/bin/docker-compose -f docker-compose-monitoring.yml up -d
 
 ###
-# copy variables from examples
+# copy variables from examples, if needed
 ###
 variables:
 	cd docker \

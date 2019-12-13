@@ -188,6 +188,10 @@ vscoder microservices repository
     - [Мониторинг Docker контейнеров](#%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-docker-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
       - [Подготовка окружения](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
       - [Мониторинг Docker контейнеров](#%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-docker-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%be%d0%b2-1)
+      - [cAdvisor](#cadvisor)
+      - [Файл docker-compose-monitoring.yml](#%d0%a4%d0%b0%d0%b9%d0%bb-docker-compose-monitoringyml)
+      - [Файл prometheus.yml](#%d0%a4%d0%b0%d0%b9%d0%bb-prometheusyml)
+      - [cAdvisor UI](#cadvisor-ui)
     - [Визуализация метрик](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba)
     - [Сбор метрик работы приложения и бизнес метрик](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d1%8b-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b8-%d0%b1%d0%b8%d0%b7%d0%bd%d0%b5%d1%81-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba)
     - [Настройка и проверка алертинга](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d0%b8-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b8%d0%bd%d0%b3%d0%b0)
@@ -7005,11 +7009,187 @@ make docker_machine_ip
 
 В данный момент и мониторинг и приложения у нас описаны в одном большом [docker-compose.yml](docker/docker-compose.yml). С одной стороны это просто, а с другой - мы смешиваем различные сущности, и сам файл быстро растет.
 
-Оставим описание приложений в [docker-compose.yml](docker/docker-compose.yml), а мониторинг выделим в отдельный файл [docker-composemonitoring.yml](docker/docker-composemonitoring.yml).
+Оставим описание приложений в [docker-compose.yml](docker/docker-compose.yml), а мониторинг выделим в отдельный файл [docker-compose-monitoring.yml](docker/docker-compose-monitoring.yml).
 
 Для запуска приложений будем как и ранее использовать `docker-compose up -d`, а для мониторинга - `docker-compose -f docker-compose-monitoring.yml up -d`
 
 
+#### cAdvisor
+
+Мы будем использовать [cAdvisor](https://github.com/google/cadvisor) для наблюдения за состоянием наших Docker контейнеров.
+
+cAdvisor собирает информацию о ресурсах потребляемых контейнерами и характеристиках их работы.
+
+Примерами метрик являются:
+- процент использования контейнером CPU и памяти, выделенные для его запуска,
+- объем сетевого трафика
+- и др.
+
+#### Файл docker-compose-monitoring.yml
+
+cAdvisor также будем запускать в контейнере. Для этого добавим новый сервис в наш компоуз файл мониторинга [docker/docker-compose-monitoring.yml](docker/docker-compose-monitoring.yml).
+
+Поместите данный сервис в одну сеть с Prometheus, чтобы тот мог собирать с него метрики.
+
+```yaml
+cadvisor:
+  image: google/cadvisor:v0.33.0
+  volumes:
+    - '/:/rootfs:ro'
+    - '/var/run:/var/run:rw'
+    - '/sys:/sys:ro'
+    - '/var/lib/docker/:/var/lib/docker:ro'
+  ports:
+    - '8080:8080'
+```
+
+#### Файл prometheus.yml
+
+Добавим информацию о новом сервисе в [конфигурацию Prometheus](monitoring/prometheus/prometheus.yml), чтобы он начал собирать метрики:
+```yaml
+scrape_configs:
+  ...
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets:
+        - 'cadvisor:8080'
+```
+
+Пересоберем образ Prometheus с обновленной конфигурацией.
+
+Пример из лекции:
+```shell
+export USER_NAME=username # где username - ваш логин на Docker Hub
+docker build -t $USER_NAME/prometheus .
+```
+
+Но у нас всё по фень-шую (почти):
+
+Добавил в [env.example](env.example)
+```shell
+export USER_NAME=${USERNAME}
+```
+
+В Makefile цели `*_build` и `*_push` добавим
+```shell
+. ./env && \
+...
+```
+
+И сборка:
+```shell
+make build_prometheus
+```
+
+#### cAdvisor UI
+
+Запустим сервисы (как обычно, не наш метод)):
+```shell
+docker-compose up -d
+docker-compose -f docker-compose-monitoring.yml up -d
+```
+
+Makefile target `run` приведён к следующему виду:
+```makefile
+run: variables
+	cd docker \
+	&& ../.venv/bin/docker-compose up -d \
+	&& ../.venv/bin/docker-compose -f docker-compose-monitoring.yml up -d
+```
+
+Запуск
+```shell
+make run
+```
+Образы успешно скачаны с docker hub. Проект запущен.
+```log
+...
+Creating docker_ui_1      ... done
+Creating docker_post_db_1 ... done
+Creating docker_post_1    ... done
+Creating docker_comment_1 ... done
+...
+WARNING: Found orphan containers (docker_comment_1, docker_post_1, docker_post_db_1, docker_ui_1) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up.
+```
+Creating docker_prometheus_1      ... done
+Creating docker_cadvisor_1        ... done
+Creating docker_node-exporter_1   ... done
+Creating docker_cloudprober_1     ... done
+Creating docker_postdb-exporter_1 ... done
+```
+
+cAdvisor имеет UI, в котором отображается собираемая о контейнерах информация.
+
+Откроем порт 8080 в gcloud
+```shell
+gcloud compute firewall-rules create cadvisor \
+  --allow tcp:8080 \
+  --target-tags=docker-machine \
+  --description="Allow cAdvisor UI connections" \
+  --direction=INGRESS
+```
+Ждём несколько минут... Безрезультатно.
+
+В prometheus targets видим, что он не видит cAdvisor.
+
+Забыл добавить сети в сервис `cadvisor` [docker/docker-compose-monitoring.yml](docker/docker-compose-monitoring.yml)
+```yaml
+services:
+  cadvisor:
+    image: google/cadvisor:v0.33.0
+    volumes:
+      - "/:/rootfs:ro"
+      - "/var/run:/var/run:rw"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker/:/var/lib/docker:ro"
+    ports:
+      - "8080:8080"
+    networks:
+      - reddit_back
+      - reddit_front
+```
+```shell
+make run
+```
+мы не в том проекте создали правило фаервола, о чём видно из логов
+
+По какой-то привчине правило всё время создавалось в проекте `infra-...`. Задал проект командой `gcloud config set project <project_id>` после чего правило создалось где нужно
+
+```shell
+gcloud compute firewall-rules delete cadvisor
+
+gcloud config set project <project_id>
+
+gcloud compute firewall-rules create cadvisor \
+  --allow tcp:8080 \
+  --target-tags=docker-machine \
+  --description="Allow cAdvisor UI connections" \
+  --direction=INGRESS
+```
+
+Откроем страницу Web UI по адресу http://<docker-machinehost-ip>:8080
+
+Ничего так, netdata красивше)) Хотя cAdvisor нагляднее в качестве количества метрик видимых без прокрутки. А вообще, толстоват:
+```log
+root	14 262	14 236	18:52	6.30	2.80	105.67 MiB	786.48 MiB	Ssl	00:01:18	cadvisor
+```
+
+Нажмите ссылку Docker Containers (внизу слева) для просмотра информации по контейнерам.
+
+В UI мы можем увидеть:
+- список контейнеров, запущенных на хосте
+- информацию о хосте (секция Driver Status)
+- информацию об образах контейнеров (секция Images)
+
+Нажмем на название одного из контейнеров, чтобы посмотреть информацию о его работе:
+
+Здесь отображается информация по процессам, использованию CPU, памяти, сети и файловой системы:
+
+По пути /metrics все собираемые метрики публикуются для сбора Prometheus: http://34.77.224.184:8080/metrics
+
+Видим, что имена метрик контейнеров начинаются со слова `container`
+
+Проверим, что метрики контейнеров собираются Prometheus. Введем, слово `container` и посмотрим, что он предложит дополнить: ну да, выводит...
 
 
 ### Визуализация метрик
