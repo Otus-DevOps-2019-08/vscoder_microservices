@@ -187,6 +187,7 @@ vscoder microservices repository
     - [План](#%d0%9f%d0%bb%d0%b0%d0%bd-1)
     - [Мониторинг Docker контейнеров](#%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-docker-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
       - [Подготовка окружения](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+      - [Мониторинг Docker контейнеров](#%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-docker-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%be%d0%b2-1)
     - [Визуализация метрик](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba)
     - [Сбор метрик работы приложения и бизнес метрик](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d1%8b-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b8-%d0%b1%d0%b8%d0%b7%d0%bd%d0%b5%d1%81-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba)
     - [Настройка и проверка алертинга](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d0%b8-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b8%d0%bd%d0%b3%d0%b0)
@@ -6996,6 +6997,19 @@ make docker_machine_create DOCKER_MACHINE_TYPE=n1-standard-1
 eval $(docker-machine env docker-host)
 make docker_machine_ip
 ```
+
+
+#### Мониторинг Docker контейнеров
+
+Разделим файлы Docker Compose:
+
+В данный момент и мониторинг и приложения у нас описаны в одном большом [docker-compose.yml](docker/docker-compose.yml). С одной стороны это просто, а с другой - мы смешиваем различные сущности, и сам файл быстро растет.
+
+Оставим описание приложений в [docker-compose.yml](docker/docker-compose.yml), а мониторинг выделим в отдельный файл [docker-composemonitoring.yml](docker/docker-composemonitoring.yml).
+
+Для запуска приложений будем как и ранее использовать `docker-compose up -d`, а для мониторинга - `docker-compose -f docker-compose-monitoring.yml up -d`
+
+
 
 
 ### Визуализация метрик

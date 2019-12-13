@@ -1,0 +1,50 @@
+---
+version: "3.3"
+services:
+  prometheus:
+    image: ${USERNAME}/prometheus:${PROMETHEUS_VERSION}
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+    networks:
+      - reddit_front
+      - reddit_back
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention=1d"
+
+  node-exporter:
+    image: prom/node-exporter:${NODE_EXPORTER_VERSION}
+    user: root
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - reddit_back
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
+
+  postdb-exporter:
+    image: ${USERNAME}/mongodb-exporter:${MONGODB_EXPORTER_VERSION}
+    networks:
+      - reddit_back
+    environment:
+      MONGODB_URI: "mongodb://post_db:27017"
+
+  cloudprober:
+    image: ${USERNAME}/cloudprober:${CLOUDPROBER_VERSION}
+    networks:
+      - reddit_back
+      - reddit_front
+
+volumes:
+  prometheus_data:
+
+networks:
+  reddit_front:
+  reddit_back:
