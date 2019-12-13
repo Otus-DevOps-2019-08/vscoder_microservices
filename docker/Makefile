@@ -4,6 +4,9 @@ TEMP_DIR?=/tmp
 # Environment name
 ENV?=stage
 
+# Application image version
+IMAGE_VERSION?=1.0
+
 # Docker-machine
 DOCKER_MACHINE_VERSION?=v0.16.0
 DOCKER_MACHINE_BASEURL=https://github.com/docker/machine/releases/download
@@ -38,14 +41,9 @@ HADOLINT_VERSION?=1.17.2
 HADOLINT_URL=https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-x86_64
 HADOLINT?=${BIN_DIR}/hadolint
 
-# mongodb_exporter
-MONGODB_EXPORTER_DOCKER_IMAGE_NAME?=${USER_NAME}/mongodb-exporter
-MONGODB_EXPORTER_VERSION?=v0.10.0
-
 debug:
 	echo BIN_DIR=${BIN_DIR}
 	echo TEMP_DIR=${TEMP_DIR}
-	echo ENV=${ENV}
 	echo DOCKER_MACHINE_VERSION=${DOCKER_MACHINE_VERSION}
 	echo DOCKER_MACHINE_BASEURL=${DOCKER_MACHINE_BASEURL}
 	echo DOCKER_MACHINE_OS=${DOCKER_MACHINE_OS}
@@ -57,14 +55,14 @@ debug:
 
 install_requirements:
 	test -d ./.venv || python3 -m venv ./.venv
-	./.venv/bin/pip install -r requirements.txt
+	./.venv/bin/pip install -r ../requirements.txt
 
 install_requirements_dev: install_requirements
-	./.venv/bin/pip install -r requirements-dev.txt
+	./.venv/bin/pip install -r ../requirements-dev.txt
 
 install_requirements_virtualenv:
 	test -d ./.venv || virtualenv ./.venv
-	./.venv/bin/pip install -r requirements.txt
+	./.venv/bin/pip install -r ../requirements.txt
 
 install_docker_machine:
 	curl -L ${DOCKER_MACHINE_BASEURL}/${DOCKER_MACHINE_VERSION}/docker-machine-${DOCKER_MACHINE_OS}-${DOCKER_MACHINE_ARCH} >${TEMP_DIR}/docker-machine && \
@@ -112,80 +110,62 @@ docker_machine_rm:
 	${DOCKER_MACHINE} rm ${DOCKER_MACHINE_NAME}
 	${DOCKER_MACHINE} env --unset
 
-docker_machine_ip:
-	${DOCKER_MACHINE} ip ${DOCKER_MACHINE_NAME}
 
-###
-# Build
-###
-build_comment:
-	cd src/comment && bash ./docker_build.sh
+monolith_packer_build:
+	${PACKER} build -var-file=docker-monolith/packer/variables.json docker-monolith/packer/docker.json
 
-build_post:
-	cd src/post-py && bash ./docker_build.sh
-
-build_ui:
-	cd src/ui && bash ./docker_build.sh
-
-build_prometheus:
-	cd ./monitoring/prometheus && bash docker_build.sh
-
-build: build_post build_comment build_ui build_prometheus mongodb_exporter_docker_build cloudprober_build
+monolith_packer_validate:
+	${PACKER} --version
+	${PACKER} validate -var-file=docker-monolith/packer/variables.json docker-monolith/packer/docker.json
 
 
-###
-# Push
-###
-push_comment:
-	docker push ${USER_NAME}/comment
+monolith_terraform_init:
+	cd ./docker-monolith/terraform && ${TERRAFORM} init
+	cd ./docker-monolith/terraform/${ENV} && ${TERRAFORM} init
 
-push_post:
-	docker push ${USER_NAME}/post
+monolith_terraform_init_nobackend:
+	cd ./docker-monolith/terraform/${ENV} && ${TERRAFORM} init -backend=false
 
-push_ui:
-	docker push ${USER_NAME}/ui
+monolith_terraform_validate:
+	${TERRAFORM} --version
+	cd ./docker-monolith/terraform && ${TERRAFORM} validate
+	cd ./docker-monolith/terraform/stage && ${TERRAFORM} validate
+	# cd ./docker-monolith/terraform/prod && ${TERRAFORM} validate
 
-push_prometheus:
-	docker push ${USER_NAME}/prometheus
+monolith_terraform_tflint:
+	cd ./docker-monolith/terraform && ${TFLINT}
+	cd ./docker-monolith/terraform/stage && ${TFLINT}
+	# cd ./docker-monolith/terraform/prod && ${TFLINT}
 
-push: push_comment push_post push_ui push_prometheus mongodb_exporter_push cloudprober_push
+monolith_terraform_apply:
+	cd ./docker-monolith/terraform/${ENV} && ${TERRAFORM} apply
 
-
-###
-# mongodb_exporter
-###
-mongodb_exporter_clone:
-	cd ./monitoring \
-	&& (test -d ./mongodb_exporter || git clone https://github.com/percona/mongodb_exporter.git)
-
-mongodb_exporter_docker_build: mongodb_exporter_clone
-	cd ./monitoring/mongodb_exporter \
-	&& git checkout ${MONGODB_EXPORTER_VERSION} \
-	&& make docker DOCKER_IMAGE_NAME=${MONGODB_EXPORTER_DOCKER_IMAGE_NAME} DOCKER_IMAGE_TAG=${MONGODB_EXPORTER_VERSION}
-
-mongodb_exporter_push:
-	docker push ${MONGODB_EXPORTER_DOCKER_IMAGE_NAME}:${MONGODB_EXPORTER_VERSION}
+monolith_terraform_destroy:
+	cd ./docker-monolith/terraform/${ENV} && ${TERRAFORM} destroy
 
 
-###
-# cloudprober
-###
-cloudprober_build:
-	cd ./monitoring/cloudprober && bash docker_build.sh
+monolith_ansible_install_requirements:
+	cd ./docker-monolith/ansible && ${ANSIBLE}-galaxy install -r environments/stage/requirements.yml
 
-cloudprober_push:
-	docker push ${USER_NAME}/cloudprober
+monolith_ansible_inventory_list:
+	cd ./docker-monolith/ansible && ${ANSIBLE}-inventory --list
+
+monolith_ansible_lint:
+	cd ./docker-monolith/ansible && ${ANSIBLE}-lint --version
+	cd ./docker-monolith/ansible && find playbooks -name "*.yml" -type f -print0 | xargs -0 -n1 ${ANSIBLE}-lint
+
+monolith_ansible_syntax:
+	cd ./docker-monolith/ansible && ${ANSIBLE}-playbook --version
+	cd ./docker-monolith/ansible && find playbooks -name "*.yml" -type f -print0 | xargs -0 -n1 ${ANSIBLE}-playbook -i environments/stage/inventory.gcp.yml --syntax-check
+
+monolith_ansible_reddit_app:
+	cd ./docker-monolith/ansible && ${ANSIBLE}-playbook -i environments/${ENV}/inventory.gcp.yml playbooks/reddit-app.yml
 
 
-###
-# app
-###
-run: variables
-	cd docker && ../.venv/bin/docker-compose up -d
+monolith_docker_build:
+	docker build -t reddit:latest -f docker-monolith/Dockerfile ./docker-monolith
 
-###
-# copy variables from examples
-###
-variables:
-	cd docker \
-	&& (test -f .env || cp .env.examples .env)
+monolith_docker_publish:
+	echo Do not forget to login on docker hub `docker login`
+	docker tag reddit:latest vscoder/otus-reddit:${IMAGE_VERSION}
+	docker push vscoder/otus-reddit:${IMAGE_VERSION}

@@ -13,11 +13,11 @@ vscoder microservices repository
     - [Подготовка проекта. Интеграции](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0-%d0%98%d0%bd%d1%82%d0%b5%d0%b3%d1%80%d0%b0%d1%86%d0%b8%d0%b8)
     - [Установка docker](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0-docker)
     - [Работа с docker](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-docker)
-    - [Задание со \*: Отличия образа и контейнера](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bb%d0%b8%d1%87%d0%b8%d1%8f-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0-%d0%b8-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0)
+    - [Задание со *: Отличия образа и контейнера](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bb%d0%b8%d1%87%d0%b8%d1%8f-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0-%d0%b8-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0)
     - [Больше docker-команд](#%d0%91%d0%be%d0%bb%d1%8c%d1%88%d0%b5-docker-%d0%ba%d0%be%d0%bc%d0%b0%d0%bd%d0%b4)
-      - [Docker kill & stop](#docker-kill--stop)
+      - [Docker kill &amp; stop](#docker-kill-amp-stop)
       - [docker system df](#docker-system-df)
-      - [Docker rm & rmi](#docker-rm--rmi)
+      - [Docker rm &amp; rmi](#docker-rm-amp-rmi)
     - [Docker контейнеры](#docker-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d1%8b)
       - [GCE](#gce)
       - [Docker machine](#docker-machine)
@@ -28,7 +28,7 @@ vscoder microservices repository
       - [Dockerfile](#dockerfile)
       - [Запуск контейнера](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0)
     - [Docker hub](#docker-hub)
-    - [Задание со \*: IaC с использованием docker](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--iac-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-docker)
+    - [Задание со *: IaC с использованием docker](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--iac-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-docker)
       - [Packer](#packer)
       - [Terraform](#terraform)
         - [Project-wide объекты](#project-wide-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d1%8b)
@@ -57,11 +57,11 @@ vscoder microservices repository
       - [Новая структура приложения](#%d0%9d%d0%be%d0%b2%d0%b0%d1%8f-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
       - [Сборка образов](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
       - [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
-    - [Задание со \*: Переопределение сетевых алиасов](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9f%d0%b5%d1%80%d0%b5%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%82%d0%b5%d0%b2%d1%8b%d1%85-%d0%b0%d0%bb%d0%b8%d0%b0%d1%81%d0%be%d0%b2)
+    - [Задание со *: Переопределение сетевых алиасов](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9f%d0%b5%d1%80%d0%b5%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%82%d0%b5%d0%b2%d1%8b%d1%85-%d0%b0%d0%bb%d0%b8%d0%b0%d1%81%d0%be%d0%b2)
       - [Теория](#%d0%a2%d0%b5%d0%be%d1%80%d0%b8%d1%8f)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f)
     - [Образы](#%d0%9e%d0%b1%d1%80%d0%b0%d0%b7%d1%8b)
-    - [Задание со \*: Уменьшаем размер образа](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%a3%d0%bc%d0%b5%d0%bd%d1%8c%d1%88%d0%b0%d0%b5%d0%bc-%d1%80%d0%b0%d0%b7%d0%bc%d0%b5%d1%80-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
+    - [Задание со *: Уменьшаем размер образа](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%a3%d0%bc%d0%b5%d0%bd%d1%8c%d1%88%d0%b0%d0%b5%d0%bc-%d1%80%d0%b0%d0%b7%d0%bc%d0%b5%d1%80-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
       - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7)
       - [Сборка на основе alpine linux](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bd%d0%b0-%d0%be%d1%81%d0%bd%d0%be%d0%b2%d0%b5-alpine-linux)
         - [ui](#ui)
@@ -88,7 +88,7 @@ vscoder microservices repository
       - [docker-compose.yml](#docker-composeyml)
         - [Переменные окружения](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
         - [Имя проекта](#%d0%98%d0%bc%d1%8f-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
-    - [Задание со \*: docker-compose.override.yml](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--docker-composeoverrideyml)
+    - [Задание со *: docker-compose.override.yml](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--docker-composeoverrideyml)
       - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-2)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-1)
     - [Вне заданий](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9)
@@ -110,7 +110,7 @@ vscoder microservices repository
       - [staging и production](#staging-%d0%b8-production)
       - [Динамические окружения](#%d0%94%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
     - [Вне заданий: улучшалки](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9-%d1%83%d0%bb%d1%83%d1%87%d1%88%d0%b0%d0%bb%d0%ba%d0%b8)
-    - [Задание со \*: Автоматизированная сборка приложения reddit](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-reddit)
+    - [Задание со *: Автоматизированная сборка приложения reddit](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-reddit)
       - [План](#%d0%9f%d0%bb%d0%b0%d0%bd)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-2)
         - [Настройка terraform module instance](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-terraform-module-instance)
@@ -124,7 +124,7 @@ vscoder microservices repository
           - [Подготовлен docker-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%bb%d0%b5%d0%bd-docker-runner)
           - [Автоматизированная сборка образов](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
         - [Загрузка образов в gitlab registry](#%d0%97%d0%b0%d0%b3%d1%80%d1%83%d0%b7%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d0%b2-gitlab-registry)
-    - [Задание со \*: Деплой контейнера на созданный для ветки сервер](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0-%d0%bd%d0%b0-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d0%b9-%d0%b4%d0%bb%d1%8f-%d0%b2%d0%b5%d1%82%d0%ba%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b5%d1%80)
+    - [Задание со *: Деплой контейнера на созданный для ветки сервер](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0-%d0%bd%d0%b0-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d0%b9-%d0%b4%d0%bb%d1%8f-%d0%b2%d0%b5%d1%82%d0%ba%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b5%d1%80)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-3)
         - [Packer](#packer-1)
         - [Terraform](#terraform-1)
@@ -134,11 +134,55 @@ vscoder microservices repository
           - [Подготовка gitlab-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-gitlab-runner)
           - [Проверка](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0)
           - [Создание Environment](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-environment)
-    - [Задание со \*: Автоматизированное создание и регистрация раннеров](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
+    - [Задание со *: Автоматизированное создание и регистрация раннеров](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
       - [Проработка скейлинга раннеров](#%d0%9f%d1%80%d0%be%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%ba%d0%b0-%d1%81%d0%ba%d0%b5%d0%b9%d0%bb%d0%b8%d0%bd%d0%b3%d0%b0-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
-    - [Задание со \*: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
+    - [Задание со *: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
     - [Прохождение тестов travis-ci](#%d0%9f%d1%80%d0%be%d1%85%d0%be%d0%b6%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d1%82%d0%b5%d1%81%d1%82%d0%be%d0%b2-travis-ci)
     - [Прочее](#%d0%9f%d1%80%d0%be%d1%87%d0%b5%d0%b5)
+  - [HomeWork 16: Введение в мониторинг. Системы мониторинга.](#homework-16-%d0%92%d0%b2%d0%b5%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b2-%d0%bc%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d0%a1%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d1%8b-%d0%bc%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3%d0%b0)
+    - [Prometheus: запуск, конфигурация, знакомство с Web UI](#prometheus-%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%ba%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d1%83%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d0%b7%d0%bd%d0%b0%d0%ba%d0%be%d0%bc%d1%81%d1%82%d0%b2%d0%be-%d1%81-web-ui)
+      - [Запуск docker-machine хоста для prometheus](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-docker-machine-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d0%b4%d0%bb%d1%8f-prometheus)
+      - [Запуск prometheus](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-prometheus)
+      - [Web-интерфейс](#web-%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81)
+      - [Targets](#targets)
+      - [Список метрик](#%d0%a1%d0%bf%d0%b8%d1%81%d0%be%d0%ba-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba)
+    - [Мониторинг состояния микросервисов](#%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d1%81%d0%be%d1%81%d1%82%d0%be%d1%8f%d0%bd%d0%b8%d1%8f-%d0%bc%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%be%d0%b2)
+      - [Переупорядочим структуру директорий](#%d0%9f%d0%b5%d1%80%d0%b5%d1%83%d0%bf%d0%be%d1%80%d1%8f%d0%b4%d0%be%d1%87%d0%b8%d0%bc-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d1%83-%d0%b4%d0%b8%d1%80%d0%b5%d0%ba%d1%82%d0%be%d1%80%d0%b8%d0%b9)
+      - [Создание Docker образа](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-docker-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
+      - [Конфигурация](#%d0%9a%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d1%83%d1%80%d0%b0%d1%86%d0%b8%d1%8f)
+      - [Создаем образ](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%b5%d0%bc-%d0%be%d0%b1%d1%80%d0%b0%d0%b7)
+      - [Образы микросервисов](#%d0%9e%d0%b1%d1%80%d0%b0%d0%b7%d1%8b-%d0%bc%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%be%d0%b2)
+      - [Соберем images](#%d0%a1%d0%be%d0%b1%d0%b5%d1%80%d0%b5%d0%bc-images)
+      - [docker-compose.yml](#docker-composeyml-1)
+      - [Запуск микросервисов](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bc%d0%b8%d0%ba%d1%80%d0%be%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%be%d0%b2)
+      - [Healthchecks](#healthchecks)
+      - [Состояние сервиса UI](#%d0%a1%d0%be%d1%81%d1%82%d0%be%d1%8f%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%b0-ui)
+      - [Fix docker-machine from other host](#fix-docker-machine-from-other-host)
+      - [Состояние сервиса UI. Продолжение](#%d0%a1%d0%be%d1%81%d1%82%d0%be%d1%8f%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%b0-ui-%d0%9f%d1%80%d0%be%d0%b4%d0%be%d0%bb%d0%b6%d0%b5%d0%bd%d0%b8%d0%b5)
+        - [Проверка метрик](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba)
+        - [Поиск проблемы](#%d0%9f%d0%be%d0%b8%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b)
+        - [Самостоятельно](#%d0%a1%d0%b0%d0%bc%d0%be%d1%81%d1%82%d0%be%d1%8f%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be)
+        - [Пересоздание docker-machine](#%d0%9f%d0%b5%d1%80%d0%b5%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-docker-machine)
+    - [Сбор метрик хоста с использованием экспортера](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%85%d0%be%d1%81%d1%82%d0%b0-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-%d1%8d%d0%ba%d1%81%d0%bf%d0%be%d1%80%d1%82%d0%b5%d1%80%d0%b0)
+      - [Node exporter](#node-exporter)
+      - [docker-compose.yml](#docker-composeyml-2)
+      - [Дополнительно: параметризуем версии образов](#%d0%94%d0%be%d0%bf%d0%be%d0%bb%d0%bd%d0%b8%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be-%d0%bf%d0%b0%d1%80%d0%b0%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%b7%d1%83%d0%b5%d0%bc-%d0%b2%d0%b5%d1%80%d1%81%d0%b8%d0%b8-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
+      - [Дополнительно: Makefile target build_prometheus](#%d0%94%d0%be%d0%bf%d0%be%d0%bb%d0%bd%d0%b8%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be-makefile-target-buildprometheus)
+      - [prometheus.yml](#prometheusyml)
+      - [Пересоздадим наши сервисы](#%d0%9f%d0%b5%d1%80%d0%b5%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%b4%d0%b8%d0%bc-%d0%bd%d0%b0%d1%88%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d1%8b)
+      - [Получение информации](#%d0%9f%d0%be%d0%bb%d1%83%d1%87%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b8%d0%bd%d1%84%d0%be%d1%80%d0%bc%d0%b0%d1%86%d0%b8%d0%b8)
+    - [Завершение работы](#%d0%97%d0%b0%d0%b2%d0%b5%d1%80%d1%88%d0%b5%d0%bd%d0%b8%d0%b5-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d1%8b)
+      - [Makefile targets](#makefile-targets)
+      - [Пушим образы](#%d0%9f%d1%83%d1%88%d0%b8%d0%bc-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d1%8b)
+    - [Задания со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
+      - [MongoDB exporter](#mongodb-exporter)
+        - [Установка](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0-1)
+      - [Cloudprober](#cloudprober)
+        - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-5)
+      - [Makefile](#makefile-1)
+    - [Запуск проекта](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
+      - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-2)
+      - [Запуск проекта](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0-1)
 
 # Makefile
 
@@ -4576,6 +4620,10 @@ cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
   ```shell
   chmod 0600 "$SSH_PRIVATE_KEY"
   ```
+- Параметризован пользователь `appuser`, с использованием значения по-умолчанию (**ВАЖНО!** добавлено позже, не тестировалось. Будет чем заняться вечером)). Ссылка на источник [StackOverflow](https://stackoverflow.com/questions/2013547/assigning-default-values-to-shell-variables-with-a-single-command-in-bash)
+  ```shell
+  export ANSIBLE_REMOTE_USER=${ANSIBLE_USER:-appuser}
+  ```
 - Результат последнего пайплайна: ошибка
 ```log
 "msg": "Error connecting: Error while fetching server API version: ('Connection aborted.', PermissionError(13, 'Permission denied'))"
@@ -4982,3 +5030,1908 @@ TODO: можно ли в сообщении так же слать ссылку 
 ### Прочее
 
 Добавлен [gitlab-ci/docker-compose.yml](gitlab-ci/docker-compose.yml) для развёртывания gitlab-сервера.
+
+## HomeWork 16: Введение в мониторинг. Системы мониторинга.
+
+### Prometheus: запуск, конфигурация, знакомство с Web UI
+
+#### Запуск docker-machine хоста для prometheus
+
+Создадим правило фаервола для Prometheus и Puma:
+
+```shell
+gcloud compute firewall-rules create prometheus-default --allow tcp:9090
+gcloud compute firewall-rules create puma-default --allow tcp:9292
+```
+
+Создадим Docker хост в GCE и настроим локальное окружение на работу с ним
+```shell
+export GOOGLE_PROJECT=<project_id>
+
+docker-machine create --driver google \
+  --google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+  --google-machine-type n1-standard-1 \
+  --google-zone europe-west1-b \
+  docker-host
+
+eval $(docker-machine env docker-host)
+```
+
+#### Запуск prometheus
+
+Систему мониторинга Prometheus будем запускать внутри Docker контейнера. Для начального знакомства воспользуемся готовым образом с DockerHub (использована последняя версия - более новая версия, чем в ДЗ)
+```shell
+docker run --rm -p 9090:9090 -d --name prometheus prom/prometheus:v2.14.0
+```
+```log
+Digest: sha256:907e20b3b0f8b0a76a33c088fe9827e8edc180e874bd2173c27089eade63d8b8
+Status: Downloaded newer image for prom/prometheus:v2.14.0
+ba7f92afa8bc8e3542d60f25faae8f76f1459fa3ea2aeb5c4e954b2bda73957c
+```
+
+Список запущенных контейнеров
+```shell
+docker ps
+```
+```log
+CONTAINER ID        IMAGE                     COMMAND                  CREATED             STATUS              PORTS                    NAMES
+ba7f92afa8bc        prom/prometheus:v2.14.0   "/bin/prometheus --c…"   49 seconds ago      Up 45 seconds       0.0.0.0:9090->9090/tcp   prometheus
+```
+
+#### Web-интерфейс
+
+IP запущенной docker-machine
+```shell
+docker-machine ip docker-host
+```
+```log
+34.76.241.120
+```
+
+Веб-интерфейс открыт http://34.76.241.120:9090
+
+По умолчанию prometheus собирает статистику о своей работе. Выберем, например, метрику `prometheus_build_info` и нажмем Execute, чтобы посмотреть информацию о версии.
+```log
+prometheus_build_info{branch="HEAD",goversion="go1.13.4",instance="localhost:9090",job="prometheus",revision="edeb7a44cbf745f1d8be4ea6f215e79e651bfe19",version="2.14.0"}	
+```
+
+`prometheus_build_info` - название метрики - идентификатор собранной информации.
+
+`branch`, `goversion`, `instance`, etc... - лейбл - добавляет метаданных метрике, уточняет ее. Использование лейблов дает нам возможность не ограничиваться лишь одним названием метрик для идентификации получаемой информации. Лейблы содержаться в `{}` скобках и представлены наборами "ключ=значение".
+
+`"HEAD"`, `"go1.13.4"`, etc... - значение метрики - численное значение метрики, либо NaN, если значение недоступно
+
+
+#### Targets
+
+Targets (цели) - представляют собой системы или процессы, за которыми следит Prometheus. Помним, что Prometheus является pull системой, поэтому он постоянно делает HTTP запросы на имеющиеся у него адреса (endpoints). Посмотрим текущий список целей:
+
+Status -> Targets
+
+В Targets сейчас мы видим только сам Prometheus. У каждой цели есть свой список адресов _(endpoints)_, по которым следует обращаться для получения информации.
+
+В веб интерфейсе мы можем видеть состояние каждого endpoint-а (up); лейбл (`instance="someURL"`), который Prometheus автоматически добавляет к каждой метрике, получаемой с данного endpoint-а; а также время, прошедшее с момента последней операции сбора информации с endpoint-а.
+
+Также здесь отображаются ошибки при их наличии и можно отфильтровать только неживые таргеты.
+
+Обратите внимание на endpoint, который мы с вами видели на предыдущем слайде.
+
+Мы можем открыть страницу в веб браузере по данному HTTP пути (host:port/metrics), чтобы посмотреть, как выглядит та информация, которую собирает Prometheus. **Примечение** В веб-интерфейсе отображается url http://localhost:9090/metrics, который ссылается на localhost вместо ip удалённого интсанса. Чтобы посмотреть метрики, необходимо вручную указать ip http://34.76.241.120:9090/metrics
+
+<details><summary>Список метрик</summary>
+<p>
+
+#### Список метрик
+
+```log
+# HELP go_gc_duration_seconds A summary of the GC invocation durations.
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile="0"} 5.955e-06
+go_gc_duration_seconds{quantile="0.25"} 1.6163e-05
+go_gc_duration_seconds{quantile="0.5"} 2.141e-05
+go_gc_duration_seconds{quantile="0.75"} 2.5613e-05
+go_gc_duration_seconds{quantile="1"} 4.4607e-05
+go_gc_duration_seconds_sum 0.00047029
+go_gc_duration_seconds_count 22
+# HELP go_goroutines Number of goroutines that currently exist.
+# TYPE go_goroutines gauge
+go_goroutines 40
+# HELP go_info Information about the Go environment.
+# TYPE go_info gauge
+go_info{version="go1.13.4"} 1
+# HELP go_memstats_alloc_bytes Number of bytes allocated and still in use.
+# TYPE go_memstats_alloc_bytes gauge
+go_memstats_alloc_bytes 1.410276e+07
+# HELP go_memstats_alloc_bytes_total Total number of bytes allocated, even if freed.
+# TYPE go_memstats_alloc_bytes_total counter
+go_memstats_alloc_bytes_total 5.9071968e+07
+# HELP go_memstats_buck_hash_sys_bytes Number of bytes used by the profiling bucket hash table.
+# TYPE go_memstats_buck_hash_sys_bytes gauge
+go_memstats_buck_hash_sys_bytes 1.464544e+06
+# HELP go_memstats_frees_total Total number of frees.
+# TYPE go_memstats_frees_total counter
+go_memstats_frees_total 480971
+# HELP go_memstats_gc_cpu_fraction The fraction of this program's available CPU time used by the GC since the program started.
+# TYPE go_memstats_gc_cpu_fraction gauge
+go_memstats_gc_cpu_fraction 1.0147006692597942e-05
+# HELP go_memstats_gc_sys_bytes Number of bytes used for garbage collection system metadata.
+# TYPE go_memstats_gc_sys_bytes gauge
+go_memstats_gc_sys_bytes 2.398208e+06
+# HELP go_memstats_heap_alloc_bytes Number of heap bytes allocated and still in use.
+# TYPE go_memstats_heap_alloc_bytes gauge
+go_memstats_heap_alloc_bytes 1.410276e+07
+# HELP go_memstats_heap_idle_bytes Number of heap bytes waiting to be used.
+# TYPE go_memstats_heap_idle_bytes gauge
+go_memstats_heap_idle_bytes 5.0233344e+07
+# HELP go_memstats_heap_inuse_bytes Number of heap bytes that are in use.
+# TYPE go_memstats_heap_inuse_bytes gauge
+go_memstats_heap_inuse_bytes 1.622016e+07
+# HELP go_memstats_heap_objects Number of allocated objects.
+# TYPE go_memstats_heap_objects gauge
+go_memstats_heap_objects 72304
+# HELP go_memstats_heap_released_bytes Number of heap bytes released to OS.
+# TYPE go_memstats_heap_released_bytes gauge
+go_memstats_heap_released_bytes 4.825088e+07
+# HELP go_memstats_heap_sys_bytes Number of heap bytes obtained from system.
+# TYPE go_memstats_heap_sys_bytes gauge
+go_memstats_heap_sys_bytes 6.6453504e+07
+# HELP go_memstats_last_gc_time_seconds Number of seconds since 1970 of last garbage collection.
+# TYPE go_memstats_last_gc_time_seconds gauge
+go_memstats_last_gc_time_seconds 1.5757971694422157e+09
+# HELP go_memstats_lookups_total Total number of pointer lookups.
+# TYPE go_memstats_lookups_total counter
+go_memstats_lookups_total 0
+# HELP go_memstats_mallocs_total Total number of mallocs.
+# TYPE go_memstats_mallocs_total counter
+go_memstats_mallocs_total 553275
+# HELP go_memstats_mcache_inuse_bytes Number of bytes in use by mcache structures.
+# TYPE go_memstats_mcache_inuse_bytes gauge
+go_memstats_mcache_inuse_bytes 1736
+# HELP go_memstats_mcache_sys_bytes Number of bytes used for mcache structures obtained from system.
+# TYPE go_memstats_mcache_sys_bytes gauge
+go_memstats_mcache_sys_bytes 16384
+# HELP go_memstats_mspan_inuse_bytes Number of bytes in use by mspan structures.
+# TYPE go_memstats_mspan_inuse_bytes gauge
+go_memstats_mspan_inuse_bytes 145656
+# HELP go_memstats_mspan_sys_bytes Number of bytes used for mspan structures obtained from system.
+# TYPE go_memstats_mspan_sys_bytes gauge
+go_memstats_mspan_sys_bytes 163840
+# HELP go_memstats_next_gc_bytes Number of heap bytes when next garbage collection will take place.
+# TYPE go_memstats_next_gc_bytes gauge
+go_memstats_next_gc_bytes 2.6305792e+07
+# HELP go_memstats_other_sys_bytes Number of bytes used for other system allocations.
+# TYPE go_memstats_other_sys_bytes gauge
+go_memstats_other_sys_bytes 348184
+# HELP go_memstats_stack_inuse_bytes Number of bytes in use by the stack allocator.
+# TYPE go_memstats_stack_inuse_bytes gauge
+go_memstats_stack_inuse_bytes 655360
+# HELP go_memstats_stack_sys_bytes Number of bytes obtained from system for stack allocator.
+# TYPE go_memstats_stack_sys_bytes gauge
+go_memstats_stack_sys_bytes 655360
+# HELP go_memstats_sys_bytes Number of bytes obtained from system.
+# TYPE go_memstats_sys_bytes gauge
+go_memstats_sys_bytes 7.1500024e+07
+# HELP go_threads Number of OS threads created.
+# TYPE go_threads gauge
+go_threads 9
+# HELP net_conntrack_dialer_conn_attempted_total Total number of connections attempted by the given dialer a given name.
+# TYPE net_conntrack_dialer_conn_attempted_total counter
+net_conntrack_dialer_conn_attempted_total{dialer_name="alertmanager"} 0
+net_conntrack_dialer_conn_attempted_total{dialer_name="default"} 0
+net_conntrack_dialer_conn_attempted_total{dialer_name="prometheus"} 1
+# HELP net_conntrack_dialer_conn_closed_total Total number of connections closed which originated from the dialer of a given name.
+# TYPE net_conntrack_dialer_conn_closed_total counter
+net_conntrack_dialer_conn_closed_total{dialer_name="alertmanager"} 0
+net_conntrack_dialer_conn_closed_total{dialer_name="default"} 0
+net_conntrack_dialer_conn_closed_total{dialer_name="prometheus"} 0
+# HELP net_conntrack_dialer_conn_established_total Total number of connections successfully established by the given dialer a given name.
+# TYPE net_conntrack_dialer_conn_established_total counter
+net_conntrack_dialer_conn_established_total{dialer_name="alertmanager"} 0
+net_conntrack_dialer_conn_established_total{dialer_name="default"} 0
+net_conntrack_dialer_conn_established_total{dialer_name="prometheus"} 1
+# HELP net_conntrack_dialer_conn_failed_total Total number of connections failed to dial by the dialer a given name.
+# TYPE net_conntrack_dialer_conn_failed_total counter
+net_conntrack_dialer_conn_failed_total{dialer_name="alertmanager",reason="refused"} 0
+net_conntrack_dialer_conn_failed_total{dialer_name="alertmanager",reason="resolution"} 0
+net_conntrack_dialer_conn_failed_total{dialer_name="alertmanager",reason="timeout"} 0
+net_conntrack_dialer_conn_failed_total{dialer_name="alertmanager",reason="unknown"} 0
+net_conntrack_dialer_conn_failed_total{dialer_name="default",reason="refused"} 0
+net_conntrack_dialer_conn_failed_total{dialer_name="default",reason="resolution"} 0
+net_conntrack_dialer_conn_failed_total{dialer_name="default",reason="timeout"} 0
+net_conntrack_dialer_conn_failed_total{dialer_name="default",reason="unknown"} 0
+net_conntrack_dialer_conn_failed_total{dialer_name="prometheus",reason="refused"} 0
+net_conntrack_dialer_conn_failed_total{dialer_name="prometheus",reason="resolution"} 0
+net_conntrack_dialer_conn_failed_total{dialer_name="prometheus",reason="timeout"} 0
+net_conntrack_dialer_conn_failed_total{dialer_name="prometheus",reason="unknown"} 0
+# HELP net_conntrack_listener_conn_accepted_total Total number of connections opened to the listener of a given name.
+# TYPE net_conntrack_listener_conn_accepted_total counter
+net_conntrack_listener_conn_accepted_total{listener_name="http"} 15
+# HELP net_conntrack_listener_conn_closed_total Total number of connections closed that were made to the listener of a given name.
+# TYPE net_conntrack_listener_conn_closed_total counter
+net_conntrack_listener_conn_closed_total{listener_name="http"} 11
+# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 1.42
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1.048576e+06
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 14
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 5.9609088e+07
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.57579509824e+09
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 1.65691392e+08
+# HELP process_virtual_memory_max_bytes Maximum amount of virtual memory available in bytes.
+# TYPE process_virtual_memory_max_bytes gauge
+process_virtual_memory_max_bytes -1
+# HELP prometheus_api_remote_read_queries The current number of remote read queries being executed or waiting.
+# TYPE prometheus_api_remote_read_queries gauge
+prometheus_api_remote_read_queries 0
+# HELP prometheus_build_info A metric with a constant '1' value labeled by version, revision, branch, and goversion from which prometheus was built.
+# TYPE prometheus_build_info gauge
+prometheus_build_info{branch="HEAD",goversion="go1.13.4",revision="edeb7a44cbf745f1d8be4ea6f215e79e651bfe19",version="2.14.0"} 1
+# HELP prometheus_config_last_reload_success_timestamp_seconds Timestamp of the last successful configuration reload.
+# TYPE prometheus_config_last_reload_success_timestamp_seconds gauge
+prometheus_config_last_reload_success_timestamp_seconds 1.5757950994458635e+09
+# HELP prometheus_config_last_reload_successful Whether the last configuration reload attempt was successful.
+# TYPE prometheus_config_last_reload_successful gauge
+prometheus_config_last_reload_successful 1
+# HELP prometheus_engine_queries The current number of queries being executed or waiting.
+# TYPE prometheus_engine_queries gauge
+prometheus_engine_queries 0
+# HELP prometheus_engine_queries_concurrent_max The max number of concurrent queries.
+# TYPE prometheus_engine_queries_concurrent_max gauge
+prometheus_engine_queries_concurrent_max 20
+# HELP prometheus_engine_query_duration_seconds Query timings
+# TYPE prometheus_engine_query_duration_seconds summary
+prometheus_engine_query_duration_seconds{slice="inner_eval",quantile="0.5"} NaN
+prometheus_engine_query_duration_seconds{slice="inner_eval",quantile="0.9"} NaN
+prometheus_engine_query_duration_seconds{slice="inner_eval",quantile="0.99"} NaN
+prometheus_engine_query_duration_seconds_sum{slice="inner_eval"} 9.1966e-05
+prometheus_engine_query_duration_seconds_count{slice="inner_eval"} 5
+prometheus_engine_query_duration_seconds{slice="prepare_time",quantile="0.5"} NaN
+prometheus_engine_query_duration_seconds{slice="prepare_time",quantile="0.9"} NaN
+prometheus_engine_query_duration_seconds{slice="prepare_time",quantile="0.99"} NaN
+prometheus_engine_query_duration_seconds_sum{slice="prepare_time"} 0.00018078700000000002
+prometheus_engine_query_duration_seconds_count{slice="prepare_time"} 5
+prometheus_engine_query_duration_seconds{slice="queue_time",quantile="0.5"} NaN
+prometheus_engine_query_duration_seconds{slice="queue_time",quantile="0.9"} NaN
+prometheus_engine_query_duration_seconds{slice="queue_time",quantile="0.99"} NaN
+prometheus_engine_query_duration_seconds_sum{slice="queue_time"} 2.2108e-05
+prometheus_engine_query_duration_seconds_count{slice="queue_time"} 5
+prometheus_engine_query_duration_seconds{slice="result_sort",quantile="0.5"} NaN
+prometheus_engine_query_duration_seconds{slice="result_sort",quantile="0.9"} NaN
+prometheus_engine_query_duration_seconds{slice="result_sort",quantile="0.99"} NaN
+prometheus_engine_query_duration_seconds_sum{slice="result_sort"} 0
+prometheus_engine_query_duration_seconds_count{slice="result_sort"} 0
+# HELP prometheus_http_request_duration_seconds Histogram of latencies for HTTP requests.
+# TYPE prometheus_http_request_duration_seconds histogram
+prometheus_http_request_duration_seconds_bucket{handler="/",le="0.1"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/",le="0.2"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/",le="0.4"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/",le="1"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/",le="3"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/",le="8"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/",le="20"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/",le="60"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/",le="120"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/",le="+Inf"} 1
+prometheus_http_request_duration_seconds_sum{handler="/"} 3.6641e-05
+prometheus_http_request_duration_seconds_count{handler="/"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/label/:name/values",le="0.1"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/label/:name/values",le="0.2"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/label/:name/values",le="0.4"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/label/:name/values",le="1"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/label/:name/values",le="3"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/label/:name/values",le="8"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/label/:name/values",le="20"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/label/:name/values",le="60"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/label/:name/values",le="120"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/label/:name/values",le="+Inf"} 1
+prometheus_http_request_duration_seconds_sum{handler="/api/v1/label/:name/values"} 0.001905385
+prometheus_http_request_duration_seconds_count{handler="/api/v1/label/:name/values"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/query",le="0.1"} 5
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/query",le="0.2"} 5
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/query",le="0.4"} 5
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/query",le="1"} 5
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/query",le="3"} 5
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/query",le="8"} 5
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/query",le="20"} 5
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/query",le="60"} 5
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/query",le="120"} 5
+prometheus_http_request_duration_seconds_bucket{handler="/api/v1/query",le="+Inf"} 5
+prometheus_http_request_duration_seconds_sum{handler="/api/v1/query"} 0.0043781110000000005
+prometheus_http_request_duration_seconds_count{handler="/api/v1/query"} 5
+prometheus_http_request_duration_seconds_bucket{handler="/graph",le="0.1"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/graph",le="0.2"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/graph",le="0.4"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/graph",le="1"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/graph",le="3"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/graph",le="8"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/graph",le="20"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/graph",le="60"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/graph",le="120"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/graph",le="+Inf"} 1
+prometheus_http_request_duration_seconds_sum{handler="/graph"} 0.001959785
+prometheus_http_request_duration_seconds_count{handler="/graph"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/metrics",le="0.1"} 142
+prometheus_http_request_duration_seconds_bucket{handler="/metrics",le="0.2"} 142
+prometheus_http_request_duration_seconds_bucket{handler="/metrics",le="0.4"} 142
+prometheus_http_request_duration_seconds_bucket{handler="/metrics",le="1"} 142
+prometheus_http_request_duration_seconds_bucket{handler="/metrics",le="3"} 142
+prometheus_http_request_duration_seconds_bucket{handler="/metrics",le="8"} 142
+prometheus_http_request_duration_seconds_bucket{handler="/metrics",le="20"} 142
+prometheus_http_request_duration_seconds_bucket{handler="/metrics",le="60"} 142
+prometheus_http_request_duration_seconds_bucket{handler="/metrics",le="120"} 142
+prometheus_http_request_duration_seconds_bucket{handler="/metrics",le="+Inf"} 142
+prometheus_http_request_duration_seconds_sum{handler="/metrics"} 0.5661348470000002
+prometheus_http_request_duration_seconds_count{handler="/metrics"} 142
+prometheus_http_request_duration_seconds_bucket{handler="/static/*filepath",le="0.1"} 23
+prometheus_http_request_duration_seconds_bucket{handler="/static/*filepath",le="0.2"} 25
+prometheus_http_request_duration_seconds_bucket{handler="/static/*filepath",le="0.4"} 26
+prometheus_http_request_duration_seconds_bucket{handler="/static/*filepath",le="1"} 26
+prometheus_http_request_duration_seconds_bucket{handler="/static/*filepath",le="3"} 26
+prometheus_http_request_duration_seconds_bucket{handler="/static/*filepath",le="8"} 26
+prometheus_http_request_duration_seconds_bucket{handler="/static/*filepath",le="20"} 26
+prometheus_http_request_duration_seconds_bucket{handler="/static/*filepath",le="60"} 26
+prometheus_http_request_duration_seconds_bucket{handler="/static/*filepath",le="120"} 26
+prometheus_http_request_duration_seconds_bucket{handler="/static/*filepath",le="+Inf"} 26
+prometheus_http_request_duration_seconds_sum{handler="/static/*filepath"} 0.6096292270000001
+prometheus_http_request_duration_seconds_count{handler="/static/*filepath"} 26
+prometheus_http_request_duration_seconds_bucket{handler="/targets",le="0.1"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/targets",le="0.2"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/targets",le="0.4"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/targets",le="1"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/targets",le="3"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/targets",le="8"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/targets",le="20"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/targets",le="60"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/targets",le="120"} 1
+prometheus_http_request_duration_seconds_bucket{handler="/targets",le="+Inf"} 1
+prometheus_http_request_duration_seconds_sum{handler="/targets"} 0.001879882
+prometheus_http_request_duration_seconds_count{handler="/targets"} 1
+# HELP prometheus_http_requests_total Counter of HTTP requests.
+# TYPE prometheus_http_requests_total counter
+prometheus_http_requests_total{code="200",handler="/api/v1/label/:name/values"} 1
+prometheus_http_requests_total{code="200",handler="/api/v1/query"} 5
+prometheus_http_requests_total{code="200",handler="/graph"} 1
+prometheus_http_requests_total{code="200",handler="/metrics"} 142
+prometheus_http_requests_total{code="200",handler="/static/*filepath"} 26
+prometheus_http_requests_total{code="200",handler="/targets"} 1
+prometheus_http_requests_total{code="302",handler="/"} 1
+# HELP prometheus_http_response_size_bytes Histogram of response size for HTTP requests.
+# TYPE prometheus_http_response_size_bytes histogram
+prometheus_http_response_size_bytes_bucket{handler="/",le="100"} 1
+prometheus_http_response_size_bytes_bucket{handler="/",le="1000"} 1
+prometheus_http_response_size_bytes_bucket{handler="/",le="10000"} 1
+prometheus_http_response_size_bytes_bucket{handler="/",le="100000"} 1
+prometheus_http_response_size_bytes_bucket{handler="/",le="1e+06"} 1
+prometheus_http_response_size_bytes_bucket{handler="/",le="1e+07"} 1
+prometheus_http_response_size_bytes_bucket{handler="/",le="1e+08"} 1
+prometheus_http_response_size_bytes_bucket{handler="/",le="1e+09"} 1
+prometheus_http_response_size_bytes_bucket{handler="/",le="+Inf"} 1
+prometheus_http_response_size_bytes_sum{handler="/"} 29
+prometheus_http_response_size_bytes_count{handler="/"} 1
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/label/:name/values",le="100"} 0
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/label/:name/values",le="1000"} 0
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/label/:name/values",le="10000"} 1
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/label/:name/values",le="100000"} 1
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/label/:name/values",le="1e+06"} 1
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/label/:name/values",le="1e+07"} 1
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/label/:name/values",le="1e+08"} 1
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/label/:name/values",le="1e+09"} 1
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/label/:name/values",le="+Inf"} 1
+prometheus_http_response_size_bytes_sum{handler="/api/v1/label/:name/values"} 1397
+prometheus_http_response_size_bytes_count{handler="/api/v1/label/:name/values"} 1
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/query",le="100"} 2
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/query",le="1000"} 5
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/query",le="10000"} 5
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/query",le="100000"} 5
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/query",le="1e+06"} 5
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/query",le="1e+07"} 5
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/query",le="1e+08"} 5
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/query",le="1e+09"} 5
+prometheus_http_response_size_bytes_bucket{handler="/api/v1/query",le="+Inf"} 5
+prometheus_http_response_size_bytes_sum{handler="/api/v1/query"} 700
+prometheus_http_response_size_bytes_count{handler="/api/v1/query"} 5
+prometheus_http_response_size_bytes_bucket{handler="/graph",le="100"} 0
+prometheus_http_response_size_bytes_bucket{handler="/graph",le="1000"} 0
+prometheus_http_response_size_bytes_bucket{handler="/graph",le="10000"} 1
+prometheus_http_response_size_bytes_bucket{handler="/graph",le="100000"} 1
+prometheus_http_response_size_bytes_bucket{handler="/graph",le="1e+06"} 1
+prometheus_http_response_size_bytes_bucket{handler="/graph",le="1e+07"} 1
+prometheus_http_response_size_bytes_bucket{handler="/graph",le="1e+08"} 1
+prometheus_http_response_size_bytes_bucket{handler="/graph",le="1e+09"} 1
+prometheus_http_response_size_bytes_bucket{handler="/graph",le="+Inf"} 1
+prometheus_http_response_size_bytes_sum{handler="/graph"} 5967
+prometheus_http_response_size_bytes_count{handler="/graph"} 1
+prometheus_http_response_size_bytes_bucket{handler="/metrics",le="100"} 0
+prometheus_http_response_size_bytes_bucket{handler="/metrics",le="1000"} 0
+prometheus_http_response_size_bytes_bucket{handler="/metrics",le="10000"} 142
+prometheus_http_response_size_bytes_bucket{handler="/metrics",le="100000"} 142
+prometheus_http_response_size_bytes_bucket{handler="/metrics",le="1e+06"} 142
+prometheus_http_response_size_bytes_bucket{handler="/metrics",le="1e+07"} 142
+prometheus_http_response_size_bytes_bucket{handler="/metrics",le="1e+08"} 142
+prometheus_http_response_size_bytes_bucket{handler="/metrics",le="1e+09"} 142
+prometheus_http_response_size_bytes_bucket{handler="/metrics",le="+Inf"} 142
+prometheus_http_response_size_bytes_sum{handler="/metrics"} 971753
+prometheus_http_response_size_bytes_count{handler="/metrics"} 142
+prometheus_http_response_size_bytes_bucket{handler="/static/*filepath",le="100"} 0
+prometheus_http_response_size_bytes_bucket{handler="/static/*filepath",le="1000"} 3
+prometheus_http_response_size_bytes_bucket{handler="/static/*filepath",le="10000"} 10
+prometheus_http_response_size_bytes_bucket{handler="/static/*filepath",le="100000"} 23
+prometheus_http_response_size_bytes_bucket{handler="/static/*filepath",le="1e+06"} 26
+prometheus_http_response_size_bytes_bucket{handler="/static/*filepath",le="1e+07"} 26
+prometheus_http_response_size_bytes_bucket{handler="/static/*filepath",le="1e+08"} 26
+prometheus_http_response_size_bytes_bucket{handler="/static/*filepath",le="1e+09"} 26
+prometheus_http_response_size_bytes_bucket{handler="/static/*filepath",le="+Inf"} 26
+prometheus_http_response_size_bytes_sum{handler="/static/*filepath"} 993190
+prometheus_http_response_size_bytes_count{handler="/static/*filepath"} 26
+prometheus_http_response_size_bytes_bucket{handler="/targets",le="100"} 0
+prometheus_http_response_size_bytes_bucket{handler="/targets",le="1000"} 0
+prometheus_http_response_size_bytes_bucket{handler="/targets",le="10000"} 1
+prometheus_http_response_size_bytes_bucket{handler="/targets",le="100000"} 1
+prometheus_http_response_size_bytes_bucket{handler="/targets",le="1e+06"} 1
+prometheus_http_response_size_bytes_bucket{handler="/targets",le="1e+07"} 1
+prometheus_http_response_size_bytes_bucket{handler="/targets",le="1e+08"} 1
+prometheus_http_response_size_bytes_bucket{handler="/targets",le="1e+09"} 1
+prometheus_http_response_size_bytes_bucket{handler="/targets",le="+Inf"} 1
+prometheus_http_response_size_bytes_sum{handler="/targets"} 5850
+prometheus_http_response_size_bytes_count{handler="/targets"} 1
+# HELP prometheus_notifications_alertmanagers_discovered The number of alertmanagers discovered and active.
+# TYPE prometheus_notifications_alertmanagers_discovered gauge
+prometheus_notifications_alertmanagers_discovered 0
+# HELP prometheus_notifications_dropped_total Total number of alerts dropped due to errors when sending to Alertmanager.
+# TYPE prometheus_notifications_dropped_total counter
+prometheus_notifications_dropped_total 0
+# HELP prometheus_notifications_queue_capacity The capacity of the alert notifications queue.
+# TYPE prometheus_notifications_queue_capacity gauge
+prometheus_notifications_queue_capacity 10000
+# HELP prometheus_notifications_queue_length The number of alert notifications in the queue.
+# TYPE prometheus_notifications_queue_length gauge
+prometheus_notifications_queue_length 0
+# HELP prometheus_remote_storage_highest_timestamp_in_seconds Highest timestamp that has come into the remote storage via the Appender interface, in seconds since epoch.
+# TYPE prometheus_remote_storage_highest_timestamp_in_seconds gauge
+prometheus_remote_storage_highest_timestamp_in_seconds 1.57579722e+09
+# HELP prometheus_remote_storage_samples_in_total Samples in to remote storage, compare to samples out for queue managers.
+# TYPE prometheus_remote_storage_samples_in_total counter
+prometheus_remote_storage_samples_in_total 64123
+# HELP prometheus_remote_storage_string_interner_zero_reference_releases_total The number of times release has been called for strings that are not interned.
+# TYPE prometheus_remote_storage_string_interner_zero_reference_releases_total counter
+prometheus_remote_storage_string_interner_zero_reference_releases_total 0
+# HELP prometheus_rule_evaluation_duration_seconds The duration for a rule to execute.
+# TYPE prometheus_rule_evaluation_duration_seconds summary
+prometheus_rule_evaluation_duration_seconds{quantile="0.5"} NaN
+prometheus_rule_evaluation_duration_seconds{quantile="0.9"} NaN
+prometheus_rule_evaluation_duration_seconds{quantile="0.99"} NaN
+prometheus_rule_evaluation_duration_seconds_sum 0
+prometheus_rule_evaluation_duration_seconds_count 0
+# HELP prometheus_rule_evaluation_failures_total The total number of rule evaluation failures.
+# TYPE prometheus_rule_evaluation_failures_total counter
+prometheus_rule_evaluation_failures_total 0
+# HELP prometheus_rule_evaluations_total The total number of rule evaluations.
+# TYPE prometheus_rule_evaluations_total counter
+prometheus_rule_evaluations_total 0
+# HELP prometheus_rule_group_duration_seconds The duration of rule group evaluations.
+# TYPE prometheus_rule_group_duration_seconds summary
+prometheus_rule_group_duration_seconds{quantile="0.01"} NaN
+prometheus_rule_group_duration_seconds{quantile="0.05"} NaN
+prometheus_rule_group_duration_seconds{quantile="0.5"} NaN
+prometheus_rule_group_duration_seconds{quantile="0.9"} NaN
+prometheus_rule_group_duration_seconds{quantile="0.99"} NaN
+prometheus_rule_group_duration_seconds_sum 0
+prometheus_rule_group_duration_seconds_count 0
+# HELP prometheus_rule_group_iterations_missed_total The total number of rule group evaluations missed due to slow rule group evaluation.
+# TYPE prometheus_rule_group_iterations_missed_total counter
+prometheus_rule_group_iterations_missed_total 1
+# HELP prometheus_rule_group_iterations_total The total number of scheduled rule group evaluations, whether executed or missed.
+# TYPE prometheus_rule_group_iterations_total counter
+prometheus_rule_group_iterations_total 0
+# HELP prometheus_sd_consul_rpc_duration_seconds The duration of a Consul RPC call in seconds.
+# TYPE prometheus_sd_consul_rpc_duration_seconds summary
+prometheus_sd_consul_rpc_duration_seconds{call="service",endpoint="catalog",quantile="0.5"} NaN
+prometheus_sd_consul_rpc_duration_seconds{call="service",endpoint="catalog",quantile="0.9"} NaN
+prometheus_sd_consul_rpc_duration_seconds{call="service",endpoint="catalog",quantile="0.99"} NaN
+prometheus_sd_consul_rpc_duration_seconds_sum{call="service",endpoint="catalog"} 0
+prometheus_sd_consul_rpc_duration_seconds_count{call="service",endpoint="catalog"} 0
+prometheus_sd_consul_rpc_duration_seconds{call="services",endpoint="catalog",quantile="0.5"} NaN
+prometheus_sd_consul_rpc_duration_seconds{call="services",endpoint="catalog",quantile="0.9"} NaN
+prometheus_sd_consul_rpc_duration_seconds{call="services",endpoint="catalog",quantile="0.99"} NaN
+prometheus_sd_consul_rpc_duration_seconds_sum{call="services",endpoint="catalog"} 0
+prometheus_sd_consul_rpc_duration_seconds_count{call="services",endpoint="catalog"} 0
+# HELP prometheus_sd_consul_rpc_failures_total The number of Consul RPC call failures.
+# TYPE prometheus_sd_consul_rpc_failures_total counter
+prometheus_sd_consul_rpc_failures_total 0
+# HELP prometheus_sd_discovered_targets Current number of discovered targets.
+# TYPE prometheus_sd_discovered_targets gauge
+prometheus_sd_discovered_targets{config="00592cee302b53b01a6cbb27b6147722",name="notify"} 0
+prometheus_sd_discovered_targets{config="prometheus",name="scrape"} 1
+# HELP prometheus_sd_dns_lookup_failures_total The number of DNS-SD lookup failures.
+# TYPE prometheus_sd_dns_lookup_failures_total counter
+prometheus_sd_dns_lookup_failures_total 0
+# HELP prometheus_sd_dns_lookups_total The number of DNS-SD lookups.
+# TYPE prometheus_sd_dns_lookups_total counter
+prometheus_sd_dns_lookups_total 0
+# HELP prometheus_sd_failed_configs Current number of service discovery configurations that failed to load.
+# TYPE prometheus_sd_failed_configs gauge
+prometheus_sd_failed_configs{name="notify"} 0
+prometheus_sd_failed_configs{name="scrape"} 0
+# HELP prometheus_sd_file_read_errors_total The number of File-SD read errors.
+# TYPE prometheus_sd_file_read_errors_total counter
+prometheus_sd_file_read_errors_total 0
+# HELP prometheus_sd_file_scan_duration_seconds The duration of the File-SD scan in seconds.
+# TYPE prometheus_sd_file_scan_duration_seconds summary
+prometheus_sd_file_scan_duration_seconds{quantile="0.5"} NaN
+prometheus_sd_file_scan_duration_seconds{quantile="0.9"} NaN
+prometheus_sd_file_scan_duration_seconds{quantile="0.99"} NaN
+prometheus_sd_file_scan_duration_seconds_sum 0
+prometheus_sd_file_scan_duration_seconds_count 0
+# HELP prometheus_sd_kubernetes_cache_last_resource_version Last resource version from the Kubernetes API.
+# TYPE prometheus_sd_kubernetes_cache_last_resource_version gauge
+prometheus_sd_kubernetes_cache_last_resource_version 0
+# HELP prometheus_sd_kubernetes_cache_list_duration_seconds Duration of a Kubernetes API call in seconds.
+# TYPE prometheus_sd_kubernetes_cache_list_duration_seconds summary
+prometheus_sd_kubernetes_cache_list_duration_seconds_sum 0
+prometheus_sd_kubernetes_cache_list_duration_seconds_count 0
+# HELP prometheus_sd_kubernetes_cache_list_items Count of items in a list from the Kubernetes API.
+# TYPE prometheus_sd_kubernetes_cache_list_items summary
+prometheus_sd_kubernetes_cache_list_items_sum 0
+prometheus_sd_kubernetes_cache_list_items_count 0
+# HELP prometheus_sd_kubernetes_cache_list_total Total number of list operations.
+# TYPE prometheus_sd_kubernetes_cache_list_total counter
+prometheus_sd_kubernetes_cache_list_total 0
+# HELP prometheus_sd_kubernetes_cache_short_watches_total Total number of short watch operations.
+# TYPE prometheus_sd_kubernetes_cache_short_watches_total counter
+prometheus_sd_kubernetes_cache_short_watches_total 0
+# HELP prometheus_sd_kubernetes_cache_watch_duration_seconds Duration of watches on the Kubernetes API.
+# TYPE prometheus_sd_kubernetes_cache_watch_duration_seconds summary
+prometheus_sd_kubernetes_cache_watch_duration_seconds_sum 0
+prometheus_sd_kubernetes_cache_watch_duration_seconds_count 0
+# HELP prometheus_sd_kubernetes_cache_watch_events Number of items in watches on the Kubernetes API.
+# TYPE prometheus_sd_kubernetes_cache_watch_events summary
+prometheus_sd_kubernetes_cache_watch_events_sum 0
+prometheus_sd_kubernetes_cache_watch_events_count 0
+# HELP prometheus_sd_kubernetes_cache_watches_total Total number of watch operations.
+# TYPE prometheus_sd_kubernetes_cache_watches_total counter
+prometheus_sd_kubernetes_cache_watches_total 0
+# HELP prometheus_sd_kubernetes_events_total The number of Kubernetes events handled.
+# TYPE prometheus_sd_kubernetes_events_total counter
+prometheus_sd_kubernetes_events_total{event="add",role="endpoints"} 0
+prometheus_sd_kubernetes_events_total{event="add",role="ingress"} 0
+prometheus_sd_kubernetes_events_total{event="add",role="node"} 0
+prometheus_sd_kubernetes_events_total{event="add",role="pod"} 0
+prometheus_sd_kubernetes_events_total{event="add",role="service"} 0
+prometheus_sd_kubernetes_events_total{event="delete",role="endpoints"} 0
+prometheus_sd_kubernetes_events_total{event="delete",role="ingress"} 0
+prometheus_sd_kubernetes_events_total{event="delete",role="node"} 0
+prometheus_sd_kubernetes_events_total{event="delete",role="pod"} 0
+prometheus_sd_kubernetes_events_total{event="delete",role="service"} 0
+prometheus_sd_kubernetes_events_total{event="update",role="endpoints"} 0
+prometheus_sd_kubernetes_events_total{event="update",role="ingress"} 0
+prometheus_sd_kubernetes_events_total{event="update",role="node"} 0
+prometheus_sd_kubernetes_events_total{event="update",role="pod"} 0
+prometheus_sd_kubernetes_events_total{event="update",role="service"} 0
+# HELP prometheus_sd_received_updates_total Total number of update events received from the SD providers.
+# TYPE prometheus_sd_received_updates_total counter
+prometheus_sd_received_updates_total{name="notify"} 2
+prometheus_sd_received_updates_total{name="scrape"} 2
+# HELP prometheus_sd_updates_total Total number of update events sent to the SD consumers.
+# TYPE prometheus_sd_updates_total counter
+prometheus_sd_updates_total{name="notify"} 1
+prometheus_sd_updates_total{name="scrape"} 1
+# HELP prometheus_target_interval_length_seconds Actual intervals between scrapes.
+# TYPE prometheus_target_interval_length_seconds summary
+prometheus_target_interval_length_seconds{interval="15s",quantile="0.01"} 14.999937952
+prometheus_target_interval_length_seconds{interval="15s",quantile="0.05"} 14.999957145
+prometheus_target_interval_length_seconds{interval="15s",quantile="0.5"} 15.000026261
+prometheus_target_interval_length_seconds{interval="15s",quantile="0.9"} 15.000070811
+prometheus_target_interval_length_seconds{interval="15s",quantile="0.99"} 15.000122811
+prometheus_target_interval_length_seconds_sum{interval="15s"} 2115.003722788
+prometheus_target_interval_length_seconds_count{interval="15s"} 141
+# HELP prometheus_target_scrape_pool_reloads_failed_total Total number of failed scrape loop reloads.
+# TYPE prometheus_target_scrape_pool_reloads_failed_total counter
+prometheus_target_scrape_pool_reloads_failed_total 0
+# HELP prometheus_target_scrape_pool_reloads_total Total number of scrape loop reloads.
+# TYPE prometheus_target_scrape_pool_reloads_total counter
+prometheus_target_scrape_pool_reloads_total 0
+# HELP prometheus_target_scrape_pool_sync_total Total number of syncs that were executed on a scrape pool.
+# TYPE prometheus_target_scrape_pool_sync_total counter
+prometheus_target_scrape_pool_sync_total{scrape_job="prometheus"} 1
+# HELP prometheus_target_scrape_pools_failed_total Total number of scrape pool creations that failed.
+# TYPE prometheus_target_scrape_pools_failed_total counter
+prometheus_target_scrape_pools_failed_total 0
+# HELP prometheus_target_scrape_pools_total Total number of scrape pool creation attempts.
+# TYPE prometheus_target_scrape_pools_total counter
+prometheus_target_scrape_pools_total 1
+# HELP prometheus_target_scrapes_cache_flush_forced_total How many times a scrape cache was flushed due to getting big while scrapes are failing.
+# TYPE prometheus_target_scrapes_cache_flush_forced_total counter
+prometheus_target_scrapes_cache_flush_forced_total 0
+# HELP prometheus_target_scrapes_exceeded_sample_limit_total Total number of scrapes that hit the sample limit and were rejected.
+# TYPE prometheus_target_scrapes_exceeded_sample_limit_total counter
+prometheus_target_scrapes_exceeded_sample_limit_total 0
+# HELP prometheus_target_scrapes_sample_duplicate_timestamp_total Total number of samples rejected due to duplicate timestamps but different values
+# TYPE prometheus_target_scrapes_sample_duplicate_timestamp_total counter
+prometheus_target_scrapes_sample_duplicate_timestamp_total 0
+# HELP prometheus_target_scrapes_sample_out_of_bounds_total Total number of samples rejected due to timestamp falling outside of the time bounds
+# TYPE prometheus_target_scrapes_sample_out_of_bounds_total counter
+prometheus_target_scrapes_sample_out_of_bounds_total 0
+# HELP prometheus_target_scrapes_sample_out_of_order_total Total number of samples rejected due to not being out of the expected order
+# TYPE prometheus_target_scrapes_sample_out_of_order_total counter
+prometheus_target_scrapes_sample_out_of_order_total 0
+# HELP prometheus_target_sync_length_seconds Actual interval to sync the scrape pool.
+# TYPE prometheus_target_sync_length_seconds summary
+prometheus_target_sync_length_seconds{scrape_job="prometheus",quantile="0.01"} NaN
+prometheus_target_sync_length_seconds{scrape_job="prometheus",quantile="0.05"} NaN
+prometheus_target_sync_length_seconds{scrape_job="prometheus",quantile="0.5"} NaN
+prometheus_target_sync_length_seconds{scrape_job="prometheus",quantile="0.9"} NaN
+prometheus_target_sync_length_seconds{scrape_job="prometheus",quantile="0.99"} NaN
+prometheus_target_sync_length_seconds_sum{scrape_job="prometheus"} 0.000126029
+prometheus_target_sync_length_seconds_count{scrape_job="prometheus"} 1
+# HELP prometheus_template_text_expansion_failures_total The total number of template text expansion failures.
+# TYPE prometheus_template_text_expansion_failures_total counter
+prometheus_template_text_expansion_failures_total 0
+# HELP prometheus_template_text_expansions_total The total number of template text expansions.
+# TYPE prometheus_template_text_expansions_total counter
+prometheus_template_text_expansions_total 0
+# HELP prometheus_treecache_watcher_goroutines The current number of watcher goroutines.
+# TYPE prometheus_treecache_watcher_goroutines gauge
+prometheus_treecache_watcher_goroutines 0
+# HELP prometheus_treecache_zookeeper_failures_total The total number of ZooKeeper failures.
+# TYPE prometheus_treecache_zookeeper_failures_total counter
+prometheus_treecache_zookeeper_failures_total 0
+# HELP prometheus_tsdb_blocks_loaded Number of currently loaded data blocks
+# TYPE prometheus_tsdb_blocks_loaded gauge
+prometheus_tsdb_blocks_loaded 0
+# HELP prometheus_tsdb_checkpoint_creations_failed_total Total number of checkpoint creations that failed.
+# TYPE prometheus_tsdb_checkpoint_creations_failed_total counter
+prometheus_tsdb_checkpoint_creations_failed_total 0
+# HELP prometheus_tsdb_checkpoint_creations_total Total number of checkpoint creations attempted.
+# TYPE prometheus_tsdb_checkpoint_creations_total counter
+prometheus_tsdb_checkpoint_creations_total 0
+# HELP prometheus_tsdb_checkpoint_deletions_failed_total Total number of checkpoint deletions that failed.
+# TYPE prometheus_tsdb_checkpoint_deletions_failed_total counter
+prometheus_tsdb_checkpoint_deletions_failed_total 0
+# HELP prometheus_tsdb_checkpoint_deletions_total Total number of checkpoint deletions attempted.
+# TYPE prometheus_tsdb_checkpoint_deletions_total counter
+prometheus_tsdb_checkpoint_deletions_total 0
+# HELP prometheus_tsdb_compaction_chunk_range_seconds Final time range of chunks on their first compaction
+# TYPE prometheus_tsdb_compaction_chunk_range_seconds histogram
+prometheus_tsdb_compaction_chunk_range_seconds_bucket{le="100"} 0
+prometheus_tsdb_compaction_chunk_range_seconds_bucket{le="400"} 0
+prometheus_tsdb_compaction_chunk_range_seconds_bucket{le="1600"} 0
+prometheus_tsdb_compaction_chunk_range_seconds_bucket{le="6400"} 0
+prometheus_tsdb_compaction_chunk_range_seconds_bucket{le="25600"} 0
+prometheus_tsdb_compaction_chunk_range_seconds_bucket{le="102400"} 0
+prometheus_tsdb_compaction_chunk_range_seconds_bucket{le="409600"} 0
+prometheus_tsdb_compaction_chunk_range_seconds_bucket{le="1.6384e+06"} 0
+prometheus_tsdb_compaction_chunk_range_seconds_bucket{le="6.5536e+06"} 0
+prometheus_tsdb_compaction_chunk_range_seconds_bucket{le="2.62144e+07"} 0
+prometheus_tsdb_compaction_chunk_range_seconds_bucket{le="+Inf"} 0
+prometheus_tsdb_compaction_chunk_range_seconds_sum 0
+prometheus_tsdb_compaction_chunk_range_seconds_count 0
+# HELP prometheus_tsdb_compaction_chunk_samples Final number of samples on their first compaction
+# TYPE prometheus_tsdb_compaction_chunk_samples histogram
+prometheus_tsdb_compaction_chunk_samples_bucket{le="4"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="6"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="9"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="13.5"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="20.25"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="30.375"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="45.5625"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="68.34375"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="102.515625"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="153.7734375"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="230.66015625"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="345.990234375"} 0
+prometheus_tsdb_compaction_chunk_samples_bucket{le="+Inf"} 0
+prometheus_tsdb_compaction_chunk_samples_sum 0
+prometheus_tsdb_compaction_chunk_samples_count 0
+# HELP prometheus_tsdb_compaction_chunk_size_bytes Final size of chunks on their first compaction
+# TYPE prometheus_tsdb_compaction_chunk_size_bytes histogram
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="32"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="48"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="72"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="108"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="162"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="243"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="364.5"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="546.75"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="820.125"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="1230.1875"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="1845.28125"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="2767.921875"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_bucket{le="+Inf"} 0
+prometheus_tsdb_compaction_chunk_size_bytes_sum 0
+prometheus_tsdb_compaction_chunk_size_bytes_count 0
+# HELP prometheus_tsdb_compaction_duration_seconds Duration of compaction runs
+# TYPE prometheus_tsdb_compaction_duration_seconds histogram
+prometheus_tsdb_compaction_duration_seconds_bucket{le="1"} 0
+prometheus_tsdb_compaction_duration_seconds_bucket{le="2"} 0
+prometheus_tsdb_compaction_duration_seconds_bucket{le="4"} 0
+prometheus_tsdb_compaction_duration_seconds_bucket{le="8"} 0
+prometheus_tsdb_compaction_duration_seconds_bucket{le="16"} 0
+prometheus_tsdb_compaction_duration_seconds_bucket{le="32"} 0
+prometheus_tsdb_compaction_duration_seconds_bucket{le="64"} 0
+prometheus_tsdb_compaction_duration_seconds_bucket{le="128"} 0
+prometheus_tsdb_compaction_duration_seconds_bucket{le="256"} 0
+prometheus_tsdb_compaction_duration_seconds_bucket{le="512"} 0
+prometheus_tsdb_compaction_duration_seconds_bucket{le="+Inf"} 0
+prometheus_tsdb_compaction_duration_seconds_sum 0
+prometheus_tsdb_compaction_duration_seconds_count 0
+# HELP prometheus_tsdb_compaction_populating_block Set to 1 when a block is currently being written to the disk.
+# TYPE prometheus_tsdb_compaction_populating_block gauge
+prometheus_tsdb_compaction_populating_block 0
+# HELP prometheus_tsdb_compactions_failed_total Total number of compactions that failed for the partition.
+# TYPE prometheus_tsdb_compactions_failed_total counter
+prometheus_tsdb_compactions_failed_total 0
+# HELP prometheus_tsdb_compactions_total Total number of compactions that were executed for the partition.
+# TYPE prometheus_tsdb_compactions_total counter
+prometheus_tsdb_compactions_total 0
+# HELP prometheus_tsdb_compactions_triggered_total Total number of triggered compactions for the partition.
+# TYPE prometheus_tsdb_compactions_triggered_total counter
+prometheus_tsdb_compactions_triggered_total 35
+# HELP prometheus_tsdb_head_active_appenders Number of currently active appender transactions
+# TYPE prometheus_tsdb_head_active_appenders gauge
+prometheus_tsdb_head_active_appenders 0
+# HELP prometheus_tsdb_head_chunks Total number of chunks in the head block.
+# TYPE prometheus_tsdb_head_chunks gauge
+prometheus_tsdb_head_chunks 838
+# HELP prometheus_tsdb_head_chunks_created_total Total number of chunks created in the head
+# TYPE prometheus_tsdb_head_chunks_created_total counter
+prometheus_tsdb_head_chunks_created_total 838
+# HELP prometheus_tsdb_head_chunks_removed_total Total number of chunks removed in the head
+# TYPE prometheus_tsdb_head_chunks_removed_total counter
+prometheus_tsdb_head_chunks_removed_total 0
+# HELP prometheus_tsdb_head_gc_duration_seconds Runtime of garbage collection in the head block.
+# TYPE prometheus_tsdb_head_gc_duration_seconds summary
+prometheus_tsdb_head_gc_duration_seconds_sum 0
+prometheus_tsdb_head_gc_duration_seconds_count 0
+# HELP prometheus_tsdb_head_max_time Maximum timestamp of the head block. The unit is decided by the library consumer.
+# TYPE prometheus_tsdb_head_max_time gauge
+prometheus_tsdb_head_max_time 1.575797220433e+12
+# HELP prometheus_tsdb_head_max_time_seconds Maximum timestamp of the head block.
+# TYPE prometheus_tsdb_head_max_time_seconds gauge
+prometheus_tsdb_head_max_time_seconds 1.575797220433e+09
+# HELP prometheus_tsdb_head_min_time Minimum time bound of the head block. The unit is decided by the library consumer.
+# TYPE prometheus_tsdb_head_min_time gauge
+prometheus_tsdb_head_min_time 1.575795105433e+12
+# HELP prometheus_tsdb_head_min_time_seconds Minimum time bound of the head block.
+# TYPE prometheus_tsdb_head_min_time_seconds gauge
+prometheus_tsdb_head_min_time_seconds 1.575795105433e+09
+# HELP prometheus_tsdb_head_samples_appended_total Total number of appended samples.
+# TYPE prometheus_tsdb_head_samples_appended_total counter
+prometheus_tsdb_head_samples_appended_total 64123
+# HELP prometheus_tsdb_head_series Total number of series in the head block.
+# TYPE prometheus_tsdb_head_series gauge
+prometheus_tsdb_head_series 491
+# HELP prometheus_tsdb_head_series_created_total Total number of series created in the head
+# TYPE prometheus_tsdb_head_series_created_total counter
+prometheus_tsdb_head_series_created_total 491
+# HELP prometheus_tsdb_head_series_not_found_total Total number of requests for series that were not found.
+# TYPE prometheus_tsdb_head_series_not_found_total counter
+prometheus_tsdb_head_series_not_found_total 0
+# HELP prometheus_tsdb_head_series_removed_total Total number of series removed in the head
+# TYPE prometheus_tsdb_head_series_removed_total counter
+prometheus_tsdb_head_series_removed_total 0
+# HELP prometheus_tsdb_head_truncations_failed_total Total number of head truncations that failed.
+# TYPE prometheus_tsdb_head_truncations_failed_total counter
+prometheus_tsdb_head_truncations_failed_total 0
+# HELP prometheus_tsdb_head_truncations_total Total number of head truncations attempted.
+# TYPE prometheus_tsdb_head_truncations_total counter
+prometheus_tsdb_head_truncations_total 0
+# HELP prometheus_tsdb_lowest_timestamp Lowest timestamp value stored in the database. The unit is decided by the library consumer.
+# TYPE prometheus_tsdb_lowest_timestamp gauge
+prometheus_tsdb_lowest_timestamp 1.575795105433e+12
+# HELP prometheus_tsdb_lowest_timestamp_seconds Lowest timestamp value stored in the database.
+# TYPE prometheus_tsdb_lowest_timestamp_seconds gauge
+prometheus_tsdb_lowest_timestamp_seconds 1.575795105433e+09
+# HELP prometheus_tsdb_reloads_failures_total Number of times the database failed to reload block data from disk.
+# TYPE prometheus_tsdb_reloads_failures_total counter
+prometheus_tsdb_reloads_failures_total 0
+# HELP prometheus_tsdb_reloads_total Number of times the database reloaded block data from disk.
+# TYPE prometheus_tsdb_reloads_total counter
+prometheus_tsdb_reloads_total 1
+# HELP prometheus_tsdb_retention_limit_bytes Max number of bytes to be retained in the tsdb blocks, configured 0 means disabled
+# TYPE prometheus_tsdb_retention_limit_bytes gauge
+prometheus_tsdb_retention_limit_bytes 0
+# HELP prometheus_tsdb_size_retentions_total The number of times that blocks were deleted because the maximum number of bytes was exceeded.
+# TYPE prometheus_tsdb_size_retentions_total counter
+prometheus_tsdb_size_retentions_total 0
+# HELP prometheus_tsdb_storage_blocks_bytes The number of bytes that are currently used for local storage by all blocks.
+# TYPE prometheus_tsdb_storage_blocks_bytes gauge
+prometheus_tsdb_storage_blocks_bytes 0
+# HELP prometheus_tsdb_symbol_table_size_bytes Size of symbol table on disk (in bytes)
+# TYPE prometheus_tsdb_symbol_table_size_bytes gauge
+prometheus_tsdb_symbol_table_size_bytes 0
+# HELP prometheus_tsdb_time_retentions_total The number of times that blocks were deleted because the maximum time limit was exceeded.
+# TYPE prometheus_tsdb_time_retentions_total counter
+prometheus_tsdb_time_retentions_total 0
+# HELP prometheus_tsdb_tombstone_cleanup_seconds The time taken to recompact blocks to remove tombstones.
+# TYPE prometheus_tsdb_tombstone_cleanup_seconds histogram
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="0.005"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="0.01"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="0.025"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="0.05"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="0.1"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="0.25"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="0.5"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="1"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="2.5"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="5"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="10"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_bucket{le="+Inf"} 0
+prometheus_tsdb_tombstone_cleanup_seconds_sum 0
+prometheus_tsdb_tombstone_cleanup_seconds_count 0
+# HELP prometheus_tsdb_vertical_compactions_total Total number of compactions done on overlapping blocks.
+# TYPE prometheus_tsdb_vertical_compactions_total counter
+prometheus_tsdb_vertical_compactions_total 0
+# HELP prometheus_tsdb_wal_completed_pages_total Total number of completed pages.
+# TYPE prometheus_tsdb_wal_completed_pages_total counter
+prometheus_tsdb_wal_completed_pages_total 23
+# HELP prometheus_tsdb_wal_corruptions_total Total number of WAL corruptions.
+# TYPE prometheus_tsdb_wal_corruptions_total counter
+prometheus_tsdb_wal_corruptions_total 0
+# HELP prometheus_tsdb_wal_fsync_duration_seconds Duration of WAL fsync.
+# TYPE prometheus_tsdb_wal_fsync_duration_seconds summary
+prometheus_tsdb_wal_fsync_duration_seconds{quantile="0.5"} NaN
+prometheus_tsdb_wal_fsync_duration_seconds{quantile="0.9"} NaN
+prometheus_tsdb_wal_fsync_duration_seconds{quantile="0.99"} NaN
+prometheus_tsdb_wal_fsync_duration_seconds_sum 0
+prometheus_tsdb_wal_fsync_duration_seconds_count 0
+# HELP prometheus_tsdb_wal_page_flushes_total Total number of page flushes.
+# TYPE prometheus_tsdb_wal_page_flushes_total counter
+prometheus_tsdb_wal_page_flushes_total 312
+# HELP prometheus_tsdb_wal_segment_current WAL segment index that TSDB is currently writing to.
+# TYPE prometheus_tsdb_wal_segment_current gauge
+prometheus_tsdb_wal_segment_current 0
+# HELP prometheus_tsdb_wal_truncate_duration_seconds Duration of WAL truncation.
+# TYPE prometheus_tsdb_wal_truncate_duration_seconds summary
+prometheus_tsdb_wal_truncate_duration_seconds_sum 0
+prometheus_tsdb_wal_truncate_duration_seconds_count 0
+# HELP prometheus_tsdb_wal_truncations_failed_total Total number of WAL truncations that failed.
+# TYPE prometheus_tsdb_wal_truncations_failed_total counter
+prometheus_tsdb_wal_truncations_failed_total 0
+# HELP prometheus_tsdb_wal_truncations_total Total number of WAL truncations attempted.
+# TYPE prometheus_tsdb_wal_truncations_total counter
+prometheus_tsdb_wal_truncations_total 0
+# HELP promhttp_metric_handler_requests_in_flight Current number of scrapes being served.
+# TYPE promhttp_metric_handler_requests_in_flight gauge
+promhttp_metric_handler_requests_in_flight 1
+# HELP promhttp_metric_handler_requests_total Total number of scrapes by HTTP status code.
+# TYPE promhttp_metric_handler_requests_total counter
+promhttp_metric_handler_requests_total{code="200"} 142
+promhttp_metric_handler_requests_total{code="500"} 0
+promhttp_metric_handler_requests_total{code="503"} 0
+```
+
+</p>
+</details>
+
+Остановим контейнер
+```shell
+docker stop prometheus
+```
+
+### Мониторинг состояния микросервисов
+
+#### Переупорядочим структуру директорий
+
+До перехода к следующему шагу приведем структуру каталогов в более четкий/удобный вид:
+
+1. Создадим директорию [docker](docker) в корне репозитория и перенесем в нее директорию `docker-monolith` и файлы `docker-compose.*` и все `.env` (`.env` должен быть в [.gitgnore](.gitgnore)), в репозиторий закоммичен [.env.example](.env.example), из которого создается `.env`
+2. Создадим в корне репозитория директорию [monitoring](monitoring). В ней будет хранится все, что относится к мониторингу
+3. Не забываем про [.gitgnore](.gitgnore) и актуализируем записи при необходимости (добавлена запись `.env`)
+
+**P.S.** С этого момента сборка сервисов отделена от `docker-compose`, поэтому инструкции `build` **удалены** из [src/docker-compose.yml](src/docker-compose.yml).
+
+#### Создание Docker образа
+
+Познакомившись с веб интерфейсом Prometheus и его стандартной конфигурацией, соберем на основе готового образа с DockerHub свой Docker образ с конфигурацией для мониторинга наших микросервисов.
+
+Создайте директорию [monitoring/prometheus](monitoring/prometheus). Затем в этой директории создайте простой [Dockerfile](monitoring/prometheus/Dockerfile), который будет копировать файл конфигурации с нашей машины внутрь контейнера:
+```shell
+mkdir -p monitoring/prometheus && touch Dockerfile
+```
+```dockerfile
+FROM prom/prometheus:v2.1.0
+ADD prometheus.yml /etc/prometheus/
+```
+
+#### Конфигурация
+
+Вся конфигурация Prometheus, в отличие от многих других систем мониторинга, происходит через файлы конфигурации и опции командной строки.
+
+Мы определим простой конфигурационный файл для сбора метрик с наших микросервисов. В директории [monitoring/prometheus](monitoring/prometheus) создан файл [prometheus.yml](monitoring/prometheus/prometheus.yml) со следующим содержимым:
+```yaml
+---
+global:
+  scrape_interval: '5s'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets:
+        - 'localhost:9090'
+
+  - job_name: 'ui'
+    static_configs:
+      - targets:
+        - 'ui:9292'
+
+  - job_name: 'comment'
+    static_configs:
+      - targets:
+        - 'comment:9292'
+```
+
+- Файл [monitoring/prometheus/Dockerfile](monitoring/prometheus/Dockerfile) исправлен в соответсвии с указаниями линтера (replace `ADD` with `COPY`)
+
+#### Создаем образ
+
+В директории prometheus собираем Docker образ:
+```shell
+export USER_NAME=dockerhub_login
+cd monitoring/prometheus
+docker build -t $USER_NAME/prometheus .
+```
+
+В конце занятия нужно будет запушить на DockerHub собранные вами на этом занятии образы.
+
+#### Образы микросервисов
+
+В коде микросервисов есть healthcheck-и для проверки работоспособности приложения.
+
+Сборку образов теперь необходимо производить при помощи скриптов `docker_build.sh`, которые есть в директории каждого сервиса. С его помощью мы добавим информацию из Git в наш healthcheck.
+
+Пример скрипта
+```shell
+#!/bin/bash
+
+echo `git show --format="%h" HEAD | head -1` > build_info.txt
+echo `git rev-parse --abbrev-ref HEAD` >> build_info.txt
+
+docker build -t $USER_NAME/ui .
+```
+
+#### Соберем images
+
+Выполните сборку образов при помощи скриптов `docker_build.sh` в директории каждого сервиса.
+```shell
+cd src/comment && bash ./docker_build.sh && cd -
+cd src/post-py && bash ./docker_build.sh && cd -
+cd src/ui && bash ./docker_build.sh && cd -
+```
+
+Или все сразу из корня репозитория
+```shell
+for i in ui post-py comment; do cd src/$i; bash docker_build.sh cd -; done
+```
+
+В [Makefile](Makefile) добавлены цели для сборки всех образов по отдельности и вместе.
+
+Образы собраны `make build`
+
+
+#### docker-compose.yml
+
+Все `docker-compose.*` файлы перемещены из [src/](src/) в [docker/](docker/)
+
+Будем поднимать наш Prometheus совместно с микросервисами. Определите в вашем [docker/docker-compose.yml](docker/docker-compose.yml) файле новый сервис.
+```yaml
+services:
+...
+  prometheus:
+    image: ${USERNAME}/prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - prometheus_data:/prometheus
+    command:  # доп. параметры коммандной строки
+      - '--config.file=/etc/prometheus/prometheus.yml'  # путь к конфигурационному файлу внутри контейнера
+      - '--storage.tsdb.path=/prometheus'  # путь к директории с данными внутри контейнера
+      - '--storage.tsdb.retention=1d'  # хранить данные за последние сутки
+
+volumes:
+  prometheus_data:
+```
+
+Мы будем использовать Prometheus для мониторинга всех наших микросервисов, поэтому нам необходимо, чтобы контейнер с ним мог общаться по сети со всеми другими сервисами, определенными в компоуз файле.
+
+```yaml
+    networks:
+      - reddit_front
+      - reddit_back
+```
+
+Также проверьте актуальность версий сервисов
+в `.env` и `.env.example`
+
+Файлы `.env*` перемещены из [src/](src/) в [docker/](docker/)
+
+#### Запуск микросервисов
+
+Поднимем сервисы, определенные в docker/dockercompose.yml
+
+```shell
+cd docker && docker-compose up -d
+```
+
+Ошибка
+```log
+Pulling ui (vscoder/ui:1.0)...
+ERROR: manifest for vscoder/ui:1.0 not found: manifest unknown: manifest unknown
+```
+Причина -- отсутствие образов нужной версии?
+
+Версии сервисов в [docker/.env](docker/.env) заменены на `latest`
+
+Запуск
+```shell
+docker-compose up -d
+```
+Успешно!
+```log
+Creating docker_post_db_1    ... done
+Creating docker_post_1       ... done
+Creating docker_ui_1         ... done
+Creating docker_prometheus_1 ... done
+Creating docker_comment_1    ... done
+```
+
+**Ошибка!** Приложение не запустилось
+
+Диагностика:
+
+Список запущенных сервисов
+```shell
+docker-compose ps
+```
+```log
+       Name                      Command               State            Ports         
+--------------------------------------------------------------------------------------
+docker_comment_1      puma                             Exit 1                         
+docker_post_1         python3 post_app.py              Exit 2                         
+docker_post_db_1      docker-entrypoint.sh mongod      Up       27017/tcp             
+docker_prometheus_1   /bin/prometheus --config.f ...   Up       0.0.0.0:9090->9090/tcp
+docker_ui_1           puma --debug -w 2                Exit 1
+```
+
+Логи контейнеров:
+
+comment
+```shell
+docker logs docker_comment_1 
+```
+```log
+/usr/local/lib/ruby/site_ruby/2.2.0/bundler/definition.rb:33:in `build': /app/Gemfile not found (Bundler::GemfileNotFound)
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler.rb:135:in `definition'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler.rb:101:in `setup'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler/setup.rb:20:in `<top (required)>'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+        from /usr/local/bundle/bin/puma:27:in `<main>'
+```
+
+ui
+```shell
+docker logs docker_ui_1  
+```
+```log
+/usr/local/lib/ruby/site_ruby/2.2.0/bundler/definition.rb:33:in `build': /app/Gemfile not found (Bundler::GemfileNotFound)
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler.rb:135:in `definition'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler.rb:101:in `setup'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/bundler/setup.rb:20:in `<top (required)>'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+        from /usr/local/lib/ruby/site_ruby/2.2.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+        from /usr/local/bundle/bin/puma:27:in `<main>'
+```
+
+post
+```shell
+docker logs docker_post_1
+```
+```log
+python3: can't open file 'post_app.py': [Errno 2] No such file or directory
+```
+
+Причина [docker/docker-compose.override.yml](docker/docker-compose.override.yml), в котором указано монтирование директорий с кодом с локального хоста.
+
+`docker/docker-compose.override.yml` переименован в [docker/docker-compose.override.yml.example](docker/docker-compose.override.yml.example)
+
+Перезапускаем всё
+Запуск
+```shell
+docker-compose down; docker-compose up -d
+```
+Успешно!
+```log
+Stopping docker_prometheus_1 ... done
+Stopping docker_post_db_1    ... done
+Removing docker_ui_1         ... done
+Removing docker_comment_1    ... done
+Removing docker_prometheus_1 ... done
+Removing docker_post_1       ... done
+Removing docker_post_db_1    ... done
+Removing network docker_reddit_back
+Removing network docker_reddit_front
+Creating network "docker_reddit_back" with the default driver
+Creating network "docker_reddit_front" with the default driver
+Creating docker_post_1       ... done
+Creating docker_prometheus_1 ... done
+Creating docker_post_db_1    ... done
+Creating docker_ui_1         ... done
+Creating docker_comment_1    ... done
+```
+
+Проверяем
+```shell
+docker ps
+```
+```log
+CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS              PORTS                    NAMES
+1571f4db0a45        vscoder/comment:latest   "puma"                   31 seconds ago      Up 27 seconds                                docker_comment_1
+acdd2f17984a        vscoder/prometheus       "/bin/prometheus --c…"   31 seconds ago      Up 28 seconds       0.0.0.0:9090->9090/tcp   docker_prometheus_1
+eb95127cf57e        vscoder/ui:latest        "puma"                   31 seconds ago      Up 26 seconds       0.0.0.0:9292->9292/tcp   docker_ui_1
+2071c6919eb5        mongo:3.2                "docker-entrypoint.s…"   31 seconds ago      Up 27 seconds       27017/tcp                docker_post_db_1
+65ad65dd8276        vscoder/post:latest      "python3 post_app.py"    31 seconds ago      Up 28 seconds                                docker_post_1
+```
+
+Приложение открывается http://34.76.241.120:9292/
+Prometheus доступен http://34.76.241.120:9090
+В prometheus появились активные endpoint-ы `comment` и `ui` http://34.76.241.120:9090/targets
+
+
+#### Healthchecks
+
+Healthcheck-и представляют собой проверки того, что наш сервис здоров и работает в ожидаемом режиме. В нашем случае healthcheck выполняется внутри кода микросервиса и выполняет проверку того, что все сервисы, от которых зависит его работа, ему доступны.
+
+Если требуемые для его работы сервисы здоровы, то healthcheck проверка возвращает status = 1, что соответсвует тому, что сам сервис здоров.
+
+Если один из нужных ему сервисов нездоров или недоступен, то проверка вернет status = 0.
+
+#### Состояние сервиса UI
+
+В веб интерфейсе Prometheus выполните поиск по названию метрики `ui_health`.
+
+Действительно, есть такой.
+```log
+ui_health{branch="monitoring-1",commit_hash="2dec0f4",instance="ui:9292",job="ui",version="0.0.1"}	
+```
+
+Построим график того, как менялось значение метрики ui_health со временем: вкладка _Graph_
+
+**Обратим внимание**, что, помимо имени метрики и ее значения, мы также видим информацию в лейблах о версии приложения, комите и ветке кода в Git-е.
+
+Видим, что статус UI сервиса был стабильно 1 (но это не так!), что означает, что сервис работал. Данный график оставьте открытым.
+
+**P.S.** Если у вас статус не равен 1, проверьте какой сервис
+недоступен (слайд 32), и что у вас заданы все aliases для DB.
+
+#### Fix docker-machine from other host
+
+В связи с тем, что работа продолжена с другого хоста, возникли проблемы с подключением к docker-machine. Команда `docker-machine ls` не видела созданных инстансов. Для того чтобы увидеть ранее созданный инстанс `docker-host`, с первого хоста была скопирована директория `~/.docker`, содержащая параметры docker-machine и текущий стейт.
+
+Так как инстанс ранее был остановлен `docker-machine stop docker-host`, его потребовалось запустить `docker-machine start docker-host`.
+
+При выполнении `docker-machine env docker-host` возникла ошибка
+```log
+Error checking TLS connection: Error checking and/or regenerating the certs: There was an error validating certificates for host "35.241.249.240:2376": x509: certificate is valid for 34.76.241.120, not 35.241.249.240
+You can attempt to regenerate them using 'docker-machine regenerate-certs [name]'.
+Be advised that this will trigger a Docker daemon restart which might stop running containers.
+```
+
+Причина: изменился внешний ip.
+
+Решение: перегенерируем сертификаты `docker-machine regenerate-certs docker-host`. После чего удалось успешно активировать окружение `docker-machine env docker-host`
+
+Но при заходе на `docker-host` по ssh `docker-machine ssh docker-host`, обнаружилось отсутствие запущзенных контейнеров.
+```shell
+sudo docker ps -a
+```
+```log
+CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS                    PORTS               NAMES
+1571f4db0a45        vscoder/comment:latest   "puma"                   24 hours ago        Exited (1) 20 hours ago                       docker_comment_1
+acdd2f17984a        vscoder/prometheus       "/bin/prometheus --c…"   24 hours ago        Exited (0) 20 hours ago                       docker_prometheus_1
+eb95127cf57e        vscoder/ui:latest        "puma"                   24 hours ago        Exited (1) 20 hours ago                       docker_ui_1
+2071c6919eb5        mongo:3.2                "docker-entrypoint.s…"   24 hours ago        Exited (0) 20 hours ago                       docker_post_db_1
+65ad65dd8276        vscoder/post:latest      "python3 post_app.py"    24 hours ago        Exited (0) 20 hours ago                       docker_post_1
+```
+
+Возможное решение: заново поднять все сервисы по описанной ранее инструкции в README.md
+```shell
+export GOOGLE_PROJECT=<project_id_here>
+docker run --rm -p 9090:9090 -d --name prometheus prom/prometheus:v2.14.0
+docker-machine ip docker-host
+http://35.241.249.240:9090/graph
+docker stop prometheus
+# И зачем я всё это делал? =)
+
+source ./.venv/bin/sctivate
+cd docker
+docker-compose up -d
+```
+
+Ошибка
+```log
+WARNING: The MONGO_VERSION variable is not set. Defaulting to a blank string.
+WARNING: The UI_APP_HOME variable is not set. Defaulting to a blank string.
+WARNING: The USERNAME variable is not set. Defaulting to a blank string.
+WARNING: The UI_VERSION variable is not set. Defaulting to a blank string.
+WARNING: The UI_PORT variable is not set. Defaulting to a blank string.
+WARNING: The POST_APP_HOME variable is not set. Defaulting to a blank string.
+WARNING: The POST_VERSION variable is not set. Defaulting to a blank string.
+WARNING: The COMMENT_APP_HOME variable is not set. Defaulting to a blank string.
+WARNING: The COMMENT_VERSION variable is not set. Defaulting to a blank string.
+ERROR: The Compose file './docker-compose.yml' is invalid because:
+services.ui.ports contains an invalid type, it should be a number, or an object
+```
+Причина: на новом хосте нет env-файла
+
+Решение: копировать с первого хоста
+```shell
+scp ...
+docker-compose up -d
+```
+Всё поднялось. Приложение доступно http://35.241.249.240:9292/
+
+Затрачено: ~25 мин.
+
+#### Состояние сервиса UI. Продолжение
+
+Итак, `ui_health` равно 0.
+
+Причина: сервис comment ищет БД на хосте `comment_db`, которого нет.
+
+Решалось в HomeWork 15 поднятием отдельного инстанса с БД с правильным именем.
+
+В этот раз попробуем использовать [сетевые alias-ы](https://docs.docker.com/compose/networking/#links). В [docker/docker-compose.yml](docker/docker-compose.yml) сервису post_db добавлены `links:`
+```yaml
+services:
+  comment:
+    ...
+    links:
+      - "post_db:comment_db"
+```
+
+Тестируем:
+```shell
+docker-compose up -d
+```
+```log
+docker_ui_1 is up-to-date
+docker_prometheus_1 is up-to-date
+docker_post_1 is up-to-date
+docker_post_db_1 is up-to-date
+Recreating docker_comment_1 ... done
+```
+Сервис `docker_comment` был пересоздан. Проверяем: http://35.241.249.240:9090/graph?g0.range_input=1h&g0.expr=ui_health&g0.tab=0
+
+Значение `ui_health` теперь равно 1.
+
+
+##### Проверка метрик
+
+Остановим post сервис
+
+Мы говорили, что условились считать сервис здоровым, если все сервисы, от которых он зависит также являются здоровыми.
+
+Попробуем остановить сервис post на некоторое время и проверим, как изменится статус ui сервиса, который зависим от post. 
+
+```shell
+docker-compose stop post
+```
+```log
+Stopping docker_post_1 ... done
+```
+
+После обновления графика метрика `ui_health` снова изменила значение на `0`.
+
+
+##### Поиск проблемы
+
+Помимо статуса сервиса, мы также собираем статусы сервисов, от которых он зависит. Названия метрик, значения которых соответствует данным статусам, имеет формат `ui_health_<service-name>`.
+
+Посмотрим, не случилось ли чего плохого с сервисами, от которых зависит UI сервис.
+
+Наберем в строке выражений ui_health_ и Prometheus нам предложит дополнить названия метрик.
+
+Проверим comment сервис. Видим, что сервис свой статус не менял в данный промежуток времени: `ui_health_comment_availability`
+
+А с post сервисом все плохо: `ui_health_post_availability`
+
+Чиним. Проблему мы обнаружили и знаем, как ее поправить (ведь мы же ее и создали :)). Поднимем post сервис.
+```shell
+docker-compose start post
+```
+```log
+Starting post ... done
+```
+Post сервис поправился: `ui_health_post_availability`
+UI сервис тоже: `ui_health
+
+
+##### Самостоятельно
+
+При желании, можно попробовать остановить comment сервис или БД для какого-то из сервисов и провести аналогичные операции по мониторингу ситуации.
+
+Попробоал потушить БД.
+
+##### Пересоздание docker-machine
+
+Машина `docker-host` удалена после окончания текущей задачи.
+
+На новом хосте заново поднят docker-host и всё приложение
+```shell
+make docker_machine_create
+eval $(docker-machine env docker-host)
+docker-machine ip docker-host
+```
+
+Собираем образы приложения
+```shell
+export USER_NAME=vscoder
+make build
+```
+
+
+### Сбор метрик хоста с использованием экспортера
+
+Экспортер похож на вспомогательного агента для сбора метрик.
+
+В ситуациях, когда мы не можем реализовать отдачу метрик Prometheus в коде приложения, мы можем использовать экспортер, который будет транслировать метрики приложения или системы в формате доступном для чтения Prometheus.
+
+Экспортер это:
+- Программа, которая делает метрики доступными для сбора Prometheus
+- Дает возможность конвертировать метрики в нужный для Prometheus формат
+- Используется когда нельзя поменять код приложения
+- Примеры: PostgreSQL, RabbitMQ, Nginx, Node exporter, cAdvisor
+
+#### Node exporter
+
+Воспользуемся [Node экспортер](https://github.com/prometheus/node_exporter) для сбора информации о работе Docker хоста (виртуалки, где у нас запущены контейнеры) и предоставлению этой информации в Prometheus.
+
+#### docker-compose.yml
+
+Node экспортер будем запускать также в контейнере. Определим еще один сервис в [docker/docker-compose.yml](docker/docker-compose.yml) файле.
+
+Не забудьте также добавить определение сетей для сервиса node-exporter, чтобы обеспечить доступ Prometheus к экспортеру.
+
+```yaml
+services:
+  ...
+  node-exporter:
+    image: prom/node-exporter:v0.18.1
+    user: root
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - reddit_front
+      - reddit_back
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
+```
+
+#### Дополнительно: параметризуем версии образов
+
+Параметризованы версии `prometheus` и `node_exporter`
+[docker/docker-compose.yml](docker/docker-compose.yml)
+```yaml
+services:
+  ...
+  prometheus:
+    image: ${USERNAME}/prometheus:${PROMETHEUS_VERSION}
+    ...
+  node-exporter:
+    image: prom/node-exporter:${NODE_EXPORTER_VERSION}
+    ...
+```
+
+В [docker/.env.example](docker/.env.example) добавлены переменные
+```shell
+PROMETHEUS_VERSION=latest
+NODE_EXPORTER_VERSION=v0.18.1
+```
+
+#### Дополнительно: Makefile target build_prometheus
+
+Создан скрипт для сборки prometheus [monitoring/prometheus/docker_build.sh](monitoring/prometheus/docker_build.sh)
+```shell
+#!/bin/bash
+set -eu
+
+docker build -t $USER_NAME/prometheus .
+```
+
+В [Makefile](Makefile) добавлена новая цель `build_prometheus` для сборки prometheus с собственным конфигом
+
+Поднимаем приложение
+```shell
+cd ./docker && docker-compose up -d
+```
+
+#### prometheus.yml
+
+Чтобы сказать Prometheus следить за еще одним сервисом, нам нужно добавить информацию о нем в конфиг.
+
+Добавим еще один job:
+```yaml
+scrape_configs:
+  ...
+  - job_name: 'node'
+    static_configs:
+      - targets:
+      - 'node-exporter:9100'
+```
+
+Не забудем собрать новый Docker для Prometheus:
+```shell
+make build_prometheus
+```
+
+#### Пересоздадим наши сервисы
+
+```shell
+source ./.venv/bin/activate
+cd ./docker
+docker-compose down
+docker-compose up -d
+```
+```log
+Creating network "docker_reddit_back" with the default driver
+Creating network "docker_reddit_front" with the default driver
+Pulling node-exporter (prom/node-exporter:v0.18.1)...
+v0.18.1: Pulling from prom/node-exporter
+49a2d53aa1af: Pull complete
+3589a6efd9ce: Pull complete
+190160031744: Pull complete
+Digest: sha256:a2f29256e53cc3e0b64d7a472512600b2e9410347d53cdc85b49f659c17e02ee
+Status: Downloaded newer image for prom/node-exporter:v0.18.1
+Creating docker_post_1          ... done
+Creating docker_prometheus_1    ... done
+Creating docker_node-exporter_1 ... done
+Creating docker_ui_1            ... done
+Creating docker_post_db_1       ... done
+Creating docker_comment_1       ... done
+```
+
+web-интерфейс prometheus http://35.195.16.90:9090/ не открылся. Соединение сброшено.
+
+Диагностика:
+```shell
+docker-compose ps
+```
+```log
+         Name                       Command               State            Ports         
+-----------------------------------------------------------------------------------------
+docker_comment_1         puma                             Up                             
+docker_node-exporter_1   /bin/node_exporter --path. ...   Up       9100/tcp              
+docker_post_1            python3 post_app.py              Up                             
+docker_post_db_1         docker-entrypoint.sh mongod      Up       27017/tcp             
+docker_prometheus_1      /bin/prometheus --config.f ...   Exit 1                         
+docker_ui_1              puma                             Up       0.0.0.0:9292->9292/tcp
+```
+Сервис prometheus завершил работу. Смотрим логи
+```shell
+docker-compose logs prometheus
+```
+```log
+...
+prometheus_1     | level=error ts=2019-12-10T06:20:50.235Z caller=main.go:736 err="error loading config from \"/etc/prometheus/prometheus.yml\": couldn't load configuration (--config.file=\"/etc/prometheus/prometheus.yml\"): parsing YAML file /etc/prometheus/prometheus.yml: yaml: unmarshal errors:\n  line 24: cannot unmarshal !!str `node-ex...` into struct { Targets []string \"yaml:\\\"targets\\\"\"; Labels model.LabelSet \"yaml:\\\"labels\\\"\" }"
+```
+Причина: кривой [monitoring/prometheus/prometheus.yml](monitoring/prometheus/prometheus.yml)
+
+Исправлен:
+```yaml
+...
+  - job_name: "node"
+    static_configs:
+      - targets:
+          - "node-exporter:9100"
+```
+
+Собираем образ, запускаем приложения
+```shell
+cd .. && make build_prometheus && cd -
+docker-compose up -d
+```
+```log
+docker_post_1 is up-to-date
+docker_ui_1 is up-to-date
+Recreating docker_prometheus_1 ... 
+docker_node-exporter_1 is up-to-date
+docker_post_db_1 is up-to-date
+Recreating docker_prometheus_1 ... done
+```
+Проверяем
+```shell
+docker-compose ps
+```
+```log
+         Name                       Command               State           Ports         
+----------------------------------------------------------------------------------------
+docker_comment_1         puma                             Up                            
+docker_node-exporter_1   /bin/node_exporter --path. ...   Up      9100/tcp              
+docker_post_1            python3 post_app.py              Up                            
+docker_post_db_1         docker-entrypoint.sh mongod      Up      27017/tcp             
+docker_prometheus_1      /bin/prometheus --config.f ...   Up      0.0.0.0:9090->9090/tcp
+docker_ui_1              puma                             Up      0.0.0.0:9292->9292/tcp
+```
+
+Вроде всё в порядке. Проверяем web-интерфейс http://35.195.16.90:9090/graph открылся **успешно**
+
+Посмотрим, список endpoint-ов Prometheus http://35.195.16.90:9090/targets - должен появится еще один endpoint.
+
+#### Получение информации
+
+Получим информацию об использовании CPU: `node_load1`
+```log
+node_load1{instance="node-exporter:9100",job="node"}	0
+```
+
+Зайдем на хост: `docker-machine ssh docker-host`
+
+Добавим нагрузки: `yes > /dev/null`
+
+На графике http://35.195.16.90:9090/graph?g0.range_input=1h&g0.expr=node_load1&g0.tab=0 видно, что нагрузка возросла.
+
+### Завершение работы
+
+#### Makefile targets
+
+Добавлены цели:
+- push_comment
+- push_post
+- push_ui
+- push_prometheus
+- push
+
+#### Пушим образы
+
+Запушьте собранные вами образы на DockerHub (из корня проекта):
+```shell
+docker login
+make push
+```
+
+Ссылка на docker-hub https://hub.docker.com/u/vscoder
+
+### Задания со \*
+
+#### MongoDB exporter
+
+Добавьте в Prometheus мониторинг MongoDB с использованием необходимого экспортера.
+
+В качестве экспортера был выбран [percona/mongodb_exporter](https://github.com/percona/mongodb_exporter) от percona, так как представлен известным разработчиком, а так же как единственный, представленный на prometheus wiki [Default port allocations](https://github.com/prometheus/prometheus/wiki/Default-port-allocations)
+
+Экспортер [dcu/mongodb_exporter](https://github.com/dcu/mongodb_exporter), представленный на https://prometheus.io/docs/instrumenting/exporters/, по рекомендациям из ДЗ, выбран не был.
+
+##### Установка
+
+Добавлен Makefile target `mongodb_exporter_clone`, который клонирует репозиторий с github.
+```makefile
+mongodb_exporter_clone:
+	cd ./monitoring && git clone https://github.com/percona/mongodb_exporter.git
+```
+Клонирован репозиторий
+```shell
+make mongodb_exporter_clone
+```
+```log
+cd ./monitoring && git clone https://github.com/percona/mongodb_exporter.git
+Клонирование в «mongodb_exporter»…
+remote: Enumerating objects: 39, done.
+remote: Counting objects: 100% (39/39), done.
+remote: Compressing objects: 100% (34/34), done.
+remote: Total 5517 (delta 7), reused 14 (delta 3), pack-reused 5478
+Получение объектов: 100% (5517/5517), 6.16 MiB | 267.00 KiB/s, готово.
+Определение изменений: 100% (2731/2731), готово.
+```
+
+Добавлен Makefile target `mongodb_exporter_docker_build`, который собирает докер-контейнер
+```makefile
+# mongodb_exporter
+MONGODB_EXPORTER_DOCKER_IMAGE_NAME?=${USER_NAME}/mongodb-exporter
+MONGODB_EXPORTER_VERSION?=v0.10.0
+mongodb_exporter_docker_build:
+	cd ./monitoring/mongodb_exporter && make docker DOCKER_IMAGE_NAME=${MONGODB_EXPORTER_DOCKER_IMAGE_NAME} DOCKER_IMAGE_TAG=${MONGODB_EXPORTER_VERSION}
+```
+Собран docker-образ `vscoder/mongodb-mongodb_exporter:v0.10.0`
+```shell
+make mongodb_exporter_docker_build
+```
+```log
+...
+Successfully built 8da76a8e3cbb
+Successfully tagged vscoder/mongodb-exporter:v0.10.0
+```
+
+В [docker/.env](docker/.env) добавлена переменная `MONGODB_EXPORTER_VERSION=v0.10.0`
+
+В [docker/docker-compose.yml](docker/docker-compose.yml) добавлен сервис `postdb-exporter`
+```yaml
+postdb-exporter:
+  image: ${USERNAME}/mongodb-exporter:${MONGODB_EXPORTER_VERSION}
+  networks:
+    #- reddit_front
+    - reddit_back
+  environment:
+    MONGODB_URI: "mongodb://post_db:27017"
+```
+
+В [monitoring/prometheus/prometheus.yml](monitoring/prometheus/prometheus.yml) добавлен job
+```yaml
+scrape_config:
+  ...
+  - job_name: "post_db"
+    static_configs:
+      - targets:
+        - "postdb-exporter:9216"
+```
+
+В [.gitignore](.gitignore) добавлена строка
+```
+monitoring/mongodb_exporter
+```
+
+В Makefile target `build` добавлена сборка `mongodb_exporter_docker_build`
+
+В Makefile target `push` добавлена закачка `mongodb_exporter_push`
+
+Сборка всего
+```shell
+make build
+```
+успешно
+
+В Makefile добавлен target `run`. Выполнен запуск приложения
+```shell
+make run
+```
+
+Проверка http://35.195.16.90:9090
+```log
+mongodb_exporter_build_info{goversion="go1.11.13",instance="postdb-exporter:9216",job="post_db"}	
+```
+
+
+#### Cloudprober
+
+Было принято решение использовать cloudprober в связи с большим функционалом по сравнению с blackbox_exporter. В часности, возможность использовать "внешние" проверки скриптом, что может пригодиться впоследствии.
+
+Официальный сайт https://cloudprober.org/
+
+Ссылка на github https://github.com/google/cloudprober
+
+Docker-образ https://hub.docker.com/r/cloudprober/cloudprober
+
+Документация https://cloudprober.org/getting-started/
+
+##### Реализация
+
+Создан файл [monitoring/cloudprober/Dockerfile](monitoring/cloudprober/Dockerfile), добавляющий конфик в образ cloudprober
+```dockerfile
+FROM cloudprober/cloudprober:v0.10.5
+COPY cloudprober.cfg /etc/cloudprober.cfg
+```
+
+Создан файл [monitoring/cloudprober/cloudprober.cfg](monitoring/cloudprober/cloudprober.cfg), содержащий конфигурацию cloudprober
+```conf
+probe {
+  name: "ui"
+  type: HTTP
+  targets {
+    host_names: "ui:9292"
+  }
+  interval_msec: 5000  # 5s
+  timeout_msec: 1000   # 1s
+}
+probe {
+  name: "comment"
+  type: HTTP
+  targets {
+    host_names: "comment:9292"
+  }
+  interval_msec: 5000  # 5s
+  timeout_msec: 1000   # 1s
+}
+probe {
+  name: "post"
+  type: HTTP
+  targets {
+    host_names: "post:5000"
+  }
+  interval_msec: 5000  # 5s
+  timeout_msec: 1000   # 1s
+}
+```
+
+Создан файл [monitoring/cloudprober/docker_build.sh](monitoring/cloudprober/docker_build.sh), собирающий образ `$USER_NAME/cloudprober`
+```shell
+#!/bin/bash
+set -eu
+
+docker build -t $USER_NAME/cloudprober .
+```
+
+В [Makefile](Makefile) добавлены цели 
+- `cloudprober_build` для сборки образа
+```makefile
+cloudprober_build:
+	cd ./monitoring/cloudprober && bash docker_build.sh
+```
+- `cloudprober_push` для загрузки образ ана docker-hub
+```makefile
+cloudprober_push:
+	docker push ${USER_NAME}/cloudprober
+```
+
+Созданные цели добавлены в цели `build` и `push` соответственно.
+```makefile
+build: build_post build_comment build_ui build_prometheus mongodb_exporter_docker_build cloudprober_build
+
+push: push_comment push_post push_ui push_prometheus mongodb_exporter_push cloudprober_push
+```
+
+В [monitoring/prometheus/prometheus.yml](monitoring/prometheus/prometheus.yml) добавлена job
+```yaml
+  - job_name: "cloudprober"
+    scrape_interval: 10s
+    static_configs:
+      - targets:
+          - "cloudprober:9313"
+```
+
+В [docker/.env.example](docker/.env.example) добавлена переменная `CLOUDPROBER_VERSION=latest`
+
+В [docker/docker-compose.yml](docker/docker-compose.yml) добавлен сервис
+```yaml
+  cloudprober:
+    image: ${USERNAME}/cloudprober:${CLOUDPROBER_VERSION}
+    networks:
+      - reddit_back
+```
+
+Исправлена Makefile цель `mongodb_exporter_clone`. Теперь репозиторий c `mongodb_exporter` клонируется только если директория `monitoring/mongodb_exporter` не существует.
+
+Собрано всё
+```shell
+make build
+```
+
+Запуск приложения:
+```shell
+make run
+```
+
+Проверено:
+
+total http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=total&g0.tab=1
+```log
+total{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	114
+total{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	116
+total{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	116
+```
+
+success http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=success&g0.tab=1
+```log
+success{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	124
+success{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	126
+success{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	0
+```
+
+latency http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=latency&g0.tab=1
+```log
+latency{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	323976.069
+latency{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	436631.507
+latency{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	0
+```
+
+Проблема: сервис ui недоступен
+
+Причина: в [docker/docker-compose.yml](docker/docker-compose.yml) сервису `cloudprober` не добавлена сеть `reddit_front`. Исправлено
+```yaml
+  cloudprober:
+    image: ${USERNAME}/cloudprober:${CLOUDPROBER_VERSION}
+    networks:
+      - reddit_back
+      - reddit_front
+```
+
+Перезапускаем
+```shell
+make run
+```
+
+success http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=success&g0.tab=1
+```log
+success{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	6
+success{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	8
+success{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	8
+```
+
+total http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=total&g0.tab=1
+```log
+total{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	16
+total{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	18
+total{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	18
+```
+
+latency http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=latency&g0.tab=1
+```log
+latency{dst="comment:9292",instance="cloudprober:9313",job="cloudprober",probe="comment",ptype="http"}	63902.087
+latency{dst="post:5000",instance="cloudprober:9313",job="cloudprober",probe="post",ptype="http"}	91329.549
+latency{dst="ui:9292",instance="cloudprober:9313",job="cloudprober",probe="ui",ptype="http"}	845258.711
+```
+
+failure_ratio `(rate(total[1m]) - rate(success[1m])) / rate(total[1m])` and avg_latency `rate(latency[1m]) / rate(success[1m]) / 1000` http://104.155.62.111:9090/graph?g0.range_input=1h&g0.expr=(rate(total%5B1m%5D)%20-%20rate(success%5B1m%5D))%20%2F%20rate(total%5B1m%5D)&g0.tab=0&g1.range_input=1h&g1.expr=rate(latency%5B1m%5D)%20%2F%20rate(success%5B1m%5D)%20%2F%201000&g1.tab=0
+
+
+#### Makefile
+
+В [Makefile](Makefile) добавлены цели
+
+| Цель                          | Описание                                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| build_comment                 | Собрать образ comment                                                                            |
+| build_post                    | Собрать образ post                                                                               |
+| build_ui                      | Собрать образ ui                                                                                 |
+| build_prometheus              | Собрать prometheus с нашим конфигом                                                              |
+| build                         | Собрать все образы                                                                               |
+| push_comment                  | Пуш в докер-хаб образа `${USER_NAME}/comment`                                                    |
+| push_post                     | Пуш в докер-хаб образа `${USER_NAME}/post`                                                       |
+| push_ui                       | Пуш в докер-хаб образа `${USER_NAME}/ui`                                                         |
+| push_prometheus               | Пуш в докер-хаб образа `${USER_NAME}/prometheus`                                                 |
+| push                          | Пуш в докер-хаб всех образов                                                                     |
+| mongodb_exporter_clone        | Клонирование репозитория https://github.com/percona/mongodb_exporter.git                         |
+| mongodb_exporter_docker_build | Сборка docker-образа с mongodb-exporter                                                          |
+| mongodb_exporter_push         | Пуш в докер-хаб образа `${MONGODB_EXPORTER_DOCKER_IMAGE_NAME}:${MONGODB_EXPORTER_VERSION}`       |
+| cloudprober_build             | Сборка docker-образа cloudprober                                                                 |
+| cloudprober_push              | Пуш в докер-хаб образа `${USER_NAME}/cloudprober`                                                |
+| variables                     | Создание переменных `docker/.env` из `docker/.env.example`, если `docker/.env` ещё не существует |
+
+TODO: реализовать пуш образов с корректной версией
+
+### Запуск проекта
+
+#### Подготовка
+
+Предварительно необходимо заполнить `env` по примеру `env.example`, а так же выполнитб авторизацию в `gcloud`
+
+```shell
+# Установка docker-machine
+install_docker_machine
+
+# Создание docker-machine
+docker_machine_create
+
+# Исплоьзование docker-machine
+eval $(docker-machine env docker-host)
+
+# Узнать docker-machine ip
+make docker_machine_ip
+```
+
+#### Запуск проекта
+
+```shell
+# Сборка образов
+source ./env
+make build
+
+# Запуск приложения
+make run
+```
+
+Приложение: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:9292
+
+Мониторинг: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:9090/graph?g0.range_input=1h&g0.expr=(rate(total%5B1m%5D)%20-%20rate(success%5B1m%5D))%20%2F%20rate(total%5B1m%5D)&g0.tab=0&g1.range_input=1h&g1.expr=rate(latency%5B1m%5D)%20%2F%20rate(success%5B1m%5D)%20%2F%201000&g1.tab=0

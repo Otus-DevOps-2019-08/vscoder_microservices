@@ -38,3 +38,14 @@ venv
 .molecule
 .cache
 .pytest_cache
+
+####
+# Docker
+####
+env
+.env
+
+####
+# Monitoring
+####
+monitoring/mongodb_exporter

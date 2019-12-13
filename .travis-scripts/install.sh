@@ -4,6 +4,8 @@
 #
 set -exu
 
+cd ./docker
+
 make install_packer install_terraform install_tflint
 sudo apt-get update && sudo apt-get install python-virtualenv
 make install_requirements_virtualenv

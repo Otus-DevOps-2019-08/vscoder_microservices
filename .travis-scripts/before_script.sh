@@ -4,6 +4,8 @@
 #
 set -exu
 
+cd ./docker
+
 # Create fake variables files
 cp docker-monolith/packer/variables.json.example docker-monolith/packer/variables.json
 cp docker-monolith/terraform/terraform.tfvars.example docker-monolith/terraform/terraform.tfvars

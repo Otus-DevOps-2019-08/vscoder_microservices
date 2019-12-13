@@ -9,8 +9,7 @@ install:
 before_script:
   - ./.travis-scripts/before_script.sh
 script:
-  - make monolith_packer_validate monolith_terraform_validate monolith_terraform_tflint
-  - make monolith_ansible_syntax monolith_ansible_lint
+  - ./.travis-scripts/script.sh
 notifications:
   slack:
     rooms:
