@@ -184,6 +184,12 @@ vscoder microservices repository
       - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-2)
       - [Запуск проекта](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0-1)
   - [HomeWork 17: Мониторинг приложения и инфраструктуры](#homework-17-%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b8-%d0%b8%d0%bd%d1%84%d1%80%d0%b0%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d1%8b)
+    - [План](#%d0%9f%d0%bb%d0%b0%d0%bd-1)
+    - [Мониторинг Docker контейнеров](#%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-docker-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
+      - [Подготовка окружения](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+    - [Визуализация метрик](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba)
+    - [Сбор метрик работы приложения и бизнес метрик](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d1%8b-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b8-%d0%b1%d0%b8%d0%b7%d0%bd%d0%b5%d1%81-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba)
+    - [Настройка и проверка алертинга](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d0%b8-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b8%d0%bd%d0%b3%d0%b0)
 
 # Makefile
 
@@ -6940,4 +6946,70 @@ make run
 
 
 ## HomeWork 17: Мониторинг приложения и инфраструктуры
+
+
+### План
+
+1. Мониторинг Docker контейнеров
+2. Визуализация метрик
+3. Сбор метрик работы приложения и бизнес метрик
+4. Настройка и проверка алертинга
+5. Много заданий со ⭐ (необязательных)
+
+
+### Мониторинг Docker контейнеров
+
+
+#### Подготовка окружения
+
+Открывать порты в файрволле для новых сервисов нужно
+самостоятельно по мере их добавления.
+
+Создадим Docker хост в GCE и настроим локальное окружение на
+работу с ним
+
+Пример из ДЗ:
+```shell
+$ export GOOGLE_PROJECT=_ваш-проект_
+
+# Создать докер хост
+docker-machine create --driver google \
+    --google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+    --google-machine-type n1-standard-1 \
+    --google-zone europe-west1-b \
+    docker-host
+
+# Настроить докер клиент на удаленный докер демон
+eval $(docker-machine env docker-host)
+
+# Переключение на локальный докер
+eval $(docker-machine env --unset)
+
+$ docker-machine ip docker-host
+
+$ docker-machine rm docker-host
+```
+
+Но мы пойдём другим путём:
+```shell
+make docker_machine_create DOCKER_MACHINE_TYPE=n1-standard-1
+eval $(docker-machine env docker-host)
+make docker_machine_ip
+```
+
+
+### Визуализация метрик
+
+
+
+
+### Сбор метрик работы приложения и бизнес метрик
+
+
+
+
+### Настройка и проверка алертинга
+
+
+
 
