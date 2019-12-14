@@ -68,6 +68,15 @@ services:
     networks:
       - reddit_front
 
+  alertmanager:
+    image: ${USERNAME}/alertmanager
+    command:
+      - "--config.file=/etc/alertmanager/config.yml"
+    ports:
+      - 9093:9093
+    networks:
+      - reddit_back
+
 volumes:
   prometheus_data:
   grafana_data:

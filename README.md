@@ -193,8 +193,10 @@ vscoder microservices repository
       - [Файл prometheus.yml](#%d0%a4%d0%b0%d0%b9%d0%bb-prometheusyml)
       - [cAdvisor UI](#cadvisor-ui)
 - [TODO: fix Makefile. Variables must correctly load from environment](#todo-fix-makefile-variables-must-correctly-load-from-environment)
-    - [Сбор метрик бизнеслогики](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d0%b1%d0%b8%d0%b7%d0%bd%d0%b5%d1%81%d0%bb%d0%be%d0%b3%d0%b8%d0%ba%d0%b8)
-    - [Настройка и проверка алертинга](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d0%b8-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b8%d0%bd%d0%b3%d0%b0)
+  - [yaml](#yaml)
+- [alertmanager](#alertmanager)
+  - [yaml](#yaml-1)
+- [добавлено](#%d0%b4%d0%be%d0%b1%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%be)
 
 # Makefile
 
@@ -7497,5 +7499,179 @@ histogram_quantile(0.95, sum(rate(ui_request_response_time_bucket[5m])) by (le))
 ### Настройка и проверка алертинга
 
 
+#### Правила алертинга
+
+Мы определим несколько правил, в которых зададим условия состояний наблюдаемых систем, при которых мы должны получать оповещения, т.к. заданные условия могут привести к недоступности или неправильной работе нашего приложения.
+
+P.S. Стоит заметить, что в самой Grafana тоже есть alerting. Но по функционалу он уступает Alertmanager в Prometheus.
+
+#### Alertmanager
+
+Alertmanager - дополнительный компонент для системы мониторинга Prometheus, который отвечает за первичную обработку алертов и дальнейшую отправку оповещений по заданному назначению.
+
+Создайте новую директорию `monitoring/alertmanager`. В этой директории создайте [Dockerfile](monitoring/alertmanager/Dockerfile) со следующим содержимым:
+```dockerfile
+FROM prom/alertmanager:v0.14.0
+COPY config.yml /etc/alertmanager/
+```
+
+Настройки Alertmanager-а как и Prometheus задаются через YAML файл или опции командой строки. В директории `monitoring/alertmanager` создайте файл [config.yml](monitoring/alertmanager/config.yml), в котором определите отправку нотификаций в ВАШ тестовый слак канал.
+
+Для отправки нотификаций в слак канал потребуется создать СВОЙ [Incoming Webhook](https://api.slack.com/messaging/webhooks) [monitoring/alertmanager/config.yml](monitoring/alertmanager/config.yml).
+```yaml
+---
+global:
+  slack_api_url: "https://hooks.slack.com/services/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"
+
+route:
+  receiver: "slack-notifications"
+
+receivers:
+  - name: "slack-notifications"
+    slack_configs:
+      - channel: "#aleksey_koloskov"
+```
+
+Соберем образ alertmanager: для этого
+
+Создан файл [monitoring/alertmanager/docker_build.sh](monitoring/alertmanager/docker_build.sh)
+
+Добавлены Makefiel targets:
+```makefile
+###
+# alertmanager
+###
+alertmanager_build:
+	. ./env && \
+	cd ./monitoring/alertmanager && bash docker_build.sh
+
+alertmanager_push:
+	. ./env && \
+	docker push $${USER_NAME}/alertmanager
+```
+
+**ВАЖНО** чтобы при выполнении команды `docker push` в переменную `USER_NAME` подставлялось значение из файла `./env`, необходимо ставить именно **два знака доллара**, так как один знак доллара имеет специальное назначение в Makefile. Починил все `*_push` в [Makefile](Makefile). Ссылка по теме https://community.hpe.com/t5/Languages-and-Scripting/Setting-Environment-variable-in-Makefile/td-p/4127916#.XfVLwHoufRY
+
+Собираем образ alertmanager
+
+Путь ДЗ
+```shell
+cd monitoring/alertmanager && docker build -t $USER_NAME/alertmanager .
+```
+
+Путь make
+```shell
+make alertmanager_build alertmanager_push
+```
+Всё сбилдилось и запушилось
+
+Добавим новый сервис в [компоуз файл мониторинга](docker/docker-compose-monitoring.yml). Не забудьте добавить его в одну сеть с сервисом Prometheus:
+```yaml
+services:
+  ...
+  alertmanager:
+    image: ${USERNAME}/alertmanager
+    command:
+      - "--config.file=/etc/alertmanager/config.yml"
+    ports:
+      - 9093:9093
+    networks:
+      - reddit_back
+```
 
 
+#### Alert rules
+
+Создадим файл [alerts.yml](monitoring/prometheus/alerts.yml) в директории `prometheus`, в котором определим условия при которых должен срабатывать алерт и посылаться Alertmanager-у. Мы создадим простой алерт, который будет срабатывать в ситуации, когда одна из наблюдаемых систем (endpoint) недоступна для сбора метрик (в этом случае метрика `up` с лейблом `instance` равным имени данного эндпоинта будет равна нулю). Выполните запрос по имени метрики `up` в веб интерфейсе Prometheus, чтобы убедиться, что сейчас все эндпоинты доступны для сбора метрик:
+```promql
+up
+```
+```log
+up{instance="cadvisor:8080",job="cadvisor"}	1
+up{instance="cloudprober:9313",job="cloudprober"}	1
+up{instance="comment:9292",job="comment"}	1
+up{instance="localhost:9090",job="prometheus"}	1
+up{instance="node-exporter:9100",job="node"}	1
+up{instance="post:5000",job="post"}	1
+up{instance="postdb-exporter:9216",job="post_db"}	1
+up{instance="ui:9292",job="ui"}	1
+```
+
+[alerts.yml](monitoring/prometheus/alerts.yml)
+```yaml
+---
+groups:
+  - name: alert.rules
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute"
+          summary: "Instance {{ $labels.instance }} down"
+```
+
+Добавим операцию копирования данного файла в Dockerfile: [monitoring/prometheus/Dockerfile](monitoring/prometheus/Dockerfile)
+```dockerfile
+FROM prom/prometheus:v2.14.0
+COPY prometheus.yml /etc/prometheus/
+# добавлено
+COPY alerts.yml /etc/prometheus/
+```
+
+
+#### prometheus.yml
+
+Добавим информацию о правилах в [конфиг prometheus](monitoring/prometheus/prometheus.yml)
+```yaml
+global:
+  scrape_interval: '5s'
+...
+rule_files:
+  - "alerts.yml"
+
+alerting:
+  alertmanagers:
+    - scheme: http
+      static_configs:
+        - targets:
+            - "alertmanager:9093"
+```
+
+Пересоберем образ Prometheus:
+
+Метод ДЗ
+```shell
+docker build -t $USER_NAME/prometheus .
+```
+
+Метод Make
+```shell
+make build_prometheus push_prometheus
+```
+
+
+#### Проверка алерта
+
+Пересоздадим нашу Docker инфраструктуру мониторинга (опять же, зачем?):
+
+Метод ДЗ
+```shell
+docker-compose -f docker-compose-monitoring.yml down
+docker-compose -f docker-compose-monitoring.yml up -d
+```
+
+Метод make
+```shell
+make run
+```
+
+Алерты можно посмотреть в веб интерфейсе Prometheus: 
+
+**Проблема** No alerting rules defined. 
+
+Попробуем всё таки пересоздать инфраструктуру мониторинга... Безрезультатно.
+
+TODO: починить!!! а сейчас пора спать.

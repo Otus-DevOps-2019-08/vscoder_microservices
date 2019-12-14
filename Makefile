@@ -134,7 +134,7 @@ build_prometheus:
 	. ./env && \
 	cd ./monitoring/prometheus && bash docker_build.sh
 
-build: build_post build_comment build_ui build_prometheus mongodb_exporter_docker_build cloudprober_build
+build: build_post build_comment build_ui build_prometheus mongodb_exporter_docker_build cloudprober_build alertmanager_build
 
 
 ###
@@ -142,21 +142,21 @@ build: build_post build_comment build_ui build_prometheus mongodb_exporter_docke
 ###
 push_comment:
 	. ./env && \
-	docker push ${USER_NAME}/comment
+	docker push $${USER_NAME}/comment
 
 push_post:
 	. ./env && \
-	docker push ${USER_NAME}/post
+	docker push $${USER_NAME}/post
 
 push_ui:
 	. ./env && \
-	docker push ${USER_NAME}/ui
+	docker push $${USER_NAME}/ui
 
 push_prometheus:
 	. ./env && \
-	docker push ${USER_NAME}/prometheus
+	docker push $${USER_NAME}/prometheus
 
-push: push_comment push_post push_ui push_prometheus mongodb_exporter_push cloudprober_push
+push: push_comment push_post push_ui push_prometheus mongodb_exporter_push cloudprober_push alertmanager_push
 
 
 ###
@@ -179,10 +179,24 @@ mongodb_exporter_push:
 # cloudprober
 ###
 cloudprober_build:
+	. ./env && \
 	cd ./monitoring/cloudprober && bash docker_build.sh
 
 cloudprober_push:
-	docker push ${USER_NAME}/cloudprober
+	. ./env && \
+	docker push $${USER_NAME}/cloudprober
+
+
+###
+# alertmanager
+###
+alertmanager_build:
+	. ./env && \
+	cd ./monitoring/alertmanager && bash docker_build.sh
+
+alertmanager_push:
+	. ./env && \
+	docker push $${USER_NAME}/alertmanager
 
 
 ###
