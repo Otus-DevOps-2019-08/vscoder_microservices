@@ -192,6 +192,7 @@ vscoder microservices repository
       - [Файл docker-compose-monitoring.yml](#%d0%a4%d0%b0%d0%b9%d0%bb-docker-compose-monitoringyml)
       - [Файл prometheus.yml](#%d0%a4%d0%b0%d0%b9%d0%bb-prometheusyml)
       - [cAdvisor UI](#cadvisor-ui)
+- [TODO: fix Makefile. Variables must correctly load from environment](#todo-fix-makefile-variables-must-correctly-load-from-environment)
     - [Сбор метрик работы приложения и бизнес метрик](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d1%8b-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b8-%d0%b1%d0%b8%d0%b7%d0%bd%d0%b5%d1%81-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba)
     - [Настройка и проверка алертинга](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d0%b8-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b8%d0%bd%d0%b3%d0%b0)
 
@@ -7195,12 +7196,12 @@ root	14 262	14 236	18:52	6.30	2.80	105.67 MiB	786.48 MiB	Ssl	00:01:18	cadvisor
 
 Используем инструмент Grafana для визуализации данных из Prometheus.
 
-Добавим новый сервис в [docker-compose-monitoring.yml](docker/docker-compose-monitoring.yml)
+Добавим новый сервис в [docker-compose-monitoring.yml](docker/docker-compose-monitoring.yml). Так же добавляем grafana в сеть `reddit_front`
 ```yaml
 services:
 
   grafana:
-    image: grafana/grafana:6.5.2
+    image: grafana/grafana:${GRAFANA_VERSION}
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
@@ -7210,12 +7211,113 @@ services:
       - prometheus
     ports:
       - 3000:3000
+    networks:
+      - reddit_front
 
 volumes:
   grafana_data:
 ```
+В ДС указано использовать `grafana:5.0.0`, указана для установки `grafana:6.5.2` - так интереснее))
+
+Для `cadvisor` параметризована версия образа
+
+Сервис `cadvisor` так же оставлен только в сети `reddit_front` так как ему не нужно взаимодействовать ни с чем кроме prometheus.
+
+Заново поднимем docker-machine (так как работа продолжена из другого места, машина ранее былва убита)
+
+```shell
+make docker_machine_create
+eval $(docker-machine env docker-host)
+make docker_machine_ip
+```
+
+#### Grafana: Web UI
+
+Запустим новый сервис:
+```yaml
+docker-compose -f docker-compose-monitoring.yml up -d grafana
+```
+... писали они, но у нас же ничего не запущено!!! Поэтому запустим всё:
+```shell
+make run
+```
+
+Добавим правило фаервола
+```shell
+gcloud compute firewall-rules create grafana \
+  --allow tcp:3000 \
+  --target-tags=docker-machine \
+  --description="Allow grafana UI connections" \
+  --direction=INGRESS
+```
+
+Откроем страницу Web UI Grafana по адресу http:// <dockermachine-host-ip>:3000 и используем для входа логин и пароль администратора, которые мы передали через переменные окружения:
 
 
+#### Grafana: Добавление источника данных
+
+Нажмем Add data source (Добавить источник данных):
+
+Выберем нужный тип и зададим параметры подключения:
+
+- Type: Prometheus
+- Name: Prometheus Server
+- URL: http://prometheus:9090
+
+**Save & Test**
+
+
+#### Дашборды
+
+Перейдем на [Сайт grafana](https://grafana.com/grafana/dashboards), где можно найти и скачать большое количество уже созданных официальных и комьюнити дашбордов для визуализации различного типа метрик для разных систем мониторинга и баз данных.
+
+Выберем в качестве источника данных нашу систему мониторинга (Prometheus) и выполним поиск по категории Docker. Затем выберем популярный дашборд: **Docker + System dashboard**
+
+Нажмем _Загрузить JSON_. В директории `monitoring` создайте
+директории `grafana/dashboards`, куда поместите скачанный
+дашборд. Поменяйте название файла дашборда на
+[DockerMonitoring.json](monitoring/grafana/dashboards/DockerMonitoring.json).
+
+
+#### Импорт дашборда
+
+Снова откроем веб-интерфейс Grafana и выберем импорт шаблона (Dashboards -> Manage -> Import)
+
+Загрузите скачанный дашборд. При загрузке укажите источник
+данных для визуализации (Prometheus Server):
+
+Должен появиться набор графиков с информацией о состоянии
+хостовой системы и работе контейнеров: появился, но данных нет. 
+
+**Проблема:** не все targets видны в prometheus. **Причина:** устаревший конфиг [monitoring/prometheus/prometheus.yml](monitoring/prometheus/prometheus.yml). После окончания вчерашней работы не был загружен обновлённый образ prometheus в docker-hub.
+
+Чиним:
+```shell
+# TODO: fix Makefile. Variables must correctly load from environment
+export USER_NAME=dockerhub_username
+make build_prometheus push_prometheus
+```
+
+Запускаем:
+```shell
+make run
+```
+
+**Проблема:** не отображаются метрики `node_exporter`. **Причина:** некорректные имена метрик. Например:
+| grafana              | node_exporter              |
+| -------------------- | -------------------------- |
+| node_filesystem_size | node_filesystem_size_bytes |
+| node_filesystem_free | node_filesystem_free_bytes |
+
+Ранее выбранный дашборд `Last updated: 2 years ago`
+
+Выбрал дашборд https://grafana.com/grafana/dashboards/9633
+
+Не отображалась часть метрик из за захардкоженного job name `node-exporter`. Добавил переменную `node_job_name` с `query` `label_values(node_boot_time_seconds, job)`, возвращающую имя job.
+
+В json-представлении дашборда исправил `node-exporter` на `$node_job_name`. Теперь все графики отображаются.
+
+Сохранил актуальный json в [monitoring/grafana/dashboards/DockerMonitoring.json](monitoring/grafana/dashboards/DockerMonitoring.json)
 
 
 ### Сбор метрик работы приложения и бизнес метрик
