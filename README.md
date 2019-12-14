@@ -192,7 +192,6 @@ vscoder microservices repository
       - [Файл docker-compose-monitoring.yml](#%d0%a4%d0%b0%d0%b9%d0%bb-docker-compose-monitoringyml)
       - [Файл prometheus.yml](#%d0%a4%d0%b0%d0%b9%d0%bb-prometheusyml)
       - [cAdvisor UI](#cadvisor-ui)
-    - [Визуализация метрик: Grafana](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-grafana)
     - [Сбор метрик работы приложения и бизнес метрик](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d1%8b-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b8-%d0%b1%d0%b8%d0%b7%d0%bd%d0%b5%d1%81-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba)
     - [Настройка и проверка алертинга](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d0%b8-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b8%d0%bd%d0%b3%d0%b0)
 
@@ -7194,7 +7193,28 @@ root	14 262	14 236	18:52	6.30	2.80	105.67 MiB	786.48 MiB	Ssl	00:01:18	cadvisor
 
 ### Визуализация метрик: Grafana
 
-TODO: пора спать (не забыть обновить `./env` перед продолжением)
+Используем инструмент Grafana для визуализации данных из Prometheus.
+
+Добавим новый сервис в [docker-compose-monitoring.yml](docker/docker-compose-monitoring.yml)
+```yaml
+services:
+
+  grafana:
+    image: grafana/grafana:6.5.2
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+
+volumes:
+  grafana_data:
+```
+
 
 
 
