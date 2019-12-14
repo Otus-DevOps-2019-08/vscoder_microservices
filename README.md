@@ -7483,6 +7483,16 @@ histogram_quantile(0.95, sum(rate(ui_request_response_time_bucket[5m])) by (le))
 
 ### Сбор метрик бизнеслогики
 
+В качестве примера метрик бизнес логики мы в наше приложение мы добавили счетчики **количества постов** и **комментариев**.
+- `post_count`
+- `comment_count`
+
+Мы построим график скорости роста значения счетчика за последний час, используя функцию `rate()`. Это позволит нам получать информацию об активности пользователей приложения.
+
+Создайте новый дашборд, назовите его `Business_Logic_Monitoring` и постройте график функции `rate(post_count[1h])`.
+
+Постройте еще один график для счетчика comment, экспортируйте дашборд и сохраните в директории `monitoring/grafana/dashboards` под названием [Business_Logic_Monitoring.json](monitoring/grafana/dashboards/Business_Logic_Monitoring.json).
+
 
 ### Настройка и проверка алертинга
 
