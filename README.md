@@ -7674,4 +7674,32 @@ make run
 
 Попробуем всё таки пересоздать инфраструктуру мониторинга... Безрезультатно.
 
-TODO: починить!!! а сейчас пора спать.
+После пуша в гитхаб, пришло письмо от слаки
+
+> Hi there,
+> 
+> 
+> We recently discovered one or more publicly accessible incoming webhooks associated with the vscoders alertmanager app on Slack, for which you > are listed as a Collaborator. This type of public webhook exposure can happen when someone who created or has access to a webhook URL posted it on a public site, such as GitHub or other code-sharing forums.
+> 
+> Although none of the teams using your app are at risk of data exposure through a webhook, we've invalidated the publicly exposed webhook URLs to prevent unauthorized parties from posting messages into their Slack workspaces. This means that vscoders alertmanager can no longer use these webhooks to post its own messages into Slack channels. We’ve already reached out to the Slack customers who are using your app to advise them that your app may no longer work, and that they’ll need to reinstall the app on their workspace to continue using it.
+> 
+> If you have additional questions, you can reply directly to this notification — our support team is standing by and ready to help.
+> 
+> 
+> -The team at Slack
+
+Не нужно пушить вебхук в гитхаб!
+
+Исправлена сборка mongodb_exporter в Makefile
+```makefile
+...
+MONGODB_EXPORTER_DOCKER_IMAGE_NAME?=$${USER_NAME}/mongodb-exporter
+...
+mongodb_exporter_docker_build: mongodb_exporter_clone
+	. ./env && \
+	...
+
+mongodb_exporter_push:
+	. ./env && \
+	...
+```

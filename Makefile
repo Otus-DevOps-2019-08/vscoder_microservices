@@ -39,7 +39,7 @@ HADOLINT_URL=https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_
 HADOLINT?=${BIN_DIR}/hadolint
 
 # mongodb_exporter
-MONGODB_EXPORTER_DOCKER_IMAGE_NAME?=${USER_NAME}/mongodb-exporter
+MONGODB_EXPORTER_DOCKER_IMAGE_NAME?=$${USER_NAME}/mongodb-exporter
 MONGODB_EXPORTER_VERSION?=v0.10.0
 
 debug:
@@ -167,11 +167,13 @@ mongodb_exporter_clone:
 	&& (test -d ./mongodb_exporter || git clone https://github.com/percona/mongodb_exporter.git)
 
 mongodb_exporter_docker_build: mongodb_exporter_clone
+	. ./env && \
 	cd ./monitoring/mongodb_exporter \
 	&& git checkout ${MONGODB_EXPORTER_VERSION} \
 	&& make docker DOCKER_IMAGE_NAME=${MONGODB_EXPORTER_DOCKER_IMAGE_NAME} DOCKER_IMAGE_TAG=${MONGODB_EXPORTER_VERSION}
 
 mongodb_exporter_push:
+	. ./env && \
 	docker push ${MONGODB_EXPORTER_DOCKER_IMAGE_NAME}:${MONGODB_EXPORTER_VERSION}
 
 
