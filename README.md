@@ -7884,6 +7884,8 @@ make run
 
 В Docker в экспериментальном режиме реализована отдача метрик в формате Prometheus. Добавьте сбор этих метрик в Prometheus. Сравните количество метрик с Cadvisor. Выберите готовый дашборд или создайте свой для этого источника данных. Выгрузите его в monitoring/grafana/dashboards;
 
+https://docs.docker.com/config/thirdparty/prometheus/
+
 TODO: сделать
 
 
