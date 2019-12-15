@@ -8,7 +8,7 @@ WORKDIR $APP_HOME
 
 # Install requiremets (fat layer)
 COPY requirements.txt $APP_HOME
-RUN apk add --no-cache --virtual .build-deps build-base \
+RUN apk add --no-cache --virtual .build-deps gcc musl-dev \
     && pip install --no-cache-dir -r $APP_HOME/requirements.txt \
     && apk del .build-deps
 
