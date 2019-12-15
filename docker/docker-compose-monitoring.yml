@@ -69,7 +69,7 @@ services:
       - reddit_front
 
   alertmanager:
-    image: ${USERNAME}/alertmanager
+    image: ${USERNAME}/alertmanager:${ALERTMANAGER_VERSION}
     command:
       - "--config.file=/etc/alertmanager/config.yml"
     ports:

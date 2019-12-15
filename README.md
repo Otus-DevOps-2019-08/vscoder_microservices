@@ -7688,7 +7688,7 @@ make run
 > 
 > -The team at Slack
 
-Не нужно пушить вебхук в гитхаб!
+Не нужно пушить вебхук в гитхаб! Но с этим разберёмся позже.
 
 Исправлена сборка mongodb_exporter в Makefile
 ```makefile
@@ -7703,3 +7703,19 @@ mongodb_exporter_push:
 	. ./env && \
 	...
 ```
+
+Чиним алерты:
+
+Для начала, прометеус опустим до версии из ДЗ `v2.1.0`... Не дало результатов.
+
+Я работал в локальном docker вместо инстанса dokcer-machine в gcp... Как-то так.
+
+Вернул версию prometheus `v2.14.0`
+
+Пересоздал мониторинг:
+```shell
+docker-compose -f docker-compose-monitoring.yml down
+docker-compose -f docker-compose-monitoring.yml up -d
+```
+
+**УРА!!!** Всё работает, alert rules отображаются))
