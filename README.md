@@ -197,6 +197,13 @@ vscoder microservices repository
 - [alertmanager](#alertmanager)
   - [yaml](#yaml-1)
 - [добавлено](#%d0%b4%d0%be%d0%b1%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%be)
+- [here is fake slack_api_url. DO NOT FORGET to set correct url!](#here-is-fake-slackapiurl-do-not-forget-to-set-correct-url)
+- [Получаем переменные из файла ./env](#%d0%9f%d0%be%d0%bb%d1%83%d1%87%d0%b0%d0%b5%d0%bc-%d0%bf%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%b8%d0%b7-%d1%84%d0%b0%d0%b9%d0%bb%d0%b0-env)
+- [Подставляем значения переменных окружения в шаблон конфига и пишем результат в файл](#%d0%9f%d0%be%d0%b4%d1%81%d1%82%d0%b0%d0%b2%d0%bb%d1%8f%d0%b5%d0%bc-%d0%b7%d0%bd%d0%b0%d1%87%d0%b5%d0%bd%d0%b8%d1%8f-%d0%bf%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d1%85-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b2-%d1%88%d0%b0%d0%b1%d0%bb%d0%be%d0%bd-%d0%ba%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d0%b0-%d0%b8-%d0%bf%d0%b8%d1%88%d0%b5%d0%bc-%d1%80%d0%b5%d0%b7%d1%83%d0%bb%d1%8c%d1%82%d0%b0%d1%82-%d0%b2-%d1%84%d0%b0%d0%b9%d0%bb)
+- [Собираем образ](#%d0%a1%d0%be%d0%b1%d0%b8%d1%80%d0%b0%d0%b5%d0%bc-%d0%be%d0%b1%d1%80%d0%b0%d0%b7)
+- [В целях безопасности, удаляем полученный файл конфига](#%d0%92-%d1%86%d0%b5%d0%bb%d1%8f%d1%85-%d0%b1%d0%b5%d0%b7%d0%be%d0%bf%d0%b0%d1%81%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d1%83%d0%b4%d0%b0%d0%bb%d1%8f%d0%b5%d0%bc-%d0%bf%d0%be%d0%bb%d1%83%d1%87%d0%b5%d0%bd%d0%bd%d1%8b%d0%b9-%d1%84%d0%b0%d0%b9%d0%bb-%d0%ba%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d0%b0)
+  - [yaml](#yaml-2)
+      - [Проверка алерта](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b0)
 
 # Makefile
 
@@ -7517,7 +7524,7 @@ COPY config.yml /etc/alertmanager/
 
 Настройки Alertmanager-а как и Prometheus задаются через YAML файл или опции командой строки. В директории `monitoring/alertmanager` создайте файл [config.yml](monitoring/alertmanager/config.yml), в котором определите отправку нотификаций в ВАШ тестовый слак канал.
 
-Для отправки нотификаций в слак канал потребуется создать СВОЙ [Incoming Webhook](https://api.slack.com/messaging/webhooks) [monitoring/alertmanager/config.yml](monitoring/alertmanager/config.yml).
+Для отправки нотификаций в слак канал потребуется создать СВОЙ [Incoming Webhook](https://api.slack.com/messaging/webhooks) [monitoring/alertmanager/config.yml](monitoring/alertmanager/config.yml). Было создано slack-приложение `vscoders alertmanager`.
 ```yaml
 ---
 global:
@@ -7653,6 +7660,26 @@ make build_prometheus push_prometheus
 ```
 
 
+#### Push slack api url to github ERROR
+
+После пуша в гитхаб, пришло письмо от слаки
+
+> Hi there,
+> 
+> 
+> We recently discovered one or more publicly accessible incoming webhooks associated with the vscoders alertmanager app on Slack, for which you > are listed as a Collaborator. This type of public webhook exposure can happen when someone who created or has access to a webhook URL posted it on a public site, such as GitHub or other code-sharing forums.
+> 
+> Although none of the teams using your app are at risk of data exposure through a webhook, we've invalidated the publicly exposed webhook URLs to prevent unauthorized parties from posting messages into their Slack workspaces. This means that vscoders alertmanager can no longer use these webhooks to post its own messages into Slack channels. We’ve already reached out to the Slack customers who are using your app to advise them that your app may no longer work, and that they’ll need to reinstall the app on their workspace to continue using it.
+> 
+> If you have additional questions, you can reply directly to this notification — our support team is standing by and ready to help.
+> 
+> 
+> -The team at Slack
+
+Не нужно пушить вебхук в гитхаб! Но с этим разберёмся позже.
+
+
+
 #### Проверка алерта
 
 Пересоздадим нашу Docker инфраструктуру мониторинга (опять же, зачем?):
@@ -7673,22 +7700,6 @@ make run
 **Проблема** No alerting rules defined. 
 
 Попробуем всё таки пересоздать инфраструктуру мониторинга... Безрезультатно.
-
-После пуша в гитхаб, пришло письмо от слаки
-
-> Hi there,
-> 
-> 
-> We recently discovered one or more publicly accessible incoming webhooks associated with the vscoders alertmanager app on Slack, for which you > are listed as a Collaborator. This type of public webhook exposure can happen when someone who created or has access to a webhook URL posted it on a public site, such as GitHub or other code-sharing forums.
-> 
-> Although none of the teams using your app are at risk of data exposure through a webhook, we've invalidated the publicly exposed webhook URLs to prevent unauthorized parties from posting messages into their Slack workspaces. This means that vscoders alertmanager can no longer use these webhooks to post its own messages into Slack channels. We’ve already reached out to the Slack customers who are using your app to advise them that your app may no longer work, and that they’ll need to reinstall the app on their workspace to continue using it.
-> 
-> If you have additional questions, you can reply directly to this notification — our support team is standing by and ready to help.
-> 
-> 
-> -The team at Slack
-
-Не нужно пушить вебхук в гитхаб! Но с этим разберёмся позже.
 
 Исправлена сборка mongodb_exporter в Makefile
 ```makefile
@@ -7719,3 +7730,74 @@ docker-compose -f docker-compose-monitoring.yml up -d
 ```
 
 **УРА!!!** Всё работает, alert rules отображаются))
+
+
+#### Чиним slack
+
+Для начала починим уведомления в slack. Чтобы избежать блокировки, придётся передавать webhook url через переменную окружения. 
+
+Поиски по интернетам не привели к подходящему в рамках данной задачи решению. В проде для хранения секретов можно использовать Hashicorp Vault.
+
+Мы же будем передавать секрет в переменной окружения при сборке образа.
+
+##### Реализация
+
+Создан файл [monitoring/alertmanager/env](monitoring/alertmanager/env), содержащий slack api url
+```shell
+# here is fake slack_api_url. DO NOT FORGET to set correct url!
+export SLACK_API_URL="https://hooks.slack.com/services/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"
+export SLACK_CHANNEL="#channel_here"
+```
+
+Файл [monitoring/cloudprober/docker_build.sh](monitoring/cloudprober/docker_build.sh) приведён к следующему виду
+```shell
+#!/bin/bash
+set -eu
+
+# Получаем переменные из файла ./env
+. ./env
+# Подставляем значения переменных окружения в шаблон конфига и пишем результат в файл
+cat config.yml.template | envsubst > config.yml
+# Собираем образ
+docker build -t $USER_NAME/alertmanager .
+# В целях безопасности, удаляем полученный файл конфига
+rm config.yml
+```
+
+Файл `monitoring/alertmanager/config.yml` переименован в [monitoring/alertmanager/config.yml.template](monitoring/alertmanager/config.yml.template) и приведён к следующему виду
+```yaml
+---
+global:
+  slack_api_url: "${SLACK_API_URL}"
+
+route:
+  receiver: "slack-notifications"
+
+receivers:
+  - name: "slack-notifications"
+    slack_configs:
+      - channel: "${SLACK_CHANNEL}"
+```
+
+Генерируем новый slack webhook. Прописываем его в `monitoring/alertmanager/env`
+
+Собираем alertmanager
+```shell
+make alertmanager_build
+```
+
+Применяем
+```shell
+make run
+```
+
+
+#### Проверка алерта
+
+Остановим один из сервисов и подождем одну минуту.
+
+**Уведомление пришло в слаку!!!** =))))
+
+У Alertmanager также есть свой веб интерфейс, доступный на порту 9093, который мы прописали в компоуз файле.
+
+P.S. Проверить работу вебхуков слака можно обычным curl.
