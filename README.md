@@ -235,6 +235,13 @@ vscoder microservices repository
     - [Задания со ***](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
       - [Tickster](#tickster)
       - [Автоматическое исправление проблем](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b5-%d0%b8%d1%81%d0%bf%d1%80%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc)
+  - [HomeWork 18: Логирование и распределенная трассировка](#homework-18-%d0%9b%d0%be%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b0%d1%81%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d1%82%d1%80%d0%b0%d1%81%d1%81%d0%b8%d1%80%d0%be%d0%b2%d0%ba%d0%b0)
+    - [План](#%d0%9f%d0%bb%d0%b0%d0%bd-2)
+    - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-4)
+    - [Сбор неструктурированных логов](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bd%d0%b5%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d1%8b%d1%85-%d0%bb%d0%be%d0%b3%d0%be%d0%b2)
+    - [Визуализация логов](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d0%bb%d0%be%d0%b3%d0%be%d0%b2)
+    - [Сбор структурированных логов](#%d0%a1%d0%b1%d0%be%d1%80-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d1%8b%d1%85-%d0%bb%d0%be%d0%b3%d0%be%d0%b2)
+    - [Распределенная трасировка](#%d0%a0%d0%b0%d1%81%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d1%82%d1%80%d0%b0%d1%81%d0%b8%d1%80%d0%be%d0%b2%d0%ba%d0%b0)
 
 # Makefile
 
@@ -7960,3 +7967,69 @@ TODO: сделать
 Дополнительные папки создавайте в директории monitoring.
 
 TODO: сделать
+
+
+
+## HomeWork 18: Логирование и распределенная трассировка
+
+### План
+
+- Сбор неструктурированных логов
+- Визуализация логов
+- Сбор структурированных логов
+- Распределенная трасировка
+
+
+### Подготовка
+
+Код микросервисов обновился для добавления функционала логирования. Новая версия кода доступа по [ссылка](https://github.com/express42/reddit/tree/logging).
+
+- Обновите код в директории **/src** вашего репозитория из кода по ссылке выше. (старый `./src` переименовал в `./src.microservices`)
+  ```shell
+  # Rename old ./src
+  mv ./src ./src.microservices
+  # Copy Dockerfile and Makefile
+  cp ./src.microservices/comment/Dockerfile ./src/comment/
+  cp ./src.microservices/post-py/Dockerfile ./src/post-py/
+  cp ./src.microservices/ui/Dockerfile ./src/ui/
+  cp ./src.microservices/Makefile ./src/
+  # Move old ./src outside the project
+  mv ./src.microservices ../
+  ```
+- Если вы используется python-alpine, добавьте в **/src/post-py/Dockerfile** установку пакетов `gcc` и `musl-dev` (заменил установку `build-base` на `gcc` и `musl-dev`)
+  ```dockerfile
+  ...
+  RUN apk add --no-cache --virtual .build-deps gcc musl-dev \
+    && pip install --no-cache-dir -r $APP_HOME/requirements.txt \
+    && apk del .build-deps
+  ...
+  ```
+- Выполните сборку образов при помощи скриптов docker_build.sh в директории каждого сервиса
+  Метод ДЗ
+  ```shell
+  for i in ui post-py comment; do cd src/$i; bash docker_build.sh; cd -; done
+  ```
+  Метод make
+  ```
+  make build_ui build_post build_comment
+  ```
+
+### Сбор неструктурированных логов
+
+
+
+
+### Визуализация логов
+
+
+
+
+### Сбор структурированных логов
+
+
+
+
+### Распределенная трасировка
+
+
+
