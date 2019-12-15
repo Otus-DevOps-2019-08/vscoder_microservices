@@ -203,7 +203,12 @@ vscoder microservices repository
 - [Собираем образ](#%d0%a1%d0%be%d0%b1%d0%b8%d1%80%d0%b0%d0%b5%d0%bc-%d0%be%d0%b1%d1%80%d0%b0%d0%b7)
 - [В целях безопасности, удаляем полученный файл конфига](#%d0%92-%d1%86%d0%b5%d0%bb%d1%8f%d1%85-%d0%b1%d0%b5%d0%b7%d0%be%d0%bf%d0%b0%d1%81%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d1%83%d0%b4%d0%b0%d0%bb%d1%8f%d0%b5%d0%bc-%d0%bf%d0%be%d0%bb%d1%83%d1%87%d0%b5%d0%bd%d0%bd%d1%8b%d0%b9-%d1%84%d0%b0%d0%b9%d0%bb-%d0%ba%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d0%b0)
   - [yaml](#yaml-2)
-      - [Проверка алерта](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b0)
+- [Установка docker-machine](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0-docker-machine)
+- [Создание docker-machine](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-docker-machine)
+- [Исплоьзование docker-machine](#%d0%98%d1%81%d0%bf%d0%bb%d0%be%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-docker-machine)
+- [Узнать docker-machine ip](#%d0%a3%d0%b7%d0%bd%d0%b0%d1%82%d1%8c-docker-machine-ip)
+- [Сборка образов (это не обязательно, должны приехать с docker-hub)](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d1%8d%d1%82%d0%be-%d0%bd%d0%b5-%d0%be%d0%b1%d1%8f%d0%b7%d0%b0%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be-%d0%b4%d0%be%d0%bb%d0%b6%d0%bd%d1%8b-%d0%bf%d1%80%d0%b8%d0%b5%d1%85%d0%b0%d1%82%d1%8c-%d1%81-docker-hub)
+- [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-2)
 
 # Makefile
 
@@ -7801,3 +7806,47 @@ make run
 У Alertmanager также есть свой веб интерфейс, доступный на порту 9093, который мы прописали в компоуз файле.
 
 P.S. Проверить работу вебхуков слака можно обычным curl.
+
+
+### Завершение работы
+
+Пуш
+```shell
+make push
+```
+
+Ссылка на докер-хаб https://hub.docker.com/u/vscoder
+
+### Запуск проекта
+
+#### Подготовка
+
+Предварительно необходимо заполнить файлы `./env` и `./monitoring/alertmanager/env` по примеру `env.example` в соответствующих директориях, а так же выполнить авторизацию в `gcloud`
+
+```shell
+# Установка docker-machine
+install_docker_machine
+
+# Создание docker-machine
+docker_machine_create
+
+# Исплоьзование docker-machine
+eval $(docker-machine env docker-host)
+
+# Узнать docker-machine ip
+make docker_machine_ip
+```
+
+#### Запуск проекта
+
+```shell
+# Сборка образов (это не обязательно, должны приехать с docker-hub)
+make build
+
+# Запуск приложения
+make run
+```
+
+Приложение: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:9292
+
+Мониторинг: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:9090/graph?g0.range_input=1h&g0.expr=(rate(total%5B1m%5D)%20-%20rate(success%5B1m%5D))%20%2F%20rate(total%5B1m%5D)&g0.tab=0&g1.range_input=1h&g1.expr=rate(latency%5B1m%5D)%20%2F%20rate(success%5B1m%5D)%20%2F%201000&g1.tab=0

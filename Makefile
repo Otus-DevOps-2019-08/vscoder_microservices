@@ -213,5 +213,6 @@ run: variables
 # copy variables from examples, if needed
 ###
 variables:
-	cd docker \
-	&& (test -f .env || cp .env.examples .env)
+	cd ./                      && (test -f env || cp env.examples env)
+	cd docker                  && (test -f .env || cp .env.examples .env)
+	cd monitoring/alertmanager && (test -f env || cp env.examples env)
