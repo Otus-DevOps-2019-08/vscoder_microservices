@@ -192,23 +192,36 @@ vscoder microservices repository
       - [Файл docker-compose-monitoring.yml](#%d0%a4%d0%b0%d0%b9%d0%bb-docker-compose-monitoringyml)
       - [Файл prometheus.yml](#%d0%a4%d0%b0%d0%b9%d0%bb-prometheusyml)
       - [cAdvisor UI](#cadvisor-ui)
-- [TODO: fix Makefile. Variables must correctly load from environment](#todo-fix-makefile-variables-must-correctly-load-from-environment)
-  - [yaml](#yaml)
-- [alertmanager](#alertmanager)
-  - [yaml](#yaml-1)
-- [добавлено](#%d0%b4%d0%be%d0%b1%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%be)
-- [here is fake slack_api_url. DO NOT FORGET to set correct url!](#here-is-fake-slackapiurl-do-not-forget-to-set-correct-url)
-- [Получаем переменные из файла ./env](#%d0%9f%d0%be%d0%bb%d1%83%d1%87%d0%b0%d0%b5%d0%bc-%d0%bf%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%b8%d0%b7-%d1%84%d0%b0%d0%b9%d0%bb%d0%b0-env)
-- [Подставляем значения переменных окружения в шаблон конфига и пишем результат в файл](#%d0%9f%d0%be%d0%b4%d1%81%d1%82%d0%b0%d0%b2%d0%bb%d1%8f%d0%b5%d0%bc-%d0%b7%d0%bd%d0%b0%d1%87%d0%b5%d0%bd%d0%b8%d1%8f-%d0%bf%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d1%85-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b2-%d1%88%d0%b0%d0%b1%d0%bb%d0%be%d0%bd-%d0%ba%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d0%b0-%d0%b8-%d0%bf%d0%b8%d1%88%d0%b5%d0%bc-%d1%80%d0%b5%d0%b7%d1%83%d0%bb%d1%8c%d1%82%d0%b0%d1%82-%d0%b2-%d1%84%d0%b0%d0%b9%d0%bb)
-- [Собираем образ](#%d0%a1%d0%be%d0%b1%d0%b8%d1%80%d0%b0%d0%b5%d0%bc-%d0%be%d0%b1%d1%80%d0%b0%d0%b7)
-- [В целях безопасности, удаляем полученный файл конфига](#%d0%92-%d1%86%d0%b5%d0%bb%d1%8f%d1%85-%d0%b1%d0%b5%d0%b7%d0%be%d0%bf%d0%b0%d1%81%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d1%83%d0%b4%d0%b0%d0%bb%d1%8f%d0%b5%d0%bc-%d0%bf%d0%be%d0%bb%d1%83%d1%87%d0%b5%d0%bd%d0%bd%d1%8b%d0%b9-%d1%84%d0%b0%d0%b9%d0%bb-%d0%ba%d0%be%d0%bd%d1%84%d0%b8%d0%b3%d0%b0)
-  - [yaml](#yaml-2)
-- [Установка docker-machine](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0-docker-machine)
-- [Создание docker-machine](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-docker-machine)
-- [Исплоьзование docker-machine](#%d0%98%d1%81%d0%bf%d0%bb%d0%be%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-docker-machine)
-- [Узнать docker-machine ip](#%d0%a3%d0%b7%d0%bd%d0%b0%d1%82%d1%8c-docker-machine-ip)
-- [Сборка образов (это не обязательно, должны приехать с docker-hub)](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d1%8d%d1%82%d0%be-%d0%bd%d0%b5-%d0%be%d0%b1%d1%8f%d0%b7%d0%b0%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be-%d0%b4%d0%be%d0%bb%d0%b6%d0%bd%d1%8b-%d0%bf%d1%80%d0%b8%d0%b5%d1%85%d0%b0%d1%82%d1%8c-%d1%81-docker-hub)
-- [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-2)
+    - [Визуализация метрик: Grafana](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-grafana)
+      - [Grafana: Web UI](#grafana-web-ui)
+      - [Grafana: Добавление источника данных](#grafana-%d0%94%d0%be%d0%b1%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b8%d1%81%d1%82%d0%be%d1%87%d0%bd%d0%b8%d0%ba%d0%b0-%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d1%85)
+      - [Дашборды](#%d0%94%d0%b0%d1%88%d0%b1%d0%be%d1%80%d0%b4%d1%8b)
+      - [Импорт дашборда](#%d0%98%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%b4%d0%b0%d1%88%d0%b1%d0%be%d1%80%d0%b4%d0%b0)
+    - [Сбор метрик работы приложения](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d1%8b-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
+      - [Зачем?](#%d0%97%d0%b0%d1%87%d0%b5%d0%bc)
+      - [prometheus.yml](#prometheusyml-1)
+      - [Создание дашборда в Grafana](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b4%d0%b0%d1%88%d0%b1%d0%be%d1%80%d0%b4%d0%b0-%d0%b2-grafana)
+      - [Самостоятельно](#%d0%a1%d0%b0%d0%bc%d0%be%d1%81%d1%82%d0%be%d1%8f%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be-1)
+      - [Гистограмма](#%d0%93%d0%b8%d1%81%d1%82%d0%be%d0%b3%d1%80%d0%b0%d0%bc%d0%bc%d0%b0)
+      - [Histogram метрика](#histogram-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba%d0%b0)
+      - [Процентиль](#%d0%9f%d1%80%d0%be%d1%86%d0%b5%d0%bd%d1%82%d0%b8%d0%bb%d1%8c)
+        - [Пример процентиль](#%d0%9f%d1%80%d0%b8%d0%bc%d0%b5%d1%80-%d0%bf%d1%80%d0%be%d1%86%d0%b5%d0%bd%d1%82%d0%b8%d0%bb%d1%8c)
+        - [95-й процентиль](#95-%d0%b9-%d0%bf%d1%80%d0%be%d1%86%d0%b5%d0%bd%d1%82%d0%b8%d0%bb%d1%8c)
+    - [Сбор метрик бизнеслогики](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d0%b1%d0%b8%d0%b7%d0%bd%d0%b5%d1%81%d0%bb%d0%be%d0%b3%d0%b8%d0%ba%d0%b8)
+    - [Настройка и проверка алертинга](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d0%b8-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b8%d0%bd%d0%b3%d0%b0)
+      - [Правила алертинга](#%d0%9f%d1%80%d0%b0%d0%b2%d0%b8%d0%bb%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b8%d0%bd%d0%b3%d0%b0)
+      - [Alertmanager](#alertmanager)
+      - [Alert rules](#alert-rules)
+      - [prometheus.yml](#prometheusyml-2)
+      - [Push slack api url to github ERROR](#push-slack-api-url-to-github-error)
+      - [Проверка алерта](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b0)
+      - [Чиним slack](#%d0%a7%d0%b8%d0%bd%d0%b8%d0%bc-slack)
+        - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-6)
+      - [Проверка алерта](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b0%d0%bb%d0%b5%d1%80%d1%82%d0%b0-1)
+    - [Завершение работы](#%d0%97%d0%b0%d0%b2%d0%b5%d1%80%d1%88%d0%b5%d0%bd%d0%b8%d0%b5-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d1%8b-1)
+    - [Запуск проекта](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0-2)
+      - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-3)
+      - [Запуск проекта](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0-3)
     - [Fix travis-ci test](#fix-travis-ci-test)
     - [Задания со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be--1)
       - [Makefile](#makefile-2)
@@ -7128,6 +7141,7 @@ run: variables
 ```shell
 make run
 ```
+
 Образы успешно скачаны с docker hub. Проект запущен.
 ```log
 ...
@@ -7137,7 +7151,7 @@ Creating docker_post_1    ... done
 Creating docker_comment_1 ... done
 ...
 WARNING: Found orphan containers (docker_comment_1, docker_post_1, docker_post_db_1, docker_ui_1) for this project. If you removed or renamed this service in your compose file, you can run this command with the --remove-orphans flag to clean it up.
-```
+
 Creating docker_prometheus_1      ... done
 Creating docker_cadvisor_1        ... done
 Creating docker_node-exporter_1   ... done
@@ -7319,8 +7333,7 @@ gcloud compute firewall-rules create grafana \
 **Проблема:** не все targets видны в prometheus. **Причина:** устаревший конфиг [monitoring/prometheus/prometheus.yml](monitoring/prometheus/prometheus.yml). После окончания вчерашней работы не был загружен обновлённый образ prometheus в docker-hub.
 
 Чиним:
-```shell
-# TODO: fix Makefile. Variables must correctly load from environment
+```shell 
 export USER_NAME=dockerhub_username
 make build_prometheus push_prometheus
 ```
@@ -7331,6 +7344,7 @@ make run
 ```
 
 **Проблема:** не отображаются метрики `node_exporter`. **Причина:** некорректные имена метрик. Например:
+
 | grafana              | node_exporter              |
 | -------------------- | -------------------------- |
 | node_filesystem_size | node_filesystem_size_bytes |
@@ -7762,8 +7776,7 @@ docker-compose -f docker-compose-monitoring.yml up -d
 
 Создан файл [monitoring/alertmanager/env](monitoring/alertmanager/env), содержащий slack api url
 ```shell
-# here is fake slack_api_url. DO NOT FORGET to set correct url!
-export SLACK_API_URL="https://hooks.slack.com/services/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"
+export SLACK_API_URL="https://hooks.slack.com/services/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"  # here is fake slack_api_url. DO NOT FORGET to set correct url!
 export SLACK_CHANNEL="#channel_here"
 ```
 
