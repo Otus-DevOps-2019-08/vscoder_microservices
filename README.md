@@ -209,6 +209,7 @@ vscoder microservices repository
 - [Узнать docker-machine ip](#%d0%a3%d0%b7%d0%bd%d0%b0%d1%82%d1%8c-docker-machine-ip)
 - [Сборка образов (это не обязательно, должны приехать с docker-hub)](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d1%8d%d1%82%d0%be-%d0%bd%d0%b5-%d0%be%d0%b1%d1%8f%d0%b7%d0%b0%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be-%d0%b4%d0%be%d0%bb%d0%b6%d0%bd%d1%8b-%d0%bf%d1%80%d0%b8%d0%b5%d1%85%d0%b0%d1%82%d1%8c-%d1%81-docker-hub)
 - [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-2)
+    - [Fix travis-ci test](#fix-travis-ci-test)
 
 # Makefile
 
@@ -7850,3 +7851,8 @@ make run
 Приложение: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:9292
 
 Мониторинг: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:9090/graph?g0.range_input=1h&g0.expr=(rate(total%5B1m%5D)%20-%20rate(success%5B1m%5D))%20%2F%20rate(total%5B1m%5D)&g0.tab=0&g1.range_input=1h&g1.expr=rate(latency%5B1m%5D)%20%2F%20rate(success%5B1m%5D)%20%2F%201000&g1.tab=0
+
+
+### Fix travis-ci test
+
+Для прохождения тестов, добавлен файл [monitoring/alertmanager/config.yml](monitoring/alertmanager/config.yml). Содержимое файла заменяется во время сборки.
