@@ -7875,7 +7875,9 @@ make run
 
 Приложение: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:9292
 
-Мониторинг: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:9090/graph?g0.range_input=1h&g0.expr=(rate(total%5B1m%5D)%20-%20rate(success%5B1m%5D))%20%2F%20rate(total%5B1m%5D)&g0.tab=0&g1.range_input=1h&g1.expr=rate(latency%5B1m%5D)%20%2F%20rate(success%5B1m%5D)%20%2F%201000&g1.tab=0
+Prometheus: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:9090/graph?g0.range_input=1h&g0.expr=(rate(total%5B1m%5D)%20-%20rate(success%5B1m%5D))%20%2F%20rate(total%5B1m%5D)&g0.tab=0&g1.range_input=1h&g1.expr=rate(latency%5B1m%5D)%20%2F%20rate(success%5B1m%5D)%20%2F%201000&g1.tab=0
+
+Grafana: http://<IP_OF_DOCKER_MACHINE_INSTANCE_OR_LOCALHOST>:3000
 
 
 ### Fix travis-ci test
