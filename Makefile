@@ -99,6 +99,10 @@ install_hadolint:
 	chmod +x ${BIN_DIR}/hadolint
 	${BIN_DIR}/hadolint --version
 
+
+###
+# docker-machine
+###
 docker_machine_create:
 	. ./env && \
 	${DOCKER_MACHINE} create --driver google \
@@ -114,6 +118,27 @@ docker_machine_rm:
 
 docker_machine_ip:
 	${DOCKER_MACHINE} ip ${DOCKER_MACHINE_NAME}
+
+
+###
+# docker-machine logging
+###
+docker_machine_create_logging:
+	${DOCKER_MACHINE} create --driver google \
+		--google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+		--google-machine-type n1-standard-1 \
+		--google-open-port 5601/tcp \
+		--google-open-port 9292/tcp \
+		--google-open-port 9411/tcp \
+		logging
+	${DOCKER_MACHINE} env logging
+
+docker_machine_rm_logging:
+	make docker_machine_rm DOCKER_MACHINE_NAME=logging
+
+docker_machine_ip_logging:
+	make docker_machine_ip DOCKER_MACHINE_NAME=logging
+
 
 ###
 # Build
@@ -199,6 +224,18 @@ alertmanager_build:
 alertmanager_push:
 	. ./env && \
 	docker push $${USER_NAME}/alertmanager
+
+
+###
+# fluentd
+###
+fluentd_build:
+	. ./env && \
+	cd ./logging/fluentd && bash docker_build.sh
+
+fluentd_push:
+	. ./env && \
+	docker push $${USER_NAME}/fluentd
 
 
 ###

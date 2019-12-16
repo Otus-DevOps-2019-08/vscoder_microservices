@@ -238,9 +238,14 @@ vscoder microservices repository
   - [HomeWork 18: Логирование и распределенная трассировка](#homework-18-%d0%9b%d0%be%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b0%d1%81%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d1%82%d1%80%d0%b0%d1%81%d1%81%d0%b8%d1%80%d0%be%d0%b2%d0%ba%d0%b0)
     - [План](#%d0%9f%d0%bb%d0%b0%d0%bd-2)
     - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-4)
+      - [Подготовка окружения](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-1)
+    - [Логирование Docker контейнеров](#%d0%9b%d0%be%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-docker-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
+      - [Elastic Stack](#elastic-stack)
+      - [docker-compose-logging.yml](#docker-compose-loggingyml)
+      - [Fluentd](#fluentd)
+    - [Структурированные логи](#%d0%a1%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bb%d0%be%d0%b3%d0%b8)
     - [Сбор неструктурированных логов](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bd%d0%b5%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d1%8b%d1%85-%d0%bb%d0%be%d0%b3%d0%be%d0%b2)
     - [Визуализация логов](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d0%bb%d0%be%d0%b3%d0%be%d0%b2)
-    - [Сбор структурированных логов](#%d0%a1%d0%b1%d0%be%d1%80-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d1%8b%d1%85-%d0%bb%d0%be%d0%b3%d0%be%d0%b2)
     - [Распределенная трасировка](#%d0%a0%d0%b0%d1%81%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d1%82%d1%80%d0%b0%d1%81%d0%b8%d1%80%d0%be%d0%b2%d0%ba%d0%b0)
 
 # Makefile
@@ -8014,17 +8019,194 @@ TODO: сделать
   make build_ui build_post build_comment
   ```
 
+Внимание! В данном ДЗ мы используем отдельные теги для контейнеров приложений :logging
+
+
+#### Подготовка окружения
+
+Метод ДЗ
+```shell
+export GOOGLE_PROJECT=_ваш-проект_
+
+docker-machine create --driver google \
+    --google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+    --google-machine-type n1-standard-1 \
+    --google-open-port 5601/tcp \
+    --google-open-port 9292/tcp \
+    --google-open-port 9411/tcp \
+    logging
+
+# configure local env
+eval $(docker-machine env logging)
+
+# узнаем IP адрес
+docker-machine ip logging
+```
+
+Метод Make в данном случае не очень подойдёт, так как потребует ручного открытия портов фаервола. Поэтому добавим Makefile targets
+```makefile
+###
+# docker-machine logging
+###
+docker_machine_create_logging:
+	${DOCKER_MACHINE} create --driver google \
+		--google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+		--google-machine-type n1-standard-1 \
+		--google-open-port 5601/tcp \
+		--google-open-port 9292/tcp \
+		--google-open-port 9411/tcp \
+		logging
+	${DOCKER_MACHINE} env logging
+
+docker_machine_rm_logging:
+	make docker_machine_rm DOCKER_MACHINE_NAME=logging
+
+docker_machine_ip_logging:
+	make docker_machine_ip DOCKER_MACHINE_NAME=logging
+```
+
+Итак, метод Make
+```shell
+make docker_machine_create_logging docker_machine_ip_logging
+```
+
+
+### Логирование Docker контейнеров
+
+#### Elastic Stack
+
+Как упоминалось на лекции хранить все логи стоит централизованно: на одном (нескольких) серверах. В этом ДЗ мы рассмотрим пример системы централизованного логирования на примере Elastic стека (ранее известного как ELK): который включает в себя 3 осовных компонента:
+- ElasticSearch (TSDB и поисковый движок для хранения данных)
+- Logstash (для агрегации и трансформации данных)
+- Kibana (для визуализации)
+
+Однако для агрегации логов вместо Logstash мы будем использовать Fluentd, таким образом получая еще одно популярное сочетание этих инструментов, получившее название EFK.
+
+#### docker-compose-logging.yml
+
+Создадим отдельный compose-файл для нашей системы логирования в папке `docker/`
+
+[docker/docker-compose-logging.yml](docker/docker-compose-logging.yml)
+```yaml
+---
+version: "3"
+services:
+  fluentd:
+    image: ${USERNAME}/fluentd
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+
+  elasticsearch:
+    image: elasticsearch:7.4.0
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+
+  kibana:
+    image: kibana:7.4.0
+    ports:
+      - "5601:5601"
+```
+
+#### Fluentd
+
+Fluentd инструмент, который может использоваться для отправки, агрегации и преобразования лог-сообщений. Мы будем использовать Fluentd для агрегации (сбора в одной месте) и парсинга логов сервисов нашего приложения.
+
+Создадим образ Fluentd с нужной нам конфигурацией.
+
+Создайте в вашем проекте microservices директорию `logging/fluentd`
+
+В созданной директорий, создайте простой `Dockerfile` со следущим содержимым:
+
+[logging/fluentd/Dockerfile](logging/fluentd/Dockerfile)
+```dockerfile
+FROM fluent/fluentd:v0.12
+RUN gem install fluent-plugin-elasticsearch --no-rdoc --no-ri --version 1.9.5
+RUN gem install fluent-plugin-grok-parser --no-rdoc --no-ri --version 1.0.0
+ADD fluent.conf /fluentd/etc
+```
+
+В директории `logging/fluentd` создайте файл конфигурации:
+
+[logging/fluentd/fluent.conf](logging/fluentd/fluent.conf)
+```xml
+<source>
+  @type forward
+  port 24224
+  bind 0.0.0.0
+</source>
+
+<match *.**>
+  @type copy
+  <store>
+    @type elasticsearch
+    host elasticsearch
+    port 9200
+    logstash_format true
+    logstash_prefix fluentd
+    logstash_dateformat %Y%m%d
+    include_tag_key true
+    type_name access_log
+    tag_key @log_name
+    flush_interval 1s
+  </store>
+  <store>
+    @type stdout
+  </store>
+</match>
+```
+
+Соберите docker image для `fluentd`
+
+Из директории `logging/fluentd`
+
+Путь ДЗ
+```shell
+docker build -t $USER_NAME/fluentd .
+```
+
+Ну а мы создадим [logging/fluentd/docker_build.sh](logging/fluentd/docker_build.sh)
+```shell
+#!/bin/bash
+set -eu
+
+docker build -t $USER_NAME/fluentd .
+```
+и Makefile targets
+```shell
+###
+# fluentd
+###
+fluentd_build:
+	. ./env && \
+	cd ./logging/fluentd && bash docker_build.sh
+
+fluentd_push:
+	. ./env && \
+	docker push $${USER_NAME}/fluentd
+```
+
+И только теперь соберём образ
+```shell
+make fluentd_build fluentd_push
+```
+
+
+### Структурированные логи
+
+TODO
+
+
+
+
 ### Сбор неструктурированных логов
 
 
 
 
 ### Визуализация логов
-
-
-
-
-### Сбор структурированных логов
 
 
 
