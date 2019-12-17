@@ -251,7 +251,14 @@ vscoder microservices repository
         - [Kibana продолжение](#kibana-%d0%bf%d1%80%d0%be%d0%b4%d0%be%d0%bb%d0%b6%d0%b5%d0%bd%d0%b8%d0%b5)
       - [Фильтры](#%d0%a4%d0%b8%d0%bb%d1%8c%d1%82%d1%80%d1%8b)
     - [Неструктурированные логи](#%d0%9d%d0%b5%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bb%d0%be%d0%b3%d0%b8)
-    - [Визуализация логов](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d0%bb%d0%be%d0%b3%d0%be%d0%b2)
+      - [Логирование UI сервиса](#%d0%9b%d0%be%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-ui-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%b0)
+    - [Парсинг](#%d0%9f%d0%b0%d1%80%d1%81%d0%b8%d0%bd%d0%b3)
+      - [Перезапускаем логгинг](#%d0%9f%d0%b5%d1%80%d0%b5%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d0%ba%d0%b0%d0%b5%d0%bc-%d0%bb%d0%be%d0%b3%d0%b3%d0%b8%d0%bd%d0%b3)
+      - [Парсинг](#%d0%9f%d0%b0%d1%80%d1%81%d0%b8%d0%bd%d0%b3-1)
+    - [Задания co *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-co)
+      - [grok](#grok)
+        - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-4)
+        - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-7)
     - [Распределенная трасировка](#%d0%a0%d0%b0%d1%81%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d1%82%d1%80%d0%b0%d1%81%d0%b8%d1%80%d0%be%d0%b2%d0%ba%d0%b0)
 
 # Makefile
@@ -8600,15 +8607,447 @@ USER fluent
 
 ### Неструктурированные логи
 
-TODO:
+Неструктурированные логи отличаются отсутствием четкой структуры данных. Также часто бывает, что формат лог-сообщений не подстроен под систему централизованного логирования, что существенно увеличивает затраты вычислительных и временных ресурсов на обработку данных и выделение нужной информации.
+
+На примере сервиса ui мы рассмотрим пример логов с неудобным форматом сообщений.
 
 
-### Визуализация логов
+#### Логирование UI сервиса
+
+По аналогии с post сервисом определим для ui сервиса драйвер для логирования fluentd в compose-файле.
+
+[docker/docker-compose.yml](docker/docker-compose.yml)
+```yaml
+services:
+  ui:
+    environment:
+      APP_HOME: ${UI_APP_HOME}
+    image: ${USERNAME}/ui:${UI_VERSION}
+    ports:
+      - ${UI_PORT}:9292/tcp
+    networks:
+      - reddit_front
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.ui
+```
+
+Перезапустим ui сервис Из каталога `./docker`
+
+Путь ДЗ
+```
+docker-compose stop ui
+docker-compose rm ui
+docker-compose up -d
+```
+
+Путь Make (docker-compose сам пересоздаст контейнер)
+```shell
+make run_app
+```
+```log
+...
+Recreating docker_ui_1    ... done
+...
+```
+
+Посмотрим на формат собираемых сообщений
+```log
+I, [2019-12-17T18:15:04.146453 #1]  INFO -- : service=ui | event=show_all_posts | request_id=bf36de91-bf97-4d97-b15a-c66dec6ee581 | message='Successfully showed the home page with posts' | params: "{}"
+```
 
 
+### Парсинг
+
+Когда приложение или сервис не пишет структурированные логи, приходится использовать старые добрые **регулярные выражения** для их парсинга в [/docker/fluentd/fluent.conf](/docker/fluentd/fluent.conf)
+
+Следующее **регулярное выражение** нужно, чтобы успешно выделить интересующую нас информацию из лога UI-сервиса в поля
+
+[/docker/fluentd/fluent.conf](/docker/fluentd/fluent.conf)
+```xml
+source>
+  @type forward
+  port 24224
+  bind 0.0.0.0
+</source>
+
+<filter service.post>
+  @type parser
+  format json
+  key_name log
+</filter>
+
+<filter service.ui>
+  @type parser
+  format /\[(?<time>[^\]]*)\]  (?<level>\S+) (?<user>\S+)[\W]*service=(?<service>\S+)[\W]*event=(?<event>\S+)[\W]*(?:path=(?<path>\S+)[\W]*)?request_id=(?<request_id>\S+)[\W]*(?:remote_addr=(?<remote_addr>\S+)[\W]*)?(?:method= (?<method>\S+)[\W]*)?(?:response_status=(?<response_status>\S+)[\W]*)?(?:message='(?<message>[^\']*)[\W]*)?/
+  key_name log
+</filter>
+
+
+<match *.**>
+  @type copy
+  <store>
+    @type elasticsearch
+    host elasticsearch
+    port 9200
+    logstash_format true
+    logstash_prefix fluentd
+    logstash_dateformat %Y%m%d
+    include_tag_key true
+    type_name access_log
+    tag_key @log_name
+    flush_interval 1s
+  </store>
+  <store>
+    @type stdout
+  </store>
+</match>
+```
+
+#### Перезапускаем логгинг
+
+Обновим fluentd и перезапустим логгинг
+```shell
+make fluentd_build run_logging
+```
+
+
+#### Парсинг
+
+Результат должен выглядить следующим образом... Да что-то не очень, в эластик прилетело одно сообщение:
+```json
+{
+  "_index": "fluentd-20191217",
+  "_type": "access_log",
+  "_id": "GgYWFW8B0lVuIA-sb4VL",
+  "_version": 1,
+  "_score": null,
+  "_source": {
+    "worker": 0,
+    "message": "fluentd worker is now stopping worker=0",
+    "@timestamp": "2019-12-17T18:19:49.446032292+00:00",
+    "@log_name": "fluent.info"
+  },
+  "fields": {
+    "@timestamp": [
+      "2019-12-17T18:19:49.446Z"
+    ]
+  },
+  "sort": [
+    1576606789446
+  ]
+}
+```
+
+Упал наш флюент
+```shell
+cd ./docker && docker-compose -f docker-compose-logging.yml logs -f fluentd; cd -
+```
+```log
+Attaching to docker_fluentd_1
+fluentd_1        | /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/config/basic_parser.rb:92:in `parse_error!': unmatched end tag at fluent.conf line 6,1 (Fluent::ConfigParseError)
+fluentd_1        |   5: </source>
+fluentd_1        |   6: 
+fluentd_1        | 
+fluentd_1        |      -^
+fluentd_1        |   7: <filter service.post>
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/config/v1_parser.rb:78:in `parse_element'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/config/v1_parser.rb:43:in `parse!'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/config/v1_parser.rb:33:in `parse'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/config.rb:39:in `parse'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/supervisor.rb:779:in `read_config'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/supervisor.rb:561:in `configure'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/command/fluentd.rb:329:in `<top (required)>'
+fluentd_1        |      from /usr/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+fluentd_1        |      from /usr/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/bin/fluentd:8:in `<top (required)>'
+fluentd_1        |      from /usr/bin/fluentd:23:in `load'
+fluentd_1        |      from /usr/bin/fluentd:23:in `<main>'
+docker_fluentd_1 exited with code 1
+```
+Причина: нехватает `<` перед открывающемим тэгом `source>`.
+
+Исправлено: [/docker/fluentd/fluent.conf](/docker/fluentd/fluent.conf)
+```xml
+<source>
+  @type forward
+  port 24224
+  bind 0.0.0.0
+</source>
+
+<filter service.post>
+  @type parser
+  format json
+  key_name log
+</filter>
+
+<filter service.ui>
+  @type parser
+  format /\[(?<time>[^\]]*)\]  (?<level>\S+) (?<user>\S+)[\W]*service=(?<service>\S+)[\W]*event=(?<event>\S+)[\W]*(?:path=(?<path>\S+)[\W]*)?request_id=(?<request_id>\S+)[\W]*(?:remote_addr=(?<remote_addr>\S+)[\W]*)?(?:method= (?<method>\S+)[\W]*)?(?:response_status=(?<response_status>\S+)[\W]*)?(?:message='(?<message>[^\']*)[\W]*)?/
+  key_name log
+</filter>
+
+
+<match *.**>
+  @type copy
+  <store>
+    @type elasticsearch
+    host elasticsearch
+    port 9200
+    logstash_format true
+    logstash_prefix fluentd
+    logstash_dateformat %Y%m%d
+    include_tag_key true
+    type_name access_log
+    tag_key @log_name
+    flush_interval 1s
+  </store>
+  <store>
+    @type stdout
+  </store>
+</match>
+```
+```shell
+make fluentd_build run_logging
+```
+
+Теперь гораздо лучше: сообщение в эластике
+```json
+{
+  "_index": "fluentd-20191217",
+  "_type": "access_log",
+  "_id": "1QYdFW8B0lVuIA-ssYXr",
+  "_version": 1,
+  "_score": null,
+  "_source": {
+    "level": "INFO",
+    "user": "--",
+    "service": "ui",
+    "event": "request",
+    "path": "/",
+    "request_id": "55504441-6aac-43cf-b22e-006811a30b89",
+    "remote_addr": "185.30.195.250",
+    "method": "GET",
+    "response_status": "200",
+    "@timestamp": "2019-12-17T18:27:43.382932000+00:00",
+    "@log_name": "service.ui"
+  },
+  "fields": {
+    "@timestamp": [
+      "2019-12-17T18:27:43.382Z"
+    ]
+  },
+  "sort": [
+    1576607263382
+  ]
+}
+```
+
+Созданные регулярки могут иметь ошибки, их сложно менять и невозможно читать. Для облегчения задачи парсинга вместо стандартных регулярок можно использовать **grok**-шаблоны. По-сути **grok**’и - это именованные шаблоны регулярных выражений (очень похоже на функции). Можно использовать готовый regexp, просто сославшись на него как на функцию
+
+[docker/fluentd/fluent.conf](docker/fluentd/fluent.conf)
+```xml
+...
+<filter service.ui>
+   @type parser
+   format grok
+   grok_pattern %{RUBY_LOGGER}
+   key_name log
+</filter>
+...
+```
+
+Это grok-шаблон, зашитый в плагин для fluentd. В развернутом виде он выглядит вот так:
+```grok
+%{RUBY_LOGGER} [(?<timestamp>(?>\d\d){1,2}-(?:0?[1-9]|1[0-2])-(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9])[T ](?:2[0123]|[01]?[0-9]):?(?:[0-5][0-9])(?::?(?:(?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?))?(?:Z|[+-](?:2[0123]|[01]?[0-9])(?::?(?:[0-5][0-9])))?) #(?<pid>\b(?:[1-9][0-9]*)\b)\] *(?<loglevel>(?:DEBUG|FATAL|ERROR|WARN|INFO)) -- +(?<progname>.*?): (?<message>.*)
+```
+
+Как было видно на предыдущем слайде - часть логов нужно еще распарсить. Для этого используем несколько Grok-ов по-очереди
+
+[docker/fluentd/fluent.conf](docker/fluentd/fluent.conf)
+```xml
+<source>
+  @type forward
+  port 24224
+  bind 0.0.0.0
+</source>
+
+<filter service.post>
+  @type parser
+  format json
+  key_name log
+</filter>
+
+<filter service.ui>
+  @type parser
+  key_name log
+  format grok
+  grok_pattern %{RUBY_LOGGER}
+</filter>
+
+<filter service.ui>
+  @type parser
+  format grok
+  grok_pattern service=%{WORD:service} \| event=%{WORD:event} \| request_id=%{GREEDYDATA:request_id} \| message='%{GREEDYDATA:message}'
+  key_name message
+  reserve_data true
+</filter>
+
+<match *.**>
+  @type copy
+  <store>
+    @type elasticsearch
+    host elasticsearch
+    port 9200
+    logstash_format true
+    logstash_prefix fluentd
+    logstash_dateformat %Y%m%d
+    include_tag_key true
+    type_name access_log
+    tag_key @log_name
+    flush_interval 1s
+  </store>
+  <store>
+    @type stdout
+  </store>
+</match>
+```
+```shell
+make fluentd_build run_logging
+```
+Ошибочка
+```log
+Attaching to docker_fluentd_1
+fluentd_1        | 2019-12-17 18:34:08 +0000 [info]: parsing config file is succeeded path="/fluentd/etc/fluent.conf"
+fluentd_1        | 2019-12-17 18:34:08 +0000 [info]: gem 'fluent-plugin-elasticsearch' version '3.7.1'
+fluentd_1        | 2019-12-17 18:34:08 +0000 [info]: gem 'fluent-plugin-grok-parser' version '2.6.1'
+fluentd_1        | 2019-12-17 18:34:08 +0000 [info]: gem 'fluentd' version '1.8.0'
+fluentd_1        | 2019-12-17 18:34:08 +0000 [error]: config error file="/fluentd/etc/fluent.conf" error_class=Fluent::ConfigError error="no grok patterns. Check configuration, e.g. typo, configuration syntax, etc"
+docker_fluentd_1 exited with code 1
+```
+
+Танцы м бубном вокрук данной ситуации (чтение ридми в репозиториях плагинов, гугление и поиск подходящих issues), привели к https://github.com/repeatedly/fluent-plugin-multi-format-parser/issues/6 где для решения проблемы рекомендуют использовать `v0.12`, что мы и сделаем, использовав последние совместимые версии плагинов. Итого наш докерфайл стал таким:
+
+[logging/fluentd/Dockerfile](logging/fluentd/Dockerfile)
+```dockerfile
+FROM fluent/fluentd:v0.12
+RUN fluent-gem install fluent-plugin-elasticsearch --no-rdoc --no-ri --version 1.18.1
+RUN fluent-gem install fluent-plugin-grok-parser --no-rdoc --no-ri --version 1.0.0
+ADD fluent.conf /fluentd/etc
+```
+Затем сборка и деплой
+```shell
+make fluentd_build run_logging
+```
+Как не удивительно, но всё завелось, включая парсинг json от сервиса `post`.
+
+В итоге получим в Kibana (если совершаем действия в uiсервисе): да всё нормально получили.
+
+
+### Задания co *
+
+#### grok
+
+UI-сервис шлет логи в нескольких форматах.
+
+```log
+service=ui | event=request | path=/ | request_id=96e76ff2-3d06-4ffa-806b-c14d7ca6a78a | remote_addr=185.30.195.250 | method= GET | response_status=200
+```
+
+Такой лог остался неразобранным. Составьте конфигурацию fluentd так, чтобы разбирались оба формата логов UI-сервиса (тот, что сделали до этого и текущий) одновременно.
+
+##### Анализ
+
+Читаем документацию https://github.com/fluent/fluent-plugin-grok-parser/blob/master/README.md
+
+Парсим готовые шаблоны https://github.com/fluent/fluent-plugin-grok-parser/tree/master/patterns
+
+##### Реализация
+
+И пишем конфиг (удобный grok-дебаггер есть в кибане: Dev Tools )
+
+```xml
+<filter service.ui>
+  @type parser
+  format grok
+  <grok>
+    pattern service=%{WORD:service} \| event=%{WORD:event} \| request_id=%{GREEDYDATA:request_id} \| message='%{GREEDYDATA:message}'
+  </grok>
+  <grok>
+    pattern service=%{WORD:service} \| event=%{WORD:event} \| path=%{URIPATH:path} \| request_id=%{GREEDYDATA:request_id} \| remote_addr=%{IP:remote_addr} \| method= %{WORD:message} \| response_status=%{INT:response_status}
+  </grok>
+  key_name message
+  reserve_data true
+</filter>
+```
+
+Готово. Примеры
+```json
+{
+  "_index": "fluentd-20191217",
+  "_type": "access_log",
+  "_id": "wgZnFW8B0lVuIA-s_IqS",
+  "_version": 1,
+  "_score": null,
+  "_source": {
+    "timestamp": "2019-12-17T19:48:52.681349",
+    "pid": "1",
+    "loglevel": "INFO",
+    "progname": "",
+    "message": "Successfully showed the home page with posts",
+    "service": "ui",
+    "event": "show_all_posts",
+    "request_id": "08c3c38a-1725-4b7c-9665-c61e46265219",
+    "@timestamp": "2019-12-17T19:48:52+00:00",
+    "@log_name": "service.ui"
+  },
+  "fields": {
+    "@timestamp": [
+      "2019-12-17T19:48:52.000Z"
+    ]
+  },
+  "sort": [
+    1576612132000
+  ]
+}
+```
+```json
+{
+  "_index": "fluentd-20191217",
+  "_type": "access_log",
+  "_id": "wwZnFW8B0lVuIA-s_IqS",
+  "_version": 1,
+  "_score": null,
+  "_source": {
+    "timestamp": "2019-12-17T19:48:52.710553",
+    "pid": "1",
+    "loglevel": "INFO",
+    "progname": "",
+    "message": "GET",
+    "service": "ui",
+    "event": "request",
+    "path": "/",
+    "request_id": "08c3c38a-1725-4b7c-9665-c61e46265219",
+    "remote_addr": "185.30.195.250",
+    "response_status": "200",
+    "@timestamp": "2019-12-17T19:48:52+00:00",
+    "@log_name": "service.ui"
+  },
+  "fields": {
+    "@timestamp": [
+      "2019-12-17T19:48:52.000Z"
+    ]
+  },
+  "sort": [
+    1576612132000
+  ]
+}
+```
 
 
 ### Распределенная трасировка
 
-
+TODO
 

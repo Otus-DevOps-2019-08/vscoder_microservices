@@ -15,6 +15,11 @@ services:
       - ${UI_PORT}:9292/tcp
     networks:
       - reddit_front
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.ui
 
   post:
     environment:
