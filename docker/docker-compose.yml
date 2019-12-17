@@ -6,6 +6,7 @@ services:
       - post_db:/data/db
     networks:
       - reddit_back
+
   ui:
     environment:
       APP_HOME: ${UI_APP_HOME}
@@ -14,6 +15,7 @@ services:
       - ${UI_PORT}:9292/tcp
     networks:
       - reddit_front
+
   post:
     environment:
       APP_HOME: ${POST_APP_HOME}
@@ -21,6 +23,12 @@ services:
     networks:
       - reddit_front
       - reddit_back
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.post
+
   comment:
     environment:
       APP_HOME: ${COMMENT_APP_HOME}

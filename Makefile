@@ -239,13 +239,41 @@ fluentd_push:
 	docker push $${USER_NAME}/fluentd
 
 
+
 ###
-# app
+# app down
 ###
-run: variables
+down_app:
 	cd docker \
-	&& ../.venv/bin/docker-compose up -d \
+	&& ../.venv/bin/docker-compose down
+
+down_monitoring:
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose-monitoring.yml down
+
+down_logging:
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose-logging.yml down
+
+
+###
+# run
+###
+run_app: variables
+	cd docker \
+	&& ../.venv/bin/docker-compose up -d
+
+run_monitoring: variables
+	cd docker \
 	&& ../.venv/bin/docker-compose -f docker-compose-monitoring.yml up -d
+
+run_logging: variables
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose-logging.yml up -d
+
+
+run: run_app run_monitoring run_logging
+
 
 ###
 # copy variables from examples, if needed
