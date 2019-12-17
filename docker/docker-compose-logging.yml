@@ -6,6 +6,8 @@ services:
     ports:
       - "24224:24224"
       - "24224:24224/udp"
+    # command:
+    #   - "-v"
 
   elasticsearch:
     image: elasticsearch:7.5.0
