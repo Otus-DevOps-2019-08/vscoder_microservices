@@ -250,7 +250,7 @@ vscoder microservices repository
         - [memory locking requested for elasticsearch process but memory is not locked](#memory-locking-requested-for-elasticsearch-process-but-memory-is-not-locked)
         - [Kibana продолжение](#kibana-%d0%bf%d1%80%d0%be%d0%b4%d0%be%d0%bb%d0%b6%d0%b5%d0%bd%d0%b8%d0%b5)
       - [Фильтры](#%d0%a4%d0%b8%d0%bb%d1%8c%d1%82%d1%80%d1%8b)
-    - [Сбор неструктурированных логов](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bd%d0%b5%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d1%8b%d1%85-%d0%bb%d0%be%d0%b3%d0%be%d0%b2)
+    - [Неструктурированные логи](#%d0%9d%d0%b5%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bb%d0%be%d0%b3%d0%b8)
     - [Визуализация логов](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d0%bb%d0%be%d0%b3%d0%be%d0%b2)
     - [Распределенная трасировка](#%d0%a0%d0%b0%d1%81%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d1%82%d1%80%d0%b0%d1%81%d0%b8%d1%80%d0%be%d0%b2%d0%ba%d0%b0)
 
@@ -8387,8 +8387,7 @@ elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,756Z", "
 
 Задаём vm.max_map_count на docker-machine инстансе
 ```shell
-docker-machine ssh logging
-sudo sysctl -w vm.max_map_count=262144
+docker-machine ssh logging sudo sysctl -w vm.max_map_count=262144
 exit
 ```
 
@@ -8542,11 +8541,66 @@ services:
 
 #### Фильтры
 
+Добавим фильтр для парсинга json логов, приходящих от post сервиса, в конфиг fluentd.
+
+[logging/fluentd/fluent.conf](logging/fluentd/fluent.conf)
+```xml
+<source>
+   @type forward
+   port 24224
+   bind 0.0.0.0
+</source>
+
+<filter service.post>
+   @type parser
+   format json
+   key_name log
+</filter>
+
+<match *.**>
+   @type copy
+...
+```
+
+После этого персоберите образ и перезапустите сервис fluentd
+
+Метод ДЗ
+```shell
+logging/fluentd $ docker build -t $USER_NAME/fluentd
+docker/ $ docker-compose -f docker-compose-logging.yml up -d fluentd
+```
+
+Но у нас букв меньше. Метод Make
+```shell
+make fluentd_build run_logging
+```
+
+Вновь обратимся к Kibana. Прежде чем смотреть логи убедимся, что временной интервал выбран верно. Нажмите один раз на дату со временем. Выставлены верно!
+
+Взглянем на одно из сообщений и увидим, что вместо одного поля log появилось множество полей с нужной нам информацией... А вот и нет!
+
+Помогло обносление верий fluentd и его плагинов
+
+[logging/fluentd/Dockerfile](logging/fluentd/Dockerfile)
+```dockerfile
+FROM fluent/fluentd:v1.8
+USER root
+RUN fluent-gem install fluent-plugin-elasticsearch --no-rdoc --no-ri --version 3.7.1
+RUN fluent-gem install fluent-plugin-grok-parser --no-rdoc --no-ri --version 2.6.1
+ADD fluent.conf /fluentd/etc
+USER fluent
+```
+
+Снова взглянем на одно из сообщений и увидим, что вместо одного поля log появилось множество полей с нужной нам информацией!
+
+Выполним для пример поиск по событию создания нового поста: `event: post_create`
+
+Нашлось 2 поста, которые были созданы после настройки фильтра.
 
 
-### Сбор неструктурированных логов
+### Неструктурированные логи
 
-
+TODO:
 
 
 ### Визуализация логов
