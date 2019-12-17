@@ -247,6 +247,8 @@ vscoder microservices repository
       - [Отправка логов во Fluentd](#%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d0%bb%d0%be%d0%b3%d0%be%d0%b2-%d0%b2%d0%be-fluentd)
       - [Сбор логов Post сервиса](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bb%d0%be%d0%b3%d0%be%d0%b2-post-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%b0)
       - [Kibana](#kibana)
+        - [memory locking requested for elasticsearch process but memory is not locked](#memory-locking-requested-for-elasticsearch-process-but-memory-is-not-locked)
+        - [Kibana продолжение](#kibana-%d0%bf%d1%80%d0%be%d0%b4%d0%be%d0%bb%d0%b6%d0%b5%d0%bd%d0%b8%d0%b5)
     - [Сбор неструктурированных логов](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bd%d0%b5%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d1%8b%d1%85-%d0%bb%d0%be%d0%b3%d0%be%d0%b2)
     - [Визуализация логов](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d0%bb%d0%be%d0%b3%d0%be%d0%b2)
     - [Распределенная трасировка](#%d0%a0%d0%b0%d1%81%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d1%82%d1%80%d0%b0%d1%81%d0%b8%d1%80%d0%be%d0%b2%d0%ba%d0%b0)
@@ -8341,6 +8343,174 @@ make run_logging down_app run_app
 
 #### Kibana
 
+Kibana - инструмент для визуализации и анализа логов от компании Elastic.
+
+Откроем WEB-интерфейс Kibana для просмотра собранных в ElasticSearch логов Post-сервиса (kibana слушает на порту 5601)
+
+Ошибка: 
+> Kibana server is not ready yet
+
+Смотрим список запущенных контейнеров
+```shell
+cd ./docker && docker-compose -f docker-compose-logging.yml ps
+```
+```log
+         Name                       Command                State                               Ports                            
+--------------------------------------------------------------------------------------------------------------------------------
+docker_elasticsearch_1   /usr/local/bin/docker-entr ...   Exit 78                                                               
+docker_fluentd_1         tini -- /bin/entrypoint.sh ...   Up        0.0.0.0:24224->24224/tcp, 0.0.0.0:24224->24224/udp, 5140/tcp
+docker_kibana_1          /usr/local/bin/dumb-init - ...   Up        0.0.0.0:5601->5601/tcp
+```
+
+Смотрим логи ES
+```shell
+docker-compose -f docker-compose-logging.yml logs elasticsearch
+```
+```log
+...
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:21,661Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "initialized" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:21,663Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "starting ..." }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,530Z", "level": "INFO", "component": "o.e.t.TransportService", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "publish_address {172.20.0.4:9300}, bound_addresses {0.0.0.0:9300}" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,569Z", "level": "INFO", "component": "o.e.b.BootstrapChecks", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "bound or publishing to a non-loopback address, enforcing bootstrap checks" }
+elasticsearch_1  | ERROR: [2] bootstrap checks failed
+elasticsearch_1  | [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+elasticsearch_1  | [2]: the default discovery settings are unsuitable for production use; at least one of [discovery.seed_hosts, discovery.seed_providers, cluster.initial_master_nodes] must be configured
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,632Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "stopping ..." }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,677Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "stopped" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,679Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "closing ..." }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,752Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "closed" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,756Z", "level": "INFO", "component": "o.e.x.m.p.NativeController", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "Native controller process has stopped - no new native processes can be started" }
+```
+
+Поиск в слаке дал решение. Чиним:
+
+Задаём vm.max_map_count на docker-machine инстансе
+```shell
+docker-machine ssh logging
+sudo sysctl -w vm.max_map_count=262144
+exit
+```
+
+Обновим версию и добавим envionment
+
+[docker-compose-logging.yml](docker/docker-compose-logging.yml)
+```yaml
+services:
+  ...
+  elasticsearch:
+    image: elasticsearch:7.5.0
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=docker-cluster
+      - node.master=true
+      - cluster.initial_master_nodes=elasticsearch
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+  ...
+```
+
+Перезапускаем logging
+```shell
+make down_logging run_logging
+```
+
+Проверяем
+```shell
+cd ./docker && docker-compose -f docker-compose-logging.yml ps
+```
+Ошибка
+```log
+         Name                       Command                State                               Ports                            
+--------------------------------------------------------------------------------------------------------------------------------
+docker_elasticsearch_1   /usr/local/bin/docker-entr ...   Exit 78                                                               
+docker_fluentd_1         tini -- /bin/entrypoint.sh ...   Up        0.0.0.0:24224->24224/tcp, 0.0.0.0:24224->24224/udp, 5140/tcp
+docker_kibana_1          /usr/local/bin/dumb-init - ...   Up        0.0.0.0:5601->5601/tcp
+```
+```shell
+docker-compose -f docker-compose-logging.yml logs elasticsearch
+```
+```log
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:31:29,375Z", "level": "WARN", "component": "o.e.b.JNANatives", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "Unable to lock JVM Memory: error=12, reason=Cannot allocate memory" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:31:29,386Z", "level": "WARN", "component": "o.e.b.JNANatives", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "This can result in part of the JVM being swapped out." }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:31:29,388Z", "level": "WARN", "component": "o.e.b.JNANatives", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "Increase RLIMIT_MEMLOCK, soft limit: 65536, hard limit: 65536" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:31:29,390Z", "level": "WARN", "component": "o.e.b.JNANatives", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "These can be adjusted by modifying /etc/security/limits.conf, for example: \n\t# allow user 'elasticsearch' mlockall\n\telasticsearch soft memlock unlimited\n\telasticsearch hard memlock unlimited" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:31:29,397Z", "level": "WARN", "component": "o.e.b.JNANatives", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "If you are logged in interactively, you will have to re-login for the new limits to take effect." }
+...
+elasticsearch_1  | ERROR: [1] bootstrap checks failed
+elasticsearch_1  | [1]: memory locking requested for elasticsearch process but memory is not locked
+```
+Отчасти помогла найти проблему дискуссия по [ссылке](https://discuss.elastic.co/t/elasticsearch-is-not-starting-when-bootstrap-memory-lock-is-set-to-true/120962/2)
+
+
+##### memory locking requested for elasticsearch process but memory is not locked
+
+Правим `/etc/security/limits.conf` на инстансе docker-machine
+```shell
+docker-machine ssh logging
+echo elasticsearch soft memlock unlimited | sudo tee /etc/security/limits.conf
+echo elasticsearch hard memlock unlimited | sudo tee /etc/security/limits.conf
+exit
+```
+
+Переподнимаем logging
+```shell
+make down_logging run_logging
+```
+
+Результат тот же.
+
+После некоторых блужданий, решение найдено https://github.com/deviantony/docker-elk/issues/243
+
+К сервису добавлены лимиты
+```yaml
+ulimits:
+  memlock:
+    soft: -1
+    hard: -1
+```
+
+Итоговый [docker/docker-compose-logging.yml](docker/docker-compose-logging.yml)
+```yaml
+---
+version: "3"
+services:
+  fluentd:
+    image: ${USERNAME}/fluentd
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+
+  elasticsearch:
+    image: elasticsearch:7.5.0
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=docker-cluster
+      - node.master=true
+      - cluster.initial_master_nodes=elasticsearch
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  kibana:
+    image: kibana:7.5.0
+    ports:
+      - "5601:5601"
+```
+
+##### Kibana продолжение
+
+Откроем WEB-интерфейс Kibana для просмотра собранных в ElasticSearch логов Post-сервиса (kibana слушает на порту 5601) http://35.223.106.118:5601
 
 
 
