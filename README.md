@@ -266,6 +266,10 @@ vscoder microservices repository
       - [Пересоздадим наши сервисы](#%d0%9f%d0%b5%d1%80%d0%b5%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%b4%d0%b8%d0%bc-%d0%bd%d0%b0%d1%88%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d1%8b-1)
     - [Вне заданий: проблемы с comment](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b-%d1%81-comment)
     - [Самостоятельное задание со звездочкой *](#%d0%a1%d0%b0%d0%bc%d0%be%d1%81%d1%82%d0%be%d1%8f%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be-%d0%b7%d0%b2%d0%b5%d0%b7%d0%b4%d0%be%d1%87%d0%ba%d0%be%d0%b9)
+      - [Репозиторий](#%d0%a0%d0%b5%d0%bf%d0%be%d0%b7%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%b9)
+      - [Проблема](#%d0%9f%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d0%b0)
+      - [Поиск проблемы](#%d0%9f%d0%be%d0%b8%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b-1)
+      - [Проблема с EFK](#%d0%9f%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d0%b0-%d1%81-efk)
 
 # Makefile
 
@@ -9267,3 +9271,195 @@ and the repository exists.
 ### Самостоятельное задание со звездочкой \*
 
 С нашим приложением происходит что-то странное. Пользователи жалуются, что при нажатии на пост они вынуждены долго ждать, пока у них загрузится страница с постом. Жалоб на загрузку других страниц не поступало. Нужно выяснить, в чем проблема, используя Zipkin.
+
+[Ссылка на репозиторий](https://github.com/Artemmkin/bugged-code) со сломанным кодом приложения.
+
+Описание проблемы можно опублиовать в PR, в разделе выполнения задания со звездочкой
+
+#### Репозиторий
+
+```shell
+git clone git@github.com:Artemmkin/bugged-code.git
+```
+
+Параметризуем директорию с исходниками в [Makefile](Makefile)
+```makefile
+# Source code directory
+SRC_DIR?=./src
+...
+###
+# Build
+###
+build_comment:
+	. ./env && \
+	cd ${SRC_DIR}/comment && bash ./docker_build.sh
+
+build_post:
+	. ./env && \
+	cd ${SRC_DIR}/post-py && bash ./docker_build.sh
+
+build_ui:
+	. ./env && \
+	cd ${SRC_DIR}/ui && bash ./docker_build.sh
+```
+
+Каждому образу в `./bugged-code/*/docker_build.sh` добавлен тег `bugged`
+
+Собираем образы
+
+```shell
+make build_comment build_post build_ui SRC_DIR=./bugged-code
+```
+
+В `docker/.env` меняем версию сервисов на `bugged`. 
+
+Запускаем приложение:
+```shell
+make run_app
+```
+
+
+#### Проблема
+
+При открытии страницы приложения, видим ошибку
+> Can't show blog posts, some problems with the post service. Refresh?
+
+В zipkin:
+1. находим ошибочный трейс, открываем
+2. находим ошибочный спан, открываем
+
+Видим ошибку
+```log
+error	Request connection failed.
+http.path	/posts
+Server Address	127.0.0.1:4567 (127)
+```
+
+Почему он пытаается открыть post на `127.0.0.1`? В то время когда должен лезть на сервис с именем post...
+
+Решение: в `Dockerfile` нашего приложения были заданы значения по умолчанию с адресами сервисов. В `bugged`-версии такого нет. Зададим данные переменные через `environment` в [docker-compose.yml](docker/docker-compose.yml)
+```yaml
+service:
+  ui:
+    environment:
+      APP_HOME: ${UI_APP_HOME}
+      ZIPKIN_ENABLED: ${ZIPKIN_ENABLED}
+      POST_SERVICE_HOST: post
+      POST_SERVICE_PORT: 5000
+      COMMENT_SERVICE_HOST: comment
+      COMMENT_SERVICE_PORT: 9292
+    image: ${USERNAME}/ui:${UI_VERSION}
+```
+Значения переменных заданы явно, так как адреса севрвисов захардкожены в самом композ-файле, а номара портов никак не настраиваются для приложений.
+
+Перезапускаем приложение
+```shell
+make down_app
+make run_app
+```
+
+Теперь всё работает. Продолжаем работу в рамках ДЗ
+
+
+#### Поиск проблемы
+
+Открыие страницы с постом происходит очень медленно http://34.69.62.207:9292/post/5dfa57b6ee0fa2000ea79437
+
+Смотрим zipkin:
+
+- Находим трейс `3.071s 6 spans`
+- span `post.db_find_single_post: 3.006s`
+
+Похоже, что поиск поста происходит слишком медленно
+
+Перезапустим нормальное приложение (версия `logging`): тот же спан ~105ms
+
+Проблема найдена.
+
+
+#### Проблема с EFK
+
+Посмотрим в kibana
+
+```json
+{
+  "_index": "fluentd-20191218",
+  "_type": "access_log",
+  "_id": "aTxvGm8BX5Q2VjUnBF1B",
+  "_version": 1,
+  "_score": null,
+  "_source": {
+    "error_class": "Fluent::ElasticsearchErrorHandler::ElasticsearchError",
+    "error": "400 - Rejected by Elasticsearch",
+    "location": null,
+    "tag": "service.post",
+    "time": 1576696476,
+    "record": {
+      "addr": "172.22.0.3",
+      "event": "request",
+      "level": "info",
+      "method": "GET",
+      "path": "/post/5dfa57b6ee0fa2000ea79437?",
+      "request_id": "e27e47a9-6355-4a19-aeb1-40470d5004dd",
+      "response_status": 200,
+      "service": "post",
+      "timestamp": "2019-12-18 19:14:36"
+    },
+    "message": "dump an error event: error_class=Fluent::ElasticsearchErrorHandler::ElasticsearchError error=\"400 - Rejected by Elasticsearch\" location=nil tag=\"service.post\" time=1576696476 record={\"addr\"=>\"172.22.0.3\", \"event\"=>\"request\", \"level\"=>\"info\", \"method\"=>\"GET\", \"path\"=>\"/post/5dfa57b6ee0fa2000ea79437?\", \"request_id\"=>\"e27e47a9-6355-4a19-aeb1-40470d5004dd\", \"response_status\"=>200, \"service\"=>\"post\", \"timestamp\"=>\"2019-12-18 19:14:36\"}",
+    "@timestamp": "2019-12-18T19:14:37+00:00",
+    "@log_name": "fluent.warn"
+  },
+  "fields": {
+    "@timestamp": [
+      "2019-12-18T19:14:37.000Z"
+    ]
+  },
+  "highlight": {
+    "tag": [
+      "@kibana-highlighted-field@service.post@/kibana-highlighted-field@"
+    ],
+    "message": [
+      "dump an error event: error_class=Fluent::ElasticsearchErrorHandler::ElasticsearchError error=\"400 - Rejected by Elasticsearch\" location=nil tag=\"@kibana-highlighted-field@service.post@/kibana-highlighted-field@\" time=1576696476 record={\"addr\"=>\"172.22.0.3\", \"event\"=>\"request\", \"level\"=>\"info\", \"method\"=>\"GET\", \"path\"=>\"/post/5dfa57b6ee0fa2000ea79437?\", \"request_id\"=>\"e27e47a9-6355-4a19-aeb1-40470d5004dd\", \"response_status\"=>200, \"service\"=>\"post\", \"timestamp\"=>\"2019-12-18 19:14:36\"}"
+    ],
+    "tag.keyword": [
+      "@kibana-highlighted-field@service.post@/kibana-highlighted-field@"
+    ]
+  },
+  "sort": [
+    1576696477000
+  ]
+}
+```
+
+Странные ошибки. Найдена Issue https://github.com/uken/fluent-plugin-elasticsearch/issues/467
+
+Попробуем включить дебаг в [logging/fluentd/fluent.conf](logging/fluentd/fluent.conf)
+```xml
+...
+<match *.**>
+  @type copy
+  <store>
+    @log_level debug
+    @type elasticsearch
+    host elasticsearch
+...
+```
+
+```shell
+make run_logging
+```
+
+Обновим страницу...
+В es ошибки не пропали. Лог ES:
+```log
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-18T19:24:39,220Z", "level": "DEBUG", "component": "o.e.a.b.TransportShardBulkAction", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "[fluentd-20191218][0] failed to execute bulk item (index) index {[fluentd-20191218][access_log][fjx4Gm8BX5Q2VjUnJV2n], source[{\"addr\":\"172.22.0.3\",\"event\":\"request\",\"level\":\"info\",\"method\":\"GET\",\"path\":\"/post/5dfa57b6ee0fa2000ea79437?\",\"request_id\":\"ce9c55fb-6522-4723-8769-c0a12f090b36\",\"response_status\":200,\"service\":\"post\",\"timestamp\":\"2019-12-18 19:24:38\",\"@timestamp\":\"2019-12-18T19:24:38+00:00\",\"@log_name\":\"service.post\"}]}", "cluster.uuid": "Tm7FR-K9RGmirE07d8jmsQ", "node.id": "R6gRLHXhQgWyqbXc3DY5iQ" , 
+elasticsearch_1  | "stacktrace": ["org.elasticsearch.index.mapper.MapperParsingException: failed to parse field [timestamp] of type [date] in document with id 'fjx4Gm8BX5Q2VjUnJV2n'. Preview of field's value: '2019-12-18 19:24:38'",
+```
+
+Не может распарсить поле `timestamp`? Сделаем его строкой))
+
+В кибане: Management -> Index Patterns -> страница 7 -> `timestamp` изменить -> Format: **String**
+
+Теперь вновь пришедшие сообщения выглядят нормально.
+
+Дебаг плагина в [logging/fluentd/fluent.conf](logging/fluentd/fluent.conf) выглючил `make fluentd_build run_logging`
