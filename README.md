@@ -260,6 +260,12 @@ vscoder microservices repository
         - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-4)
         - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-7)
     - [Распределенная трасировка](#%d0%a0%d0%b0%d1%81%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d1%82%d1%80%d0%b0%d1%81%d0%b8%d1%80%d0%be%d0%b2%d0%ba%d0%b0)
+      - [Zipkin](#zipkin)
+      - [docker-compose.yml](#docker-composeyml-3)
+      - [Networks](#networks)
+      - [Пересоздадим наши сервисы](#%d0%9f%d0%b5%d1%80%d0%b5%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%b4%d0%b8%d0%bc-%d0%bd%d0%b0%d1%88%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d1%8b-1)
+    - [Вне заданий: проблемы с comment](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b-%d1%81-comment)
+    - [Самостоятельное задание со звездочкой *](#%d0%a1%d0%b0%d0%bc%d0%be%d1%81%d1%82%d0%be%d1%8f%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be-%d0%b7%d0%b2%d0%b5%d0%b7%d0%b4%d0%be%d1%87%d0%ba%d0%be%d0%b9)
 
 # Makefile
 
@@ -9049,5 +9055,215 @@ service=ui | event=request | path=/ | request_id=96e76ff2-3d06-4ffa-806b-c14d7ca
 
 ### Распределенная трасировка
 
-TODO
+Разобраться с темой распределенного трейсинга и решить проблему в конце данного файла.
 
+#### Zipkin
+
+Добавьте в compose-файл для сервисов логирования сервис распределенного трейсинга Zipkin
+
+[docker/docker-compose-logging.yml](docker/docker-compose-logging.yml)
+```yaml
+version: '3'
+
+services:
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+
+  ...
+
+  kibana:
+    image: kibana
+    ports:
+      - "8080:5601"  # Почему 8080??? Раньше так не было...
+```
+
+
+#### docker-compose.yml
+
+Правим наш [docker/docker-compose.yml]([docker/docker-compose.yml])
+
+Добавьте для каждого сервиса поддержку `ENV` переменных и задайте параметризованный параметр `ZIPKIN_ENABLED`
+
+```yaml
+environment:
+   - ZIPKIN_ENABLED=${ZIPKIN_ENABLED}
+```
+
+В `.env` файле укажите
+```shell
+ZIPKIN_ENABLED=true
+```
+
+Перевыкатите приложение с обновлением
+
+Метод ДЗ
+```shell
+docker-compose up -d
+```
+
+Метод Make
+```shell
+make run_app
+```
+
+
+#### Networks
+
+Zipkin должен быть в одной сети с приложениями, поэтому, если вы выполняли задание с сетями, вам нужно объявить эти сети в [docker-compose-logging.yml](docker/docker-compose-logging.yml) и добавить в них zikpkin похожим образом:
+
+```yaml
+services:
+  ...
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - reddit_front
+      - reddit_back
+
+networks:
+  reddit_front:
+  reddit_back:
+```
+
+
+#### Пересоздадим наши сервисы
+
+Метод ДЗ
+```shell
+docker-compose -f docker-compose-logging.yml -f docker-compose.yml down
+docker-compose -f docker-compose-logging.yml -f docker-compose.yml up -d
+```
+Им и воспользуемся (сюрприз))
+P.S. Понадобилось поднять версию композ-файла [docker/docker-compose-logging.yml](docker/docker-compose-logging.yml) с `3.0` до `3.3`
+```log
+Status: Downloaded newer image for openzipkin/zipkin:latest
+Creating docker_kibana_1 ... 
+Creating docker_post_db_1 ... 
+Creating docker_zipkin_1  ... 
+Creating docker_post_1    ... 
+Creating docker_kibana_1        ... done
+Creating docker_post_db_1       ... done
+Creating docker_zipkin_1        ... done
+
+Creating docker_elasticsearch_1 ... done
+
+Creating docker_fluentd_1       ... done
+Creating docker_comment_1       ... done
+
+ERROR: for ui  Cannot start service ui: failed to initialize logging driver: dial tcp 127.0.0.1:24224: connect: connection refused
+
+ERROR: for post  Cannot start service post: failed to initialize logging driver: dial tcp 127.0.0.1:24224: connect: connection refused
+ERROR: Encountered errors while bringing up the project.
+```
+
+Повторный запуск помог. Похоже, приложение не смогло стартовать до полного запуска zipkin.
+```shell
+docker-compose -f docker-compose-logging.yml -f docker-compose.yml up -d
+```
+```log
+Starting docker_post_1 ... 
+docker_elasticsearch_1 is up-to-date
+docker_zipkin_1 is up-to-date
+Starting docker_ui_1   ... 
+docker_kibana_1 is up-to-date
+Starting docker_post_1    ... done
+Starting docker_ui_1      ... done
+Starting docker_comment_1 ... done
+```
+
+Откроем Zipkin WEB UI на порту 9411, пока никаких трейсов поиск не должен дать, т.к. никаких запросов нашему приложению еще не поступало (так и есть)
+
+Откроем главную страницу приложения и обновим ее несколько раз.
+
+Заглянув затем в UI Zipkin (страницу потребуется обновить), мы должны найти несколько трейсов (следов, которые оставили запросы проходя через систему наших сервисов)... Да, нашли.
+
+Нажмем на один из трейсов, чтобы посмотреть, как запрос шел через нашу систему микросервисов и каково общее время обработки запроса у нашего приложения при запросе главной страницы.
+
+Видим, что первым делом наш запрос попал к ui сервису, который смог обработать наш запрос за суммарное время равное **187.566ms**.
+
+Из этих **187ms** ms ушло **134.155ms** на то чтобы ui мог направить запрос post сервису по пути `/posts` и получить от него ответ в виде списка постов. Post сервис в свою очередь использовал функцию обращения к БД за списком постов, на что ушло **4.827ms**... На самом деле, не видны в трейсах обращения к БД, но посмотрим что будет дальше.
+
+Повторим немного терминологию: синие полоски со временем называются **span** и представляют собой одну операцию, которая произошла при обработке запроса. Набор **span**-ов называется трейсом. Суммарное время обработки нашего запроса равно верхнему **span**-у, который включает в себя время всех **span**-ов, расположенных под ним.
+
+
+### Вне заданий: проблемы с comment
+
+```shell
+docker-compose ps
+```
+```log
+      Name                   Command             State            Ports         
+--------------------------------------------------------------------------------
+docker_comment_1   puma                          Exit 1                         
+docker_post_1      python3 post_app.py           Up                             
+docker_post_db_1   docker-entrypoint.sh mongod   Up       27017/tcp             
+docker_ui_1        puma                          Up       0.0.0.0:9292->9292/tcp
+```
+
+Включим логгирование для comment
+
+[docker/docker-compose.yml](docker/docker-compose.yml)
+```yaml
+services:
+  ...
+  comment:
+    environment:
+      APP_HOME: ${COMMENT_APP_HOME}
+      ZIPKIN_ENABLED: ${ZIPKIN_ENABLED}
+    image: ${USERNAME}/comment:${COMMENT_VERSION}
+    networks:
+      - reddit_front
+      - reddit_back
+    links:
+      - "post_db:comment_db"
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.comment
+```
+
+Рестарт app
+```shell
+make run_app
+```
+
+Смотрим логи
+```log
+! Unable to load application: TZInfo::DataSourceNotFound: No source of timezone data could be found.
+```
+
+Гугление. [Первая ссылка:](https://github.com/tzinfo/tzinfo/wiki/Resolving-TZInfo::DataSourceNotFound-Errors)
+
+Создал Issue https://github.com/express42/reddit/issues/9
+
+Склонировал репо. Создал бренч `fix-comment` из `logging`. 
+
+Исправил: в [src/comment/Gemfile](src/comment/Gemfile) добавил `gem 'tzinfo-data'` - помогло)
+
+Закоммитил. НО при пуше ошибка
+```shell
+git push
+```
+```log
+ERROR: Permission to express42/reddit.git denied to vscoder.
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+```
+
+Сделал форк https://github.com/vscoder/reddit
+
+Исправил. Закоммитил. Создал PR https://github.com/express42/reddit/pull/10
+
+Исправил в своём репозитории.
+
+
+### Самостоятельное задание со звездочкой \*
+
+С нашим приложением происходит что-то странное. Пользователи жалуются, что при нажатии на пост они вынуждены долго ждать, пока у них загрузится страница с постом. Жалоб на загрузку других страниц не поступало. Нужно выяснить, в чем проблема, используя Zipkin.
