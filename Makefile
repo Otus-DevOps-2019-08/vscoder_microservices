@@ -4,6 +4,9 @@ TEMP_DIR?=/tmp
 # Environment name
 ENV?=stage
 
+# Source code directory
+SRC_DIR?=./src
+
 # Docker-machine
 DOCKER_MACHINE_VERSION?=v0.16.0
 DOCKER_MACHINE_BASEURL=https://github.com/docker/machine/releases/download
@@ -146,15 +149,15 @@ docker_machine_ip_logging:
 ###
 build_comment:
 	. ./env && \
-	cd src/comment && bash ./docker_build.sh
+	cd ${SRC_DIR}/comment && bash ./docker_build.sh
 
 build_post:
 	. ./env && \
-	cd src/post-py && bash ./docker_build.sh
+	cd ${SRC_DIR}/post-py && bash ./docker_build.sh
 
 build_ui:
 	. ./env && \
-	cd src/ui && bash ./docker_build.sh
+	cd ${SRC_DIR}/ui && bash ./docker_build.sh
 
 build_prometheus:
 	. ./env && \
