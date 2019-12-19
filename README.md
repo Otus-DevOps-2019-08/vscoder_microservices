@@ -270,6 +270,9 @@ vscoder microservices repository
       - [Проблема](#%d0%9f%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d0%b0)
       - [Поиск проблемы](#%d0%9f%d0%be%d0%b8%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b-1)
       - [Проблема с EFK](#%d0%9f%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d0%b0-%d1%81-efk)
+    - [Как запустить проект:](#%d0%9a%d0%b0%d0%ba-%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d1%82%d1%8c-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82)
+      - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-5)
+      - [Запуск](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-1)
 
 # Makefile
 
@@ -9080,7 +9083,7 @@ services:
   kibana:
     image: kibana
     ports:
-      - "8080:5601"  # Почему 8080??? Раньше так не было...
+      - "8080:5601"  # Почему 8080??? Раньше так не было... в композ-файле прописал 5601:5601
 ```
 
 
@@ -9463,3 +9466,29 @@ elasticsearch_1  | "stacktrace": ["org.elasticsearch.index.mapper.MapperParsingE
 Теперь вновь пришедшие сообщения выглядят нормально.
 
 Дебаг плагина в [logging/fluentd/fluent.conf](logging/fluentd/fluent.conf) выглючил `make fluentd_build run_logging`
+
+
+### Как запустить проект:
+
+#### Подготовка
+
+Предварительно необходимо заполнить файлы ./env и ./monitoring/alertmanager/env по примеру env.example в соответствующих директориях, а так же выполнить авторизацию в gcloud
+
+```shell
+# Установка docker-machine
+make install_docker_machine
+
+# Создание docker-machine
+make docker_machine_create_logging
+
+# Исплоьзование docker-machine
+eval $(docker-machine env logging)
+
+# Узнать docker-machine ip
+make docker_machine_ip_logging
+```
+
+#### Запуск
+
+- `make run_logging run_app` - только приложение и логгинг
+- Или `make run` - запуск всего
