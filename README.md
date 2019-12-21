@@ -273,6 +273,9 @@ vscoder microservices repository
     - [Как запустить проект:](#%d0%9a%d0%b0%d0%ba-%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d1%82%d1%8c-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82)
       - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-5)
       - [Запуск](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-1)
+  - [HomeWork 19: Введение в Kubernetes](#homework-19-%d0%92%d0%b2%d0%b5%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b2-kubernetes)
+    - [Создание примитивов](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%b8%d0%bc%d0%b8%d1%82%d0%b8%d0%b2%d0%be%d0%b2)
+    - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5)
 
 # Makefile
 
@@ -9492,3 +9495,50 @@ make docker_machine_ip_logging
 
 - `make run_logging run_app` - только приложение и логгинг
 - Или `make run` - запуск всего
+
+
+## HomeWork 19: Введение в Kubernetes
+
+### Создание примитивов
+
+Опишем приложение в контексте Kubernetes с помощью manifest-ов в YAML-формате. Основным примитивом будет *Deployment*. Основные задачи сущности *Deployment*:
+
+- Создание *Replication Controller*-а (следит, чтобы число запущенных *Pod*-ов соответствовало описанному);
+- Ведение истории версий запущенных *Pod*-ов (для различных стратегий деплоя, для возможностей отката);
+- Описание процесса деплоя (стратегия, параметры стратегий).
+
+Пример *Deployment*:
+`post-deployment.yml`
+```yaml
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: post-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: post
+  template:
+    metadata:
+      name: post
+      labels:
+        app: post
+    spec:
+      containers:
+      - image: vscoder/post
+        name: post
+```
+
+### Задание
+
+- Создайте директорию `kubernetes` в корне репозитория;
+- Внутри директории `kubernetes` создайте директорию `reddit`;
+- Сохраните файл [post-deployment.yml](kubernetes/reddit/post-deployment.yml) в директории `kubernetes/reddit`;
+- Создайте собственные файлы с *Deployment* манифестами приложений и сохраните в папке `kubernetes/reddit`;
+  - [ui-deployment.yml](kubernetes/reddit/ui-deployment.yml)
+  - [comment-deployment.yml](kubernetes/reddit/comment-deployment.yml)
+  - [mongo-deployment.yml](kubernetes/reddit/mongo-deployment.yml)
+
+P.S. Эту директорию и файлы в ней в дальнейшем мы будем развивать (пока это нерабочие экземпляры).
