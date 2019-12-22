@@ -281,6 +281,7 @@ vscoder microservices repository
     - [Возможные проблемы](#%d0%92%d0%be%d0%b7%d0%bc%d0%be%d0%b6%d0%bd%d1%8b%d0%b5-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b)
     - [Задание со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be)
     - [Выполнение задания](#%d0%92%d1%8b%d0%bf%d0%be%d0%bb%d0%bd%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f)
+    - [Проверка деплоя](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b4%d0%b5%d0%bf%d0%bb%d0%be%d1%8f)
 
 # Makefile
 
@@ -9589,6 +9590,40 @@ P.S. Эту директорию и файлы в ней в дальнейшем
 - Описать установку компонентов Kubernetes из THW в виде Ansible-плейбуков в папке `kubernetes/ansible`;
 - Задание достаточно выполнить в виде Proof of Concept, просто автоматизация некоторых действий туториала.
 
+Задание со * выполнять не буду, так как практическое применение не предвидится, к тому же есть же [KubeSpray](https://github.com/kubernetes-sigs/kubespray)
 
 ### Выполнение задания
 
+Выполнение задания будет описано в отдельном файле [kubernetes/the_hard_way/README.md](kubernetes/the_hard_way/README.md)
+
+### Проверка деплоя
+
+Кластер развёрнут по THW: [описание процесса](./kubernetes/the_hard_way/README.md)
+
+Далее - деплой подов нашего приложения:
+
+```shell
+cd kubernetes/reddit
+kubectl apply -f ./
+```
+```log
+deployment.apps/comment-deployment created
+deployment.apps/mongo-deployment created
+deployment.apps/post-deployment created
+deployment.apps/ui-deployment created
+```
+
+```shell
+kubectl get pods
+```
+```log
+NAME                                  READY   STATUS    RESTARTS   AGE
+busybox                               1/1     Running   0          51m
+comment-deployment-5bb6744cdd-rprz9   1/1     Running   0          32s
+mongo-deployment-86d49445c4-fzsbp     1/1     Running   0          31s
+nginx-554b9c67f9-zkpn2                1/1     Running   0          42m
+post-deployment-7576fb4896-m9tm7      1/1     Running   0          31s
+ui-deployment-57d7c9fd56-s7gcq        1/1     Running   0          30s
+```
+
+Как видим, работает. Далее очистка и коммит
