@@ -282,6 +282,22 @@ vscoder microservices repository
     - [Задание со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be)
     - [Выполнение задания](#%d0%92%d1%8b%d0%bf%d0%be%d0%bb%d0%bd%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f)
     - [Проверка деплоя](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b4%d0%b5%d0%bf%d0%bb%d0%be%d1%8f)
+  - [HomeWork 20: Kubernetes. Запуск кластера и приложения. Модель безопасности.](#homework-20-kubernetes-%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%ba%d0%bb%d0%b0%d1%81%d1%82%d0%b5%d1%80%d0%b0-%d0%b8-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-%d0%9c%d0%be%d0%b4%d0%b5%d0%bb%d1%8c-%d0%b1%d0%b5%d0%b7%d0%be%d0%bf%d0%b0%d1%81%d0%bd%d0%be%d1%81%d1%82%d0%b8)
+    - [План](#%d0%9f%d0%bb%d0%b0%d0%bd-3)
+    - [Разворачиваем Kubernetes локально](#%d0%a0%d0%b0%d0%b7%d0%b2%d0%be%d1%80%d0%b0%d1%87%d0%b8%d0%b2%d0%b0%d0%b5%d0%bc-kubernetes-%d0%bb%d0%be%d0%ba%d0%b0%d0%bb%d1%8c%d0%bd%d0%be)
+    - [Kubectl](#kubectl)
+    - [minikube](#minikube)
+    - [Minikube](#minikube)
+      - [Before you begin](#before-you-begin)
+      - [Installing minikube](#installing-minikube)
+      - [Kubectl](#kubectl-1)
+      - [Запустим приложение](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d0%bc-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d0%b5)
+        - [Deployment](#deployment)
+        - [UI](#ui)
+        - [Comment](#comment)
+        - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-2)
+  - [yaml](#yaml)
+  - [yaml](#yaml-1)
 
 # Makefile
 
@@ -9627,3 +9643,538 @@ ui-deployment-57d7c9fd56-s7gcq        1/1     Running   0          30s
 ```
 
 Как видим, работает. Далее очистка и коммит
+
+
+## HomeWork 20: Kubernetes. Запуск кластера и приложения. Модель безопасности.
+
+### План
+
+- Развернуть локальное окружение для работы с Kubernetes
+- Развернуть Kubernetes в GKE 
+- Запустить reddit в Kubernetes
+
+
+### Разворачиваем Kubernetes локально
+
+Для дальнейшей работы нам нужно подготовить локальное окружение, которое будет состоять из:
+
+1. **kubectl** - фактически, главной утилиты для работы c Kubernetes API (все, что делает kubectl, можно сделать с помощью HTTP-запросов к API k8s)
+2. Директории `~/.kube` - содержит служебную инфу для kubectl (конфиги, кеши, схемы API)
+3. **minikube** - утилиты для разворачивания локальной инсталляции Kubernetes.
+
+
+### Kubectl
+
+Необходимо установить kubectl: Все способы установки доступны по [ссылке](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+
+Будем ставить `kubectl` версии, совместимой с версией kubernetes в minikube
+
+
+### minikube
+
+Для работы Minukube вам понадобится локальный гипервизор: 
+
+1. Для OS X: или xhyve driver, или VirtualBox, или VMware Fusion
+2. Для Linux: VirtualBox или KVM.
+3. Для Windows: VirtualBox или Hyper-V.
+
+В общем, VirtualBox - наше всё)) Уже установлен.
+
+### Minikube
+
+Инструкция по установке Minikube для разных ОС: https://kubernetes.io/docs/tasks/tools/install-minikube/
+
+#### Before you begin
+
+Проверка на поддержку виртуализации
+```shell
+grep -E --color 'vmx|svm' /proc/cpuinfo
+```
+```log
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf tsc_known_freq pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single pti ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp md_clear flush_l1d
+...
+```
+Мы всё умеем
+
+#### Installing minikube
+
+install latest kubectl
+```shell
+cd ~/bin
+curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+chmod +x kubectl
+mv kubectl kubectl-v1.17.0
+ln -s kubectl-v1.17.0 kubectl
+kubectl version --client
+```
+```log
+Client Version: version.Info{Major:"1", Minor:"17", GitVersion:"v1.17.0", GitCommit:"70132b0f130acc0bed193d9ba59dd186f0e634cf", GitTreeState:"clean", BuildDate:"2019-12-07T21:20:10Z", GoVersion:"go1.13.4", Compiler:"gc", Platform:"linux/amd64"}
+```
+
+Install Minikube via direct download
+
+```shell
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 \
+  && chmod +x minikube
+mv minikube minikube-v1.6.2
+ln -s minikube-v1.6.2 minikube
+minikube version
+```
+```log
+minikube version: v1.6.2
+commit: 54f28ac5d3a815d1196cd5d57d707439ee4bb392
+```
+
+Запустим наш Minukube-кластер.
+```shell
+minikube start
+```
+```log
+😄  minikube v1.6.2 on Ubuntu 18.04
+✨  Automatically selected the 'virtualbox' driver (alternates: [none])
+💿  Downloading VM boot image ...
+    > minikube-v1.6.0.iso.sha256: 65 B / 65 B [--------------] 100.00% ? p/s 0s
+    > minikube-v1.6.0.iso: 150.93 MiB / 150.93 MiB [] 100.00% 10.95 MiB p/s 14s
+🔥  Creating virtualbox VM (CPUs=2, Memory=2000MB, Disk=20000MB) ...
+🐳  Preparing Kubernetes v1.17.0 on Docker '19.03.5' ...
+💾  Downloading kubeadm v1.17.0
+💾  Downloading kubelet v1.17.0
+🚜  Pulling images ...
+🚀  Launching Kubernetes ... 
+⌛  Waiting for cluster to come online ...
+🏄  Done! kubectl is now configured to use "minikube"
+```
+
+P.S. Если нужна конкретная версия kubernetes, указывайте флаг `--kubernetes-version <version>` (v1.8.0)
+P.P.S. По-умолчанию используется VirtualBox. Если у вас другой гипервизор, то ставьте флаг `--vm-driver=<hypervisor>`
+
+
+#### Kubectl
+
+Наш Minikube-кластер развернут. При этом автоматически был настроен конфиг kubectl.
+
+Проверим, что это так:
+```shell
+kubectl get nodes
+```
+```log
+NAME       STATUS   ROLES    AGE   VERSION
+minikube   Ready    master   14m   v1.17.0
+```
+
+Конфигурация kubectl - это **контекст**.
+
+Контекст - это комбинация:
+
+1. **cluster** - API-сервер
+2. **user** - пользователь для подключения к кластеру
+3. **namespace** - область видимости (не обязательно, поумолчанию default)
+
+Информацию о контекстах kubectl сохраняет в файле `~/.kube/config`
+
+Файл `~/.kube/config` - это такой же манифест kubernetes в YAML-формате (есть и Kind, и ApiVersion). 
+```yaml
+apiVersion: v1
+clusters:  # Список кластеров
+- cluster:
+    # корневой сертификат (которым подписан SSL-сертификат самого сервера),
+    # чтобы убедиться, что нас не обманывают и перед нами тот самый сервер
+    certificate-authority: /home/vscoder/.minikube/ca.crt
+    # адрес kubernetes API-сервера
+    server: https://192.168.99.100:8443
+  # (Имя) для идентификации в конфиге
+  name: minikube
+contexts:  # Список контекстов
+# Контекст (контекст) - это:
+- context:
+    # имя кластера из списка clusters 
+    cluster: minikube
+    # имя пользователя из списка users 
+    user: minikube
+    # namespace: область видимости по-умолчанию (не обязательно)
+  # (Имя) для идентификации в конфиге
+  name: minikube
+current-context: minikube
+kind: Config
+preferences: {}
+users:  # Список пользователей
+# Пользователь (user) - это: 
+- name: minikube  # name (Имя) для идентификации в конфиге
+  user:
+    # Данные для аутентификации (зависит от того, как настроен сервер). 
+    # Это могут быть:
+    #   - username + password (Basic Auth
+    #   - client key + client certificate
+    #   - token
+    #   - auth-provider config (например GCP)
+    client-certificate: /home/vscoder/.minikube/client.crt
+    client-key: /home/vscoder/.minikube/client.key
+```
+
+Обычно порядок конфигурирования kubectl следующий:
+
+1. Создать cluster:
+    ```shell
+    kubectl config set-cluster … cluster_name
+    ```
+2. Создать данные пользователя (credentials)
+    ```shell
+    kubectl config set-credentials … user_name
+    ```
+3. Создать контекст
+    ```shell
+    kubectl config set-context context_name \
+      --cluster=cluster_name \
+      --user=user_name
+    ```
+4. Использовать контекст
+    ```shell
+    kubectl config use-context context_name
+    ```
+
+Таким образом kubectl конфигурируется для подключения к разным кластерам, под разными пользователями.
+
+Текущий контекст можно увидеть так: 
+```shell
+kubectl config current-context
+```
+```log
+minikube
+```
+
+Список всех контекстов можно увидеть так:
+```shell
+kubectl config get-contexts
+```
+```log
+CURRENT   NAME       CLUSTER    AUTHINFO   NAMESPACE
+*         minikube   minikube   minikube
+```
+
+#### Запустим приложение
+
+Для работы в приложения kubernetes, нам необходимо описать их желаемое состояние либо в YAML-манифестах, либо с помощью командной строки.
+
+Всю конфигурацию поместите в каталог `./kubernetes/reddit` внутри вашего репозитория.
+
+##### Deployment
+
+Основные объекты - это ресурсы **Deployment**.
+
+Как помним из предыдущего занятия, основные его задачи:
+- Создание ReplicationSet (следит, чтобы число запущенных Pod-ов соответствовало описанному)
+- Ведение истории версий запущенных Pod-ов (для различных стратегий деплоя, для возможностей отката)
+- Описание процесса деплоя (стратегия, параметры стратегий)
+
+##### UI
+
+ui-deployment.yml
+
+```yaml
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:  # Блок метаданных деплоя
+  name: ui
+  labels:
+    app: reddit
+    component: ui
+spec:  # Блок спецификации деплоя
+  replicas: 3
+  # selector описывает, как ему отслеживать POD-ы.
+  # В данном случае - контроллер будет считать POD-ы с метками:
+  # app=reddit И component=ui.
+  # Поэтому важно в описании POD-а задать нужные метки (labels) 
+  # P.S. Для более гибкой выборки вводим 2 метки (app и component).
+  selector:
+    matchLabels:
+      app: reddit
+      component: ui
+  template:  # Блок описания POD-ов
+    metadata:
+      name: ui-pod
+      labels:
+        app: reddit
+        component: ui
+    spec:
+      containers:
+        - image: vscoder/ui
+          name: ui
+```
+
+Запустим в Minikube ui-компоненту.
+
+```shell
+cd kubernetes/reddit
+kubectl apply -f ui-deployment.yml
+```
+```log
+error: unable to recognize "ui-deployment.yml": no matches for kind "Deployment" in version "apps/v1beta2"
+```
+
+Ищем, и находим https://stackoverflow.com/questions/58481850/no-matches-for-kind-deployment-in-version-extensions-v1beta1
+```shell
+kubectl api-resources
+```
+```log
+NAME                              SHORTNAMES   APIGROUP                       NAMESPACED   KIND
+...
+deployments                       deploy       apps                           true         Deployment
+...
+```
+> It means that only apiVersion with apps is correct for Deployments (extensions is not supporting Deployment).
+
+Правим [kubernetes/reddit/ui-deployment.yml](kubernetes/reddit/ui-deployment.yml)
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+...
+```
+
+Повторим
+```shell
+kubectl apply -f ui-deployment.yml
+```
+```log
+deployment.apps/ui created
+```
+
+Проверим
+```shell
+kubectl get pods
+```
+```log
+NAME                 READY   STATUS    RESTARTS   AGE
+ui-db4c86d69-4pbzg   1/1     Running   0          98s
+ui-db4c86d69-94lm4   1/1     Running   0          98s
+ui-db4c86d69-vrnnk   1/1     Running   0          98s
+```
+
+Убедитесь, что во 2,3,4 и 5 столбцах стоит число 3 (число реплик ui):
+```shell
+kubectl get deployment
+```
+```log
+NAME   READY   UP-TO-DATE   AVAILABLE   AGE
+ui     3/3     3            3           11m
+```
+
+P.S. `kubectl apply -f <filename>` может принимать не только отдельный файл, но и папку с ними. Например `kubectl apply -f ./kubernetes/reddit`
+
+Пока что мы не можем использовать наше приложение полностью, потому что никак не настроена сеть для общения с ним.
+
+Но kubectl умеет пробрасывать сетевые порты POD-ов на локальную машину
+
+Найдем, используя selector, POD-ы приложения:
+```shell
+kubectl get pods --selector component=ui
+kubectl port-forward ui-db4c86d69-4pbzg 8080:9
+```
+```log
+.Forwarding from 127.0.0.1:8080 -> 9292
+Forwarding from [::1]:8080 -> 9292
+```
+
+Зайдем в браузере на http://localhost:8080/
+
+UI работает, подключим остальные компоненты
+
+##### Comment
+
+[kubernetes/reddit/comment-deployment.yml](kubernetes/reddit/comment-deployment.yml)
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comment
+  labels:
+    app: reddit
+    component: comment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: reddit
+      component: comment
+  template:
+    metadata:
+      name: comment
+      labels:
+        app: reddit
+        component: comment
+    spec:
+      containers:
+      - image: vscoder/comment
+        name: comment
+```
+
+Компонент comment описывается похожим образом. Меняется только имя образа и метки и применяем (kubectl apply)
+```shell
+kubectl apply -f comment-deployment.yml
+```
+```log
+deployment.apps/comment created
+```
+```shell
+kubectl get deployment
+```
+```log
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+comment   3/3     3            3           2m52s
+ui        3/3     3            3           19m
+```
+
+Проверить можно так же, пробросив <local-port>: 9292 и зайдя на адрес http://localhost:<local-port>/healthcheck
+```shell
+kubectl get pods --selector component=comment
+kubectl port-forward comment-7c997b69c9-976wq 8080:9292
+```
+```log
+Forwarding from 127.0.0.1:8080 -> 9292
+Forwarding from [::1]:8080 -> 9292
+```
+
+Успешно
+
+##### Задание
+
+Deployment компонента post сконфигурируйте подобным же образом самостоятельно и проверьте его работу.
+
+Не забудьте, что post слушает по-умолчанию на порту 5000
+
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: post
+  labels:
+    app: reddit
+    component: post
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: reddit
+      component: post
+  template:
+    metadata:
+      name: post
+      labels:
+        app: reddit
+        component: post
+    spec:
+      containers:
+        - image: vscoder/post
+          name: post
+```
+
+```shell
+kubectl apply -f post-deployment.yml
+```
+```log
+deployment.apps/post created```
+```shell
+kubectl get deployment
+```
+```log
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+comment   3/3     3            3           12m
+post      3/3     3            3           14s
+ui        3/3     3            3           29m
+```
+
+```shell
+kubectl get pods --selector component=post
+kubectl port-forward post-57dd96857f-sm8d7 8080:5000
+```
+```log
+Forwarding from 127.0.0.1:8080 -> 5000
+Forwarding from [::1]:8080 -> 5000
+```
+
+Работает (хоть и not found)
+
+##### MongoDB
+
+Разместим базу данных Все похоже, но меняются только образы и значения label-ов
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+    spec:
+      containers:
+        - image: mongo:3.2
+          name: mongo
+```
+
+Также примонтируем стандартный Volume для хранения данных вне контейнера
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+    spec:
+      containers:
+        - image: mongo:3.2
+          name: mongo
+          volumeMounts:
+            - name: mongo-persistent-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-persistent-storage
+          emptyDir: {}
+```
+
+```shell
+kubectl apply -f mongo-deployment.yml
+```
+```log
+deployment.apps/mongo created
+```
+
+```shell
+kubectl get deployment               
+```
+```log
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+comment   3/3     3            3           16m
+mongo     1/1     1            1           26s
+post      3/3     3            3           4m45s
+ui        3/3     3            3           33m
+```
