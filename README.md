@@ -285,19 +285,22 @@ vscoder microservices repository
   - [HomeWork 20: Kubernetes. Запуск кластера и приложения. Модель безопасности.](#homework-20-kubernetes-%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%ba%d0%bb%d0%b0%d1%81%d1%82%d0%b5%d1%80%d0%b0-%d0%b8-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-%d0%9c%d0%be%d0%b4%d0%b5%d0%bb%d1%8c-%d0%b1%d0%b5%d0%b7%d0%be%d0%bf%d0%b0%d1%81%d0%bd%d0%be%d1%81%d1%82%d0%b8)
     - [План](#%d0%9f%d0%bb%d0%b0%d0%bd-3)
     - [Разворачиваем Kubernetes локально](#%d0%a0%d0%b0%d0%b7%d0%b2%d0%be%d1%80%d0%b0%d1%87%d0%b8%d0%b2%d0%b0%d0%b5%d0%bc-kubernetes-%d0%bb%d0%be%d0%ba%d0%b0%d0%bb%d1%8c%d0%bd%d0%be)
-    - [Kubectl](#kubectl)
-    - [minikube](#minikube)
+      - [Kubectl](#kubectl)
+      - [minikube](#minikube)
     - [Minikube](#minikube)
       - [Before you begin](#before-you-begin)
       - [Installing minikube](#installing-minikube)
       - [Kubectl](#kubectl-1)
       - [Запустим приложение](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d0%bc-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d0%b5)
         - [Deployment](#deployment)
-        - [UI](#ui)
-        - [Comment](#comment)
-        - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-2)
+          - [UI](#ui)
+          - [Comment](#comment)
+          - [Post](#post)
   - [yaml](#yaml)
   - [yaml](#yaml-1)
+  - [yaml](#yaml-2)
+  - [yaml](#yaml-3)
+  - [yaml](#yaml-4)
 
 # Makefile
 
@@ -9663,14 +9666,14 @@ ui-deployment-57d7c9fd56-s7gcq        1/1     Running   0          30s
 3. **minikube** - утилиты для разворачивания локальной инсталляции Kubernetes.
 
 
-### Kubectl
+#### Kubectl
 
 Необходимо установить kubectl: Все способы установки доступны по [ссылке](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
 Будем ставить `kubectl` версии, совместимой с версией kubernetes в minikube
 
 
-### minikube
+#### minikube
 
 Для работы Minukube вам понадобится локальный гипервизор: 
 
@@ -9866,7 +9869,7 @@ CURRENT   NAME       CLUSTER    AUTHINFO   NAMESPACE
 - Ведение истории версий запущенных Pod-ов (для различных стратегий деплоя, для возможностей отката)
 - Описание процесса деплоя (стратегия, параметры стратегий)
 
-##### UI
+###### UI
 
 ui-deployment.yml
 
@@ -9980,7 +9983,7 @@ Forwarding from [::1]:8080 -> 9292
 
 UI работает, подключим остальные компоненты
 
-##### Comment
+###### Comment
 
 [kubernetes/reddit/comment-deployment.yml](kubernetes/reddit/comment-deployment.yml)
 ```yaml
@@ -10038,7 +10041,7 @@ Forwarding from [::1]:8080 -> 9292
 
 Успешно
 
-##### Задание
+###### Post
 
 Deployment компонента post сконфигурируйте подобным же образом самостоятельно и проверьте его работу.
 
@@ -10097,7 +10100,7 @@ Forwarding from [::1]:8080 -> 5000
 
 Работает (хоть и not found)
 
-##### MongoDB
+###### MongoDB
 
 Разместим базу данных Все похоже, но меняются только образы и значения label-ов
 ```yaml
@@ -10178,3 +10181,250 @@ mongo     1/1     1            1           26s
 post      3/3     3            3           4m45s
 ui        3/3     3            3           33m
 ```
+
+#### Services
+
+В текущем состоянии приложение не будет работать, так его компоненты ещё не знают как найти друг друга
+
+Для связи компонент между собой и с внешним миром используется объект Service - абстракция, которая определяет набор POD-ов (Endpoints) и способ доступа к ним.
+
+Для связи ui с post и comment нужно создать им по объекту Service.
+
+Когда объект service будет создан:
+1. В DNS появится запись для comment
+2. При обращении на адрес post:9292 изнутри любого из POD-ов текущего namespace нас переправит на 9292-ный порт одного из POD-ов приложения post, выбранных по label-ам
+
+[kubernetes/reddit/comment-service.yml](kubernetes/reddit/comment-service.yml)
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: comment
+  labels:
+    app: reddit
+    component: comment
+spec:
+  ports:
+    - port: 9292
+      protocol: TCP
+      targetPort: 9292
+  selector:
+    app: reddit
+    component: comment
+```
+
+По label-ам должны были быть найдены соответствующие POD-ы. Посмотреть можно с помощью: 
+```shell
+kubectl describe service comment | grep Endpoints
+```
+Но не нашлись, потому что про проименение ямлика ничего не сказано))
+```shell
+kubectl apply -f ./comment-service.yml
+```
+```log
+service/comment created
+```
+
+Но ничего не найдено
+```shell
+kubectl describe service comment | grep Endpoints
+```
+```log
+Endpoints:
+```
+
+Проверяем поды
+```shell
+kubectl get pods
+```
+```log
+NAME                       READY   STATUS    RESTARTS   AGE
+comment-7c997b69c9-976wq   1/1     Running   2          3h22m
+comment-7c997b69c9-rlndx   1/1     Running   2          3h22m
+comment-7c997b69c9-x87lf   1/1     Running   1          3h22m
+mongo-7fb8945897-d9h9j     1/1     Running   0          3h6m
+post-57dd96857f-sm8d7      1/1     Running   0          3h10m
+post-57dd96857f-sr98f      1/1     Running   0          3h10m
+post-57dd96857f-twsdj      1/1     Running   0          3h10m
+ui-db4c86d69-4pbzg         1/1     Running   0          3h39m
+ui-db4c86d69-94lm4         1/1     Running   0          3h39m
+ui-db4c86d69-vrnnk         1/1     Running   0          3h39m
+```
+Есть
+
+Проверяем деплойменты
+```shell
+kubectl get deployments
+```
+```log
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+comment   0/3     3            0           3h22m
+mongo     0/1     1            0           3h6m
+post      0/3     3            0           3h10m
+ui        0/3     3            0           3h39m
+```
+
+Проверяем всё ли живо
+```shell
+kubectl get componentstatuses
+```
+```log
+NAME                 STATUS      MESSAGE                                                                                     ERROR
+controller-manager   Unhealthy   Get http://127.0.0.1:10252/healthz: dial tcp 127.0.0.1:10252: connect: connection refused   
+scheduler            Healthy     ok                                                                                          
+etcd-0               Healthy     {"health":"true"}
+```
+Видимо, здесь собака порылась. Миникуб такой миникуб...
+
+Перезапускаем
+```shell
+minikube stop
+minikube start
+kubectl get componentstatuses
+```
+```log
+NAME                 STATUS    MESSAGE             ERROR
+scheduler            Healthy   ok                  
+controller-manager   Healthy   ok                  
+etcd-0               Healthy   {"health":"true"}
+```
+
+Повторяем проверку из ДЗ
+```shell
+kubectl describe service comment | grep Endpoints
+```
+```log
+Endpoints:         172.17.0.10:9292,172.17.0.5:9292,172.17.0.8:9292
+```
+
+А изнутри любого POD-а должно разрешаться:
+```shell
+kubectl exec -ti post-57dd96857f-sr98f nslookup comment
+```
+```log
+nslookup: can't resolve '(null)': Name does not resolve
+
+Name:      comment
+Address 1: 10.96.204.230 comment.default.svc.cluster.local
+```
+
+##### Задание
+
+По аналогии создайте объект Service в файле postservice.yml для компонента post (не забудьте про label-ы и правильные tcp-порты).
+
+[kubernetes/reddit/post-service.yml](kubernetes/reddit/post-service.yml)
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: post
+  labels:
+    app: reddit
+    component: post
+spec:
+  ports:
+    - port: 5000
+      protocol: TCP
+      targetPort: 5000
+  selector:
+    app: reddit
+    component: post
+```
+
+И применяем
+```shell
+kubectl apply -f ./post-service.yml   
+```
+```log
+service/post created
+```
+
+И проверяем
+```shell
+kubectl describe service post | grep Endpoints
+```
+```log
+Endpoints:         172.17.0.11:5000,172.17.0.2:5000,172.17.0.9:5000
+```
+
+##### Services
+
+Post и Comment также используют mongodb, следовательно ей тоже нужен объект Service.
+
+[kubernetes/reddit/mongodb-service.yml](kubernetes/reddit/mongodb-service.yml)
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+  labels:
+    app: reddit
+    component: mongo
+spec:
+  ports:
+    - port: 27017
+      protocol: TCP
+      targetPort: 27017
+  selector:
+    app: reddit
+    component: mongo
+```
+
+По-сути все очень похоже, деплоим: 
+```shell
+kubectl apply -f mongodb-service.yml 
+```
+```log
+service/mongodb created
+```
+
+что-то всё опять прилегло
+```shell
+kubectl get componentstatuses
+```
+```log
+NAME                 STATUS      MESSAGE                                                                                     ERROR
+scheduler            Unhealthy   Get http://127.0.0.1:10251/healthz: dial tcp 127.0.0.1:10251: connect: connection refused   
+controller-manager   Unhealthy   Get http://127.0.0.1:10252/healthz: dial tcp 127.0.0.1:10252: connect: connection refused   
+etcd-0               Healthy     {"health":"true"}
+```
+
+ещё разок перезапустимся
+```shell
+minikube stop && minikube start
+```
+
+Проверяем
+```shell
+kubectl describe service mongodb | grep Endpoints
+```
+```log
+Endpoints:         172.17.0.3:27017
+```
+
+Проверяем: пробрасываем порт на ui pod
+```shell
+kubectl get pods --selector component=ui  
+```
+```log
+NAME                 READY   STATUS    RESTARTS   AGE
+ui-db4c86d69-4pbzg   1/1     Running   2          4h37m
+ui-db4c86d69-94lm4   1/1     Running   2          4h37m
+ui-db4c86d69-vrnnk   1/1     Running   2          4h37m
+```
+
+```shell
+kubectl port-forward ui-db4c86d69-4pbzg 9292:9292
+```
+```log
+Forwarding from 127.0.0.1:9292 -> 9292
+Forwarding from [::1]:9292 -> 9292
+```
+
+При открытии http://localhost:9292/ долго думает, и ругается 
+> Can't show blog posts, some problems with the post service. Refresh?
+
+TODO: задебажить и продолжить
