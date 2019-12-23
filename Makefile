@@ -4,6 +4,9 @@ TEMP_DIR?=/tmp
 # Environment name
 ENV?=stage
 
+# Source code directory
+SRC_DIR?=./src
+
 # Docker-machine
 DOCKER_MACHINE_VERSION?=v0.16.0
 DOCKER_MACHINE_BASEURL=https://github.com/docker/machine/releases/download
@@ -99,6 +102,10 @@ install_hadolint:
 	chmod +x ${BIN_DIR}/hadolint
 	${BIN_DIR}/hadolint --version
 
+
+###
+# docker-machine
+###
 docker_machine_create:
 	. ./env && \
 	${DOCKER_MACHINE} create --driver google \
@@ -115,20 +122,42 @@ docker_machine_rm:
 docker_machine_ip:
 	${DOCKER_MACHINE} ip ${DOCKER_MACHINE_NAME}
 
+
+###
+# docker-machine logging
+###
+docker_machine_create_logging:
+	. ./env && \
+	${DOCKER_MACHINE} create --driver google \
+		--google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+		--google-machine-type n1-standard-1 \
+		--google-open-port 5601/tcp \
+		--google-open-port 9292/tcp \
+		--google-open-port 9411/tcp \
+		logging
+	${DOCKER_MACHINE} env logging
+
+docker_machine_rm_logging:
+	make docker_machine_rm DOCKER_MACHINE_NAME=logging
+
+docker_machine_ip_logging:
+	make docker_machine_ip DOCKER_MACHINE_NAME=logging
+
+
 ###
 # Build
 ###
 build_comment:
 	. ./env && \
-	cd src/comment && bash ./docker_build.sh
+	cd ${SRC_DIR}/comment && bash ./docker_build.sh
 
 build_post:
 	. ./env && \
-	cd src/post-py && bash ./docker_build.sh
+	cd ${SRC_DIR}/post-py && bash ./docker_build.sh
 
 build_ui:
 	. ./env && \
-	cd src/ui && bash ./docker_build.sh
+	cd ${SRC_DIR}/ui && bash ./docker_build.sh
 
 build_prometheus:
 	. ./env && \
@@ -202,17 +231,57 @@ alertmanager_push:
 
 
 ###
-# app
+# fluentd
 ###
-run: variables
+fluentd_build:
+	. ./env && \
+	cd ./logging/fluentd && bash docker_build.sh
+
+fluentd_push:
+	. ./env && \
+	docker push $${USER_NAME}/fluentd
+
+
+
+###
+# app down
+###
+down_app:
 	cd docker \
-	&& ../.venv/bin/docker-compose up -d \
+	&& ../.venv/bin/docker-compose down
+
+down_monitoring:
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose-monitoring.yml down
+
+down_logging:
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose-logging.yml down
+
+
+###
+# run
+###
+run_app: variables
+	cd docker \
+	&& ../.venv/bin/docker-compose up -d
+
+run_monitoring: variables
+	cd docker \
 	&& ../.venv/bin/docker-compose -f docker-compose-monitoring.yml up -d
+
+run_logging: variables
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose-logging.yml up -d
+
+
+run: run_app run_monitoring run_logging
+
 
 ###
 # copy variables from examples, if needed
 ###
 variables:
-	cd ./                      && (test -f env || cp env.examples env)
-	cd docker                  && (test -f .env || cp .env.examples .env)
-	cd monitoring/alertmanager && (test -f env || cp env.examples env)
+	cd ./                      && (test -f env || cp env.example env)
+	cd docker                  && (test -f .env || cp .env.example .env)
+	cd monitoring/alertmanager && (test -f env || cp env.example env)

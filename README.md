@@ -235,6 +235,44 @@ vscoder microservices repository
     - [Задания со ***](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
       - [Tickster](#tickster)
       - [Автоматическое исправление проблем](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b5-%d0%b8%d1%81%d0%bf%d1%80%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc)
+  - [HomeWork 18: Логирование и распределенная трассировка](#homework-18-%d0%9b%d0%be%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b0%d1%81%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d1%82%d1%80%d0%b0%d1%81%d1%81%d0%b8%d1%80%d0%be%d0%b2%d0%ba%d0%b0)
+    - [План](#%d0%9f%d0%bb%d0%b0%d0%bd-2)
+    - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-4)
+      - [Подготовка окружения](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-1)
+    - [Логирование Docker контейнеров](#%d0%9b%d0%be%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-docker-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
+      - [Elastic Stack](#elastic-stack)
+      - [docker-compose-logging.yml](#docker-compose-loggingyml)
+      - [Fluentd](#fluentd)
+    - [Структурированные логи](#%d0%a1%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bb%d0%be%d0%b3%d0%b8)
+      - [Отправка логов во Fluentd](#%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d0%bb%d0%be%d0%b3%d0%be%d0%b2-%d0%b2%d0%be-fluentd)
+      - [Сбор логов Post сервиса](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bb%d0%be%d0%b3%d0%be%d0%b2-post-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%b0)
+      - [Kibana](#kibana)
+        - [memory locking requested for elasticsearch process but memory is not locked](#memory-locking-requested-for-elasticsearch-process-but-memory-is-not-locked)
+        - [Kibana продолжение](#kibana-%d0%bf%d1%80%d0%be%d0%b4%d0%be%d0%bb%d0%b6%d0%b5%d0%bd%d0%b8%d0%b5)
+      - [Фильтры](#%d0%a4%d0%b8%d0%bb%d1%8c%d1%82%d1%80%d1%8b)
+    - [Неструктурированные логи](#%d0%9d%d0%b5%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bb%d0%be%d0%b3%d0%b8)
+      - [Логирование UI сервиса](#%d0%9b%d0%be%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-ui-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d0%b0)
+    - [Парсинг](#%d0%9f%d0%b0%d1%80%d1%81%d0%b8%d0%bd%d0%b3)
+      - [Перезапускаем логгинг](#%d0%9f%d0%b5%d1%80%d0%b5%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d0%ba%d0%b0%d0%b5%d0%bc-%d0%bb%d0%be%d0%b3%d0%b3%d0%b8%d0%bd%d0%b3)
+      - [Парсинг](#%d0%9f%d0%b0%d1%80%d1%81%d0%b8%d0%bd%d0%b3-1)
+    - [Задания co *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-co)
+      - [grok](#grok)
+        - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-4)
+        - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-7)
+    - [Распределенная трасировка](#%d0%a0%d0%b0%d1%81%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d1%82%d1%80%d0%b0%d1%81%d0%b8%d1%80%d0%be%d0%b2%d0%ba%d0%b0)
+      - [Zipkin](#zipkin)
+      - [docker-compose.yml](#docker-composeyml-3)
+      - [Networks](#networks)
+      - [Пересоздадим наши сервисы](#%d0%9f%d0%b5%d1%80%d0%b5%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%b4%d0%b8%d0%bc-%d0%bd%d0%b0%d1%88%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d1%8b-1)
+    - [Вне заданий: проблемы с comment](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b-%d1%81-comment)
+    - [Самостоятельное задание со звездочкой *](#%d0%a1%d0%b0%d0%bc%d0%be%d1%81%d1%82%d0%be%d1%8f%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be-%d0%b7%d0%b2%d0%b5%d0%b7%d0%b4%d0%be%d1%87%d0%ba%d0%be%d0%b9)
+      - [Репозиторий](#%d0%a0%d0%b5%d0%bf%d0%be%d0%b7%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%b9)
+      - [Проблема](#%d0%9f%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d0%b0)
+      - [Поиск проблемы](#%d0%9f%d0%be%d0%b8%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b-1)
+      - [Проблема с EFK](#%d0%9f%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d0%b0-%d1%81-efk)
+    - [Как запустить проект:](#%d0%9a%d0%b0%d0%ba-%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d1%82%d1%8c-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82)
+      - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-5)
+      - [Запуск](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-1)
 
 # Makefile
 
@@ -7960,3 +7998,1497 @@ TODO: сделать
 Дополнительные папки создавайте в директории monitoring.
 
 TODO: сделать
+
+
+
+## HomeWork 18: Логирование и распределенная трассировка
+
+### План
+
+- Сбор неструктурированных логов
+- Визуализация логов
+- Сбор структурированных логов
+- Распределенная трасировка
+
+
+### Подготовка
+
+Код микросервисов обновился для добавления функционала логирования. Новая версия кода доступа по [ссылка](https://github.com/express42/reddit/tree/logging).
+
+- Обновите код в директории **/src** вашего репозитория из кода по ссылке выше. (старый `./src` переименовал в `./src.microservices`)
+  ```shell
+  # Rename old ./src
+  mv ./src ./src.microservices
+  # Copy Dockerfile and Makefile
+  cp ./src.microservices/comment/Dockerfile ./src/comment/
+  cp ./src.microservices/post-py/Dockerfile ./src/post-py/
+  cp ./src.microservices/ui/Dockerfile ./src/ui/
+  cp ./src.microservices/Makefile ./src/
+  # Move old ./src outside the project
+  mv ./src.microservices ../
+  ```
+- Если вы используется python-alpine, добавьте в **/src/post-py/Dockerfile** установку пакетов `gcc` и `musl-dev` (заменил установку `build-base` на `gcc` и `musl-dev`)
+  ```dockerfile
+  ...
+  RUN apk add --no-cache --virtual .build-deps gcc musl-dev \
+    && pip install --no-cache-dir -r $APP_HOME/requirements.txt \
+    && apk del .build-deps
+  ...
+  ```
+- Выполните сборку образов при помощи скриптов docker_build.sh в директории каждого сервиса
+  Метод ДЗ
+  ```shell
+  for i in ui post-py comment; do cd src/$i; bash docker_build.sh; cd -; done
+  ```
+  Метод make
+  ```
+  make build_ui build_post build_comment
+  ```
+
+Внимание! В данном ДЗ мы используем отдельные теги для контейнеров приложений :logging
+
+
+#### Подготовка окружения
+
+Метод ДЗ
+```shell
+export GOOGLE_PROJECT=_ваш-проект_
+
+docker-machine create --driver google \
+    --google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+    --google-machine-type n1-standard-1 \
+    --google-open-port 5601/tcp \
+    --google-open-port 9292/tcp \
+    --google-open-port 9411/tcp \
+    logging
+
+# configure local env
+eval $(docker-machine env logging)
+
+# узнаем IP адрес
+docker-machine ip logging
+```
+
+Метод Make в данном случае не очень подойдёт, так как потребует ручного открытия портов фаервола. Поэтому добавим Makefile targets
+```makefile
+###
+# docker-machine logging
+###
+docker_machine_create_logging:
+	${DOCKER_MACHINE} create --driver google \
+		--google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+		--google-machine-type n1-standard-1 \
+		--google-open-port 5601/tcp \
+		--google-open-port 9292/tcp \
+		--google-open-port 9411/tcp \
+		logging
+	${DOCKER_MACHINE} env logging
+
+docker_machine_rm_logging:
+	make docker_machine_rm DOCKER_MACHINE_NAME=logging
+
+docker_machine_ip_logging:
+	make docker_machine_ip DOCKER_MACHINE_NAME=logging
+```
+
+Итак, метод Make
+```shell
+make docker_machine_create_logging docker_machine_ip_logging
+```
+
+
+### Логирование Docker контейнеров
+
+#### Elastic Stack
+
+Как упоминалось на лекции хранить все логи стоит централизованно: на одном (нескольких) серверах. В этом ДЗ мы рассмотрим пример системы централизованного логирования на примере Elastic стека (ранее известного как ELK): который включает в себя 3 осовных компонента:
+- ElasticSearch (TSDB и поисковый движок для хранения данных)
+- Logstash (для агрегации и трансформации данных)
+- Kibana (для визуализации)
+
+Однако для агрегации логов вместо Logstash мы будем использовать Fluentd, таким образом получая еще одно популярное сочетание этих инструментов, получившее название EFK.
+
+#### docker-compose-logging.yml
+
+Создадим отдельный compose-файл для нашей системы логирования в папке `docker/`
+
+[docker/docker-compose-logging.yml](docker/docker-compose-logging.yml)
+```yaml
+---
+version: "3"
+services:
+  fluentd:
+    image: ${USERNAME}/fluentd
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+
+  elasticsearch:
+    image: elasticsearch:7.4.0
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+
+  kibana:
+    image: kibana:7.4.0
+    ports:
+      - "5601:5601"
+```
+
+#### Fluentd
+
+Fluentd инструмент, который может использоваться для отправки, агрегации и преобразования лог-сообщений. Мы будем использовать Fluentd для агрегации (сбора в одной месте) и парсинга логов сервисов нашего приложения.
+
+Создадим образ Fluentd с нужной нам конфигурацией.
+
+Создайте в вашем проекте microservices директорию `logging/fluentd`
+
+В созданной директорий, создайте простой `Dockerfile` со следущим содержимым:
+
+[logging/fluentd/Dockerfile](logging/fluentd/Dockerfile)
+```dockerfile
+FROM fluent/fluentd:v0.12
+RUN gem install fluent-plugin-elasticsearch --no-rdoc --no-ri --version 1.9.5
+RUN gem install fluent-plugin-grok-parser --no-rdoc --no-ri --version 1.0.0
+ADD fluent.conf /fluentd/etc
+```
+
+В директории `logging/fluentd` создайте файл конфигурации:
+
+[logging/fluentd/fluent.conf](logging/fluentd/fluent.conf)
+```xml
+<source>
+  @type forward
+  port 24224
+  bind 0.0.0.0
+</source>
+
+<match *.**>
+  @type copy
+  <store>
+    @type elasticsearch
+    host elasticsearch
+    port 9200
+    logstash_format true
+    logstash_prefix fluentd
+    logstash_dateformat %Y%m%d
+    include_tag_key true
+    type_name access_log
+    tag_key @log_name
+    flush_interval 1s
+  </store>
+  <store>
+    @type stdout
+  </store>
+</match>
+```
+
+Соберите docker image для `fluentd`
+
+Из директории `logging/fluentd`
+
+Путь ДЗ
+```shell
+docker build -t $USER_NAME/fluentd .
+```
+
+Ну а мы создадим [logging/fluentd/docker_build.sh](logging/fluentd/docker_build.sh)
+```shell
+#!/bin/bash
+set -eu
+
+docker build -t $USER_NAME/fluentd .
+```
+и Makefile targets
+```shell
+###
+# fluentd
+###
+fluentd_build:
+	. ./env && \
+	cd ./logging/fluentd && bash docker_build.sh
+
+fluentd_push:
+	. ./env && \
+	docker push $${USER_NAME}/fluentd
+```
+
+И только теперь соберём образ
+```shell
+make fluentd_build fluentd_push
+```
+
+
+### Структурированные логи
+
+Логи должны иметь заданную (единую) структуру и содержать необходимую для нормальной эксплуатации данного сервиса информацию о его работе.
+
+Лог-сообщения также должны иметь понятный для выбранной системы логирования формат, чтобы избежать ненужной траты ресурсов на преобразование данных в нужный вид. Структурированные логи мы рассмотрим на примере сервиса post.
+
+Правим [.env](docker/.env) файл и меняем теги нашего приложения на logging
+```shell
+...
+UI_VERSION=logging
+UI_APP_HOME=/app
+UI_PORT=9292
+POST_VERSION=logging
+POST_APP_HOME=/app
+COMMENT_VERSION=logging
+COMMENT_APP_HOME=/app
+...
+```
+
+Запустите сервисы приложения
+```shell
+make build
+cd docker/ && docker-compose up -d
+```
+
+И выполните команду для просмотра логов post сервиса:
+```shell
+docker-compose logs -f post
+```
+```log
+Attaching to docker_post_1
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/healthcheck?", "request_id": null, "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:50:50"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/healthcheck?", "request_id": null, "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:50:55"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/healthcheck?", "request_id": null, "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:51:00"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/healthcheck?", "request_id": null, "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:51:05"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/healthcheck?", "request_id": null, "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:51:10"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/healthcheck?", "request_id": null, "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:51:15"}
+```
+
+Внимание! Среди логов можно наблюдать проблемы с доступностью Zipkin, у нас он пока что и правда не установлен. Ошибки можно игнорировать. [Github issue](https://github.com/express42/reddit/issues/2)
+
+Откройте приложение в браузере и создайте несколько постов, пронаблюдайте, как пишутся логи post серсиса в терминале.
+```log
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/healthcheck?", "request_id": null, "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:53:20"}
+post_1     | {"event": "find_all_posts", "level": "info", "message": "Successfully retrieved all posts from the database", "params": {}, "request_id": "0f6cf007-a51a-4d42-b8eb-5c6f51fdc605", "service": "post", "timestamp": "2019-12-17 04:53:22"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/posts?", "request_id": "0f6cf007-a51a-4d42-b8eb-5c6f51fdc605", "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:53:22"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/healthcheck?", "request_id": "0f6cf007-a51a-4d42-b8eb-5c6f51fdc605", "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:53:25"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/healthcheck?", "request_id": "0f6cf007-a51a-4d42-b8eb-5c6f51fdc605", "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:53:30"}
+post_1     | {"event": "find_all_posts", "level": "info", "message": "Successfully retrieved all posts from the database", "params": {}, "request_id": "f1d68a4f-c685-4585-abb0-570276e21812", "service": "post", "timestamp": "2019-12-17 04:53:30"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/posts?", "request_id": "f1d68a4f-c685-4585-abb0-570276e21812", "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:53:30"}
+post_1     | {"event": "find_all_posts", "level": "info", "message": "Successfully retrieved all posts from the database", "params": {}, "request_id": "0da9978b-80cb-4b32-b56f-096fb8ed72b8", "service": "post", "timestamp": "2019-12-17 04:53:31"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/posts?", "request_id": "0da9978b-80cb-4b32-b56f-096fb8ed72b8", "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:53:31"}
+post_1     | {"event": "find_all_posts", "level": "info", "message": "Successfully retrieved all posts from the database", "params": {}, "request_id": "a7d06d49-1e67-40e4-b8b2-d83c21930257", "service": "post", "timestamp": "2019-12-17 04:53:32"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/posts?", "request_id": "a7d06d49-1e67-40e4-b8b2-d83c21930257", "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:53:32"}
+post_1     | {"event": "find_all_posts", "level": "info", "message": "Successfully retrieved all posts from the database", "params": {}, "request_id": "bed17527-4202-4054-a124-87e800362971", "service": "post", "timestamp": "2019-12-17 04:53:32"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/posts?", "request_id": "bed17527-4202-4054-a124-87e800362971", "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:53:32"}
+post_1     | {"addr": "172.19.0.2", "event": "request", "level": "info", "method": "GET", "path": "/healthcheck?", "request_id": "bed17527-4202-4054-a124-87e800362971", "response_status": 200, "service": "post", "timestamp": "2019-12-17 04:53:35"}
+```
+
+Каждое событие, связанное с работой нашего приложения логируется в JSON формате и имеет нужную нам структуру: тип события (event), сообщение (message), переданные функции параметры (params), имя сервиса (service) и др.
+
+
+#### Отправка логов во Fluentd
+
+Как отмечалось на лекции, по умолчанию Docker контейнерами используется json-file драйвер для логирования информации, которая пишется сервисом внутри контейнера в stdout (и stderr). Для отправки логов во Fluentd используем docker драйвер [fluentd](https://docs.docker.com/engine/admin/logging/fluentd/).
+
+Определим драйвер для логирования для сервиса post внутри compose-файла:
+
+[docker/docker-compose.yml](docker/docker-compose.yml)
+```yaml
+version: '3'
+services:
+  post:
+    image: ${USER_NAME}/post
+    environment:
+      - POST_DATABASE_HOST=post_db
+      - POST_DATABASE=posts
+    depends_on:
+      - post_db
+    ports:
+      - "5000:5000"
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.post
+```
+
+
+#### Сбор логов Post сервиса
+
+Поднимем инфраструктуру централизованной системы логирования и перезапустим сервисы приложения. Из каталога docker:
+
+Метод ДЗ
+```shell
+docker-compose -f docker-compose-logging.yml up -d
+docker-compose down
+docker-compose up -d
+```
+
+Но мы создадим (и изменим) Makefile targets
+```makefile
+###
+# app down
+###
+down_app:
+	cd docker \
+	&& ../.venv/bin/docker-compose down
+
+down_monitoring:
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose-monitoring.yml down
+
+down_logging:
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose-logging.yml down
+
+
+###
+# run
+###
+run_app: variables
+	cd docker \
+	&& ../.venv/bin/docker-compose up -d
+
+run_monitoring: variables
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose-monitoring.yml up -d
+
+run_logging: variables
+	cd docker \
+	&& ../.venv/bin/docker-compose -f docker-compose-logging.yml up -d
+```
+
+А теперь метод Make
+```shell
+make run_logging down_app run_app
+```
+
+Создадим несколько постов в приложении:
+
+
+#### Kibana
+
+Kibana - инструмент для визуализации и анализа логов от компании Elastic.
+
+Откроем WEB-интерфейс Kibana для просмотра собранных в ElasticSearch логов Post-сервиса (kibana слушает на порту 5601)
+
+Ошибка: 
+> Kibana server is not ready yet
+
+Смотрим список запущенных контейнеров
+```shell
+cd ./docker && docker-compose -f docker-compose-logging.yml ps
+```
+```log
+         Name                       Command                State                               Ports                            
+--------------------------------------------------------------------------------------------------------------------------------
+docker_elasticsearch_1   /usr/local/bin/docker-entr ...   Exit 78                                                               
+docker_fluentd_1         tini -- /bin/entrypoint.sh ...   Up        0.0.0.0:24224->24224/tcp, 0.0.0.0:24224->24224/udp, 5140/tcp
+docker_kibana_1          /usr/local/bin/dumb-init - ...   Up        0.0.0.0:5601->5601/tcp
+```
+
+Смотрим логи ES
+```shell
+docker-compose -f docker-compose-logging.yml logs elasticsearch
+```
+```log
+...
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:21,661Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "initialized" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:21,663Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "starting ..." }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,530Z", "level": "INFO", "component": "o.e.t.TransportService", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "publish_address {172.20.0.4:9300}, bound_addresses {0.0.0.0:9300}" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,569Z", "level": "INFO", "component": "o.e.b.BootstrapChecks", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "bound or publishing to a non-loopback address, enforcing bootstrap checks" }
+elasticsearch_1  | ERROR: [2] bootstrap checks failed
+elasticsearch_1  | [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+elasticsearch_1  | [2]: the default discovery settings are unsuitable for production use; at least one of [discovery.seed_hosts, discovery.seed_providers, cluster.initial_master_nodes] must be configured
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,632Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "stopping ..." }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,677Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "stopped" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,679Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "closing ..." }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,752Z", "level": "INFO", "component": "o.e.n.Node", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "closed" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:10:22,756Z", "level": "INFO", "component": "o.e.x.m.p.NativeController", "cluster.name": "docker-cluster", "node.name": "fd168d3dcd92", "message": "Native controller process has stopped - no new native processes can be started" }
+```
+
+Поиск в слаке дал решение. Чиним:
+
+Задаём vm.max_map_count на docker-machine инстансе
+```shell
+docker-machine ssh logging sudo sysctl -w vm.max_map_count=262144
+exit
+```
+
+Обновим версию и добавим envionment
+
+[docker-compose-logging.yml](docker/docker-compose-logging.yml)
+```yaml
+services:
+  ...
+  elasticsearch:
+    image: elasticsearch:7.5.0
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=docker-cluster
+      - node.master=true
+      - cluster.initial_master_nodes=elasticsearch
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+  ...
+```
+
+Перезапускаем logging
+```shell
+make down_logging run_logging
+```
+
+Проверяем
+```shell
+cd ./docker && docker-compose -f docker-compose-logging.yml ps
+```
+Ошибка
+```log
+         Name                       Command                State                               Ports                            
+--------------------------------------------------------------------------------------------------------------------------------
+docker_elasticsearch_1   /usr/local/bin/docker-entr ...   Exit 78                                                               
+docker_fluentd_1         tini -- /bin/entrypoint.sh ...   Up        0.0.0.0:24224->24224/tcp, 0.0.0.0:24224->24224/udp, 5140/tcp
+docker_kibana_1          /usr/local/bin/dumb-init - ...   Up        0.0.0.0:5601->5601/tcp
+```
+```shell
+docker-compose -f docker-compose-logging.yml logs elasticsearch
+```
+```log
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:31:29,375Z", "level": "WARN", "component": "o.e.b.JNANatives", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "Unable to lock JVM Memory: error=12, reason=Cannot allocate memory" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:31:29,386Z", "level": "WARN", "component": "o.e.b.JNANatives", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "This can result in part of the JVM being swapped out." }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:31:29,388Z", "level": "WARN", "component": "o.e.b.JNANatives", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "Increase RLIMIT_MEMLOCK, soft limit: 65536, hard limit: 65536" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:31:29,390Z", "level": "WARN", "component": "o.e.b.JNANatives", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "These can be adjusted by modifying /etc/security/limits.conf, for example: \n\t# allow user 'elasticsearch' mlockall\n\telasticsearch soft memlock unlimited\n\telasticsearch hard memlock unlimited" }
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-17T05:31:29,397Z", "level": "WARN", "component": "o.e.b.JNANatives", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "If you are logged in interactively, you will have to re-login for the new limits to take effect." }
+...
+elasticsearch_1  | ERROR: [1] bootstrap checks failed
+elasticsearch_1  | [1]: memory locking requested for elasticsearch process but memory is not locked
+```
+Отчасти помогла найти проблему дискуссия по [ссылке](https://discuss.elastic.co/t/elasticsearch-is-not-starting-when-bootstrap-memory-lock-is-set-to-true/120962/2)
+
+
+##### memory locking requested for elasticsearch process but memory is not locked
+
+Правим `/etc/security/limits.conf` на инстансе docker-machine
+```shell
+docker-machine ssh logging
+echo elasticsearch soft memlock unlimited | sudo tee /etc/security/limits.conf
+echo elasticsearch hard memlock unlimited | sudo tee /etc/security/limits.conf
+exit
+```
+
+Переподнимаем logging
+```shell
+make down_logging run_logging
+```
+
+Результат тот же.
+
+После некоторых блужданий, решение найдено https://github.com/deviantony/docker-elk/issues/243
+
+К сервису добавлены лимиты
+```yaml
+ulimits:
+  memlock:
+    soft: -1
+    hard: -1
+```
+
+Итоговый [docker/docker-compose-logging.yml](docker/docker-compose-logging.yml)
+```yaml
+---
+version: "3"
+services:
+  fluentd:
+    image: ${USERNAME}/fluentd
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+
+  elasticsearch:
+    image: elasticsearch:7.5.0
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+    environment:
+      - node.name=elasticsearch
+      - cluster.name=docker-cluster
+      - node.master=true
+      - cluster.initial_master_nodes=elasticsearch
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  kibana:
+    image: kibana:7.5.0
+    ports:
+      - "5601:5601"
+```
+
+##### Kibana продолжение
+
+Откроем WEB-интерфейс Kibana для просмотра собранных в ElasticSearch логов Post-сервиса (kibana слушает на порту 5601) http://34.66.31.172:5601
+
+1. Discover
+2. Configure an index pattern `fluentd-*`
+3. Next
+4. Time Filter field name `@timestamp`
+5. Next
+6. Discover
+
+Далее можн поиграться с интефейсом, посмотреть логи.
+
+Видим лог-сообщение, которые мы недавно наблюдали в терминале. Теперь эти лог-сообщения хранятся централизованно в ElasticSearch. Также видим доп. информацию о том, откуда поступил данный лог.
+
+Обратим внимание на то, что наименования в левом столбце, называются полями. По полям можно производить поиск для быстрого нахождения нужной информации.
+
+Для того чтобы посмотреть некоторые примеры поиска, можно ввести в поле поиска произвольное выражение.
+
+К примеру, посмотрев список доступных полей, мы можем выполнить поиск всех логов, поступивших с контейнера `reddit_post_1`.
+
+Заметим, что поле log содержит в себе JSON объект, который содержит много интересной нам информации.
+```json
+{"addr": "172.22.0.3", "event": "request", "level": "info", "method": "GET", "path": "/healthcheck?", "request_id": "07585bd8-ca1f-473f-ae72-21f3d08f0d5d", "response_status": 200, "service": "post", "timestamp": "2019-12-17 06:24:16"}
+```
+
+Нам хотелось бы выделить эту информацию в поля, чтобы иметь возможность производить по ним поиск. Например, для того чтобы найти все логи, связанные с определенным событием (event) или конкретным сервисов (service).
+
+Мы можем достичь этого за счет использования **фильтров** для выделения нужной информации.
+
+
+#### Фильтры
+
+Добавим фильтр для парсинга json логов, приходящих от post сервиса, в конфиг fluentd.
+
+[logging/fluentd/fluent.conf](logging/fluentd/fluent.conf)
+```xml
+<source>
+   @type forward
+   port 24224
+   bind 0.0.0.0
+</source>
+
+<filter service.post>
+   @type parser
+   format json
+   key_name log
+</filter>
+
+<match *.**>
+   @type copy
+...
+```
+
+После этого персоберите образ и перезапустите сервис fluentd
+
+Метод ДЗ
+```shell
+logging/fluentd $ docker build -t $USER_NAME/fluentd
+docker/ $ docker-compose -f docker-compose-logging.yml up -d fluentd
+```
+
+Но у нас букв меньше. Метод Make
+```shell
+make fluentd_build run_logging
+```
+
+Вновь обратимся к Kibana. Прежде чем смотреть логи убедимся, что временной интервал выбран верно. Нажмите один раз на дату со временем. Выставлены верно!
+
+Взглянем на одно из сообщений и увидим, что вместо одного поля log появилось множество полей с нужной нам информацией... А вот и нет!
+
+Помогло обносление верий fluentd и его плагинов
+
+[logging/fluentd/Dockerfile](logging/fluentd/Dockerfile)
+```dockerfile
+FROM fluent/fluentd:v1.8
+USER root
+RUN fluent-gem install fluent-plugin-elasticsearch --no-rdoc --no-ri --version 3.7.1
+RUN fluent-gem install fluent-plugin-grok-parser --no-rdoc --no-ri --version 2.6.1
+ADD fluent.conf /fluentd/etc
+USER fluent
+```
+
+Снова взглянем на одно из сообщений и увидим, что вместо одного поля log появилось множество полей с нужной нам информацией!
+
+Выполним для пример поиск по событию создания нового поста: `event: post_create`
+
+Нашлось 2 поста, которые были созданы после настройки фильтра.
+
+
+### Неструктурированные логи
+
+Неструктурированные логи отличаются отсутствием четкой структуры данных. Также часто бывает, что формат лог-сообщений не подстроен под систему централизованного логирования, что существенно увеличивает затраты вычислительных и временных ресурсов на обработку данных и выделение нужной информации.
+
+На примере сервиса ui мы рассмотрим пример логов с неудобным форматом сообщений.
+
+
+#### Логирование UI сервиса
+
+По аналогии с post сервисом определим для ui сервиса драйвер для логирования fluentd в compose-файле.
+
+[docker/docker-compose.yml](docker/docker-compose.yml)
+```yaml
+services:
+  ui:
+    environment:
+      APP_HOME: ${UI_APP_HOME}
+    image: ${USERNAME}/ui:${UI_VERSION}
+    ports:
+      - ${UI_PORT}:9292/tcp
+    networks:
+      - reddit_front
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.ui
+```
+
+Перезапустим ui сервис Из каталога `./docker`
+
+Путь ДЗ
+```
+docker-compose stop ui
+docker-compose rm ui
+docker-compose up -d
+```
+
+Путь Make (docker-compose сам пересоздаст контейнер)
+```shell
+make run_app
+```
+```log
+...
+Recreating docker_ui_1    ... done
+...
+```
+
+Посмотрим на формат собираемых сообщений
+```log
+I, [2019-12-17T18:15:04.146453 #1]  INFO -- : service=ui | event=show_all_posts | request_id=bf36de91-bf97-4d97-b15a-c66dec6ee581 | message='Successfully showed the home page with posts' | params: "{}"
+```
+
+
+### Парсинг
+
+Когда приложение или сервис не пишет структурированные логи, приходится использовать старые добрые **регулярные выражения** для их парсинга в [/docker/fluentd/fluent.conf](/docker/fluentd/fluent.conf)
+
+Следующее **регулярное выражение** нужно, чтобы успешно выделить интересующую нас информацию из лога UI-сервиса в поля
+
+[/docker/fluentd/fluent.conf](/docker/fluentd/fluent.conf)
+```xml
+source>
+  @type forward
+  port 24224
+  bind 0.0.0.0
+</source>
+
+<filter service.post>
+  @type parser
+  format json
+  key_name log
+</filter>
+
+<filter service.ui>
+  @type parser
+  format /\[(?<time>[^\]]*)\]  (?<level>\S+) (?<user>\S+)[\W]*service=(?<service>\S+)[\W]*event=(?<event>\S+)[\W]*(?:path=(?<path>\S+)[\W]*)?request_id=(?<request_id>\S+)[\W]*(?:remote_addr=(?<remote_addr>\S+)[\W]*)?(?:method= (?<method>\S+)[\W]*)?(?:response_status=(?<response_status>\S+)[\W]*)?(?:message='(?<message>[^\']*)[\W]*)?/
+  key_name log
+</filter>
+
+
+<match *.**>
+  @type copy
+  <store>
+    @type elasticsearch
+    host elasticsearch
+    port 9200
+    logstash_format true
+    logstash_prefix fluentd
+    logstash_dateformat %Y%m%d
+    include_tag_key true
+    type_name access_log
+    tag_key @log_name
+    flush_interval 1s
+  </store>
+  <store>
+    @type stdout
+  </store>
+</match>
+```
+
+#### Перезапускаем логгинг
+
+Обновим fluentd и перезапустим логгинг
+```shell
+make fluentd_build run_logging
+```
+
+
+#### Парсинг
+
+Результат должен выглядить следующим образом... Да что-то не очень, в эластик прилетело одно сообщение:
+```json
+{
+  "_index": "fluentd-20191217",
+  "_type": "access_log",
+  "_id": "GgYWFW8B0lVuIA-sb4VL",
+  "_version": 1,
+  "_score": null,
+  "_source": {
+    "worker": 0,
+    "message": "fluentd worker is now stopping worker=0",
+    "@timestamp": "2019-12-17T18:19:49.446032292+00:00",
+    "@log_name": "fluent.info"
+  },
+  "fields": {
+    "@timestamp": [
+      "2019-12-17T18:19:49.446Z"
+    ]
+  },
+  "sort": [
+    1576606789446
+  ]
+}
+```
+
+Упал наш флюент
+```shell
+cd ./docker && docker-compose -f docker-compose-logging.yml logs -f fluentd; cd -
+```
+```log
+Attaching to docker_fluentd_1
+fluentd_1        | /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/config/basic_parser.rb:92:in `parse_error!': unmatched end tag at fluent.conf line 6,1 (Fluent::ConfigParseError)
+fluentd_1        |   5: </source>
+fluentd_1        |   6: 
+fluentd_1        | 
+fluentd_1        |      -^
+fluentd_1        |   7: <filter service.post>
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/config/v1_parser.rb:78:in `parse_element'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/config/v1_parser.rb:43:in `parse!'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/config/v1_parser.rb:33:in `parse'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/config.rb:39:in `parse'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/supervisor.rb:779:in `read_config'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/supervisor.rb:561:in `configure'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/lib/fluent/command/fluentd.rb:329:in `<top (required)>'
+fluentd_1        |      from /usr/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+fluentd_1        |      from /usr/lib/ruby/2.5.0/rubygems/core_ext/kernel_require.rb:59:in `require'
+fluentd_1        |      from /usr/lib/ruby/gems/2.5.0/gems/fluentd-1.8.0/bin/fluentd:8:in `<top (required)>'
+fluentd_1        |      from /usr/bin/fluentd:23:in `load'
+fluentd_1        |      from /usr/bin/fluentd:23:in `<main>'
+docker_fluentd_1 exited with code 1
+```
+Причина: нехватает `<` перед открывающемим тэгом `source>`.
+
+Исправлено: [/docker/fluentd/fluent.conf](/docker/fluentd/fluent.conf)
+```xml
+<source>
+  @type forward
+  port 24224
+  bind 0.0.0.0
+</source>
+
+<filter service.post>
+  @type parser
+  format json
+  key_name log
+</filter>
+
+<filter service.ui>
+  @type parser
+  format /\[(?<time>[^\]]*)\]  (?<level>\S+) (?<user>\S+)[\W]*service=(?<service>\S+)[\W]*event=(?<event>\S+)[\W]*(?:path=(?<path>\S+)[\W]*)?request_id=(?<request_id>\S+)[\W]*(?:remote_addr=(?<remote_addr>\S+)[\W]*)?(?:method= (?<method>\S+)[\W]*)?(?:response_status=(?<response_status>\S+)[\W]*)?(?:message='(?<message>[^\']*)[\W]*)?/
+  key_name log
+</filter>
+
+
+<match *.**>
+  @type copy
+  <store>
+    @type elasticsearch
+    host elasticsearch
+    port 9200
+    logstash_format true
+    logstash_prefix fluentd
+    logstash_dateformat %Y%m%d
+    include_tag_key true
+    type_name access_log
+    tag_key @log_name
+    flush_interval 1s
+  </store>
+  <store>
+    @type stdout
+  </store>
+</match>
+```
+```shell
+make fluentd_build run_logging
+```
+
+Теперь гораздо лучше: сообщение в эластике
+```json
+{
+  "_index": "fluentd-20191217",
+  "_type": "access_log",
+  "_id": "1QYdFW8B0lVuIA-ssYXr",
+  "_version": 1,
+  "_score": null,
+  "_source": {
+    "level": "INFO",
+    "user": "--",
+    "service": "ui",
+    "event": "request",
+    "path": "/",
+    "request_id": "55504441-6aac-43cf-b22e-006811a30b89",
+    "remote_addr": "185.30.195.250",
+    "method": "GET",
+    "response_status": "200",
+    "@timestamp": "2019-12-17T18:27:43.382932000+00:00",
+    "@log_name": "service.ui"
+  },
+  "fields": {
+    "@timestamp": [
+      "2019-12-17T18:27:43.382Z"
+    ]
+  },
+  "sort": [
+    1576607263382
+  ]
+}
+```
+
+Созданные регулярки могут иметь ошибки, их сложно менять и невозможно читать. Для облегчения задачи парсинга вместо стандартных регулярок можно использовать **grok**-шаблоны. По-сути **grok**’и - это именованные шаблоны регулярных выражений (очень похоже на функции). Можно использовать готовый regexp, просто сославшись на него как на функцию
+
+[docker/fluentd/fluent.conf](docker/fluentd/fluent.conf)
+```xml
+...
+<filter service.ui>
+   @type parser
+   format grok
+   grok_pattern %{RUBY_LOGGER}
+   key_name log
+</filter>
+...
+```
+
+Это grok-шаблон, зашитый в плагин для fluentd. В развернутом виде он выглядит вот так:
+```grok
+%{RUBY_LOGGER} [(?<timestamp>(?>\d\d){1,2}-(?:0?[1-9]|1[0-2])-(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9])[T ](?:2[0123]|[01]?[0-9]):?(?:[0-5][0-9])(?::?(?:(?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?))?(?:Z|[+-](?:2[0123]|[01]?[0-9])(?::?(?:[0-5][0-9])))?) #(?<pid>\b(?:[1-9][0-9]*)\b)\] *(?<loglevel>(?:DEBUG|FATAL|ERROR|WARN|INFO)) -- +(?<progname>.*?): (?<message>.*)
+```
+
+Как было видно на предыдущем слайде - часть логов нужно еще распарсить. Для этого используем несколько Grok-ов по-очереди
+
+[docker/fluentd/fluent.conf](docker/fluentd/fluent.conf)
+```xml
+<source>
+  @type forward
+  port 24224
+  bind 0.0.0.0
+</source>
+
+<filter service.post>
+  @type parser
+  format json
+  key_name log
+</filter>
+
+<filter service.ui>
+  @type parser
+  key_name log
+  format grok
+  grok_pattern %{RUBY_LOGGER}
+</filter>
+
+<filter service.ui>
+  @type parser
+  format grok
+  grok_pattern service=%{WORD:service} \| event=%{WORD:event} \| request_id=%{GREEDYDATA:request_id} \| message='%{GREEDYDATA:message}'
+  key_name message
+  reserve_data true
+</filter>
+
+<match *.**>
+  @type copy
+  <store>
+    @type elasticsearch
+    host elasticsearch
+    port 9200
+    logstash_format true
+    logstash_prefix fluentd
+    logstash_dateformat %Y%m%d
+    include_tag_key true
+    type_name access_log
+    tag_key @log_name
+    flush_interval 1s
+  </store>
+  <store>
+    @type stdout
+  </store>
+</match>
+```
+```shell
+make fluentd_build run_logging
+```
+Ошибочка
+```log
+Attaching to docker_fluentd_1
+fluentd_1        | 2019-12-17 18:34:08 +0000 [info]: parsing config file is succeeded path="/fluentd/etc/fluent.conf"
+fluentd_1        | 2019-12-17 18:34:08 +0000 [info]: gem 'fluent-plugin-elasticsearch' version '3.7.1'
+fluentd_1        | 2019-12-17 18:34:08 +0000 [info]: gem 'fluent-plugin-grok-parser' version '2.6.1'
+fluentd_1        | 2019-12-17 18:34:08 +0000 [info]: gem 'fluentd' version '1.8.0'
+fluentd_1        | 2019-12-17 18:34:08 +0000 [error]: config error file="/fluentd/etc/fluent.conf" error_class=Fluent::ConfigError error="no grok patterns. Check configuration, e.g. typo, configuration syntax, etc"
+docker_fluentd_1 exited with code 1
+```
+
+Танцы м бубном вокрук данной ситуации (чтение ридми в репозиториях плагинов, гугление и поиск подходящих issues), привели к https://github.com/repeatedly/fluent-plugin-multi-format-parser/issues/6 где для решения проблемы рекомендуют использовать `v0.12`, что мы и сделаем, использовав последние совместимые версии плагинов. Итого наш докерфайл стал таким:
+
+[logging/fluentd/Dockerfile](logging/fluentd/Dockerfile)
+```dockerfile
+FROM fluent/fluentd:v0.12
+RUN fluent-gem install fluent-plugin-elasticsearch --no-rdoc --no-ri --version 1.18.1
+RUN fluent-gem install fluent-plugin-grok-parser --no-rdoc --no-ri --version 1.0.0
+ADD fluent.conf /fluentd/etc
+```
+Затем сборка и деплой
+```shell
+make fluentd_build run_logging
+```
+Как не удивительно, но всё завелось, включая парсинг json от сервиса `post`.
+
+В итоге получим в Kibana (если совершаем действия в uiсервисе): да всё нормально получили.
+
+
+### Задания co *
+
+#### grok
+
+UI-сервис шлет логи в нескольких форматах.
+
+```log
+service=ui | event=request | path=/ | request_id=96e76ff2-3d06-4ffa-806b-c14d7ca6a78a | remote_addr=185.30.195.250 | method= GET | response_status=200
+```
+
+Такой лог остался неразобранным. Составьте конфигурацию fluentd так, чтобы разбирались оба формата логов UI-сервиса (тот, что сделали до этого и текущий) одновременно.
+
+##### Анализ
+
+Читаем документацию https://github.com/fluent/fluent-plugin-grok-parser/blob/master/README.md
+
+Парсим готовые шаблоны https://github.com/fluent/fluent-plugin-grok-parser/tree/master/patterns
+
+##### Реализация
+
+И пишем конфиг (удобный grok-дебаггер есть в кибане: Dev Tools )
+
+```xml
+<filter service.ui>
+  @type parser
+  format grok
+  <grok>
+    pattern service=%{WORD:service} \| event=%{WORD:event} \| request_id=%{GREEDYDATA:request_id} \| message='%{GREEDYDATA:message}'
+  </grok>
+  <grok>
+    pattern service=%{WORD:service} \| event=%{WORD:event} \| path=%{URIPATH:path} \| request_id=%{GREEDYDATA:request_id} \| remote_addr=%{IP:remote_addr} \| method= %{WORD:message} \| response_status=%{INT:response_status}
+  </grok>
+  key_name message
+  reserve_data true
+</filter>
+```
+
+Готово. Примеры
+```json
+{
+  "_index": "fluentd-20191217",
+  "_type": "access_log",
+  "_id": "wgZnFW8B0lVuIA-s_IqS",
+  "_version": 1,
+  "_score": null,
+  "_source": {
+    "timestamp": "2019-12-17T19:48:52.681349",
+    "pid": "1",
+    "loglevel": "INFO",
+    "progname": "",
+    "message": "Successfully showed the home page with posts",
+    "service": "ui",
+    "event": "show_all_posts",
+    "request_id": "08c3c38a-1725-4b7c-9665-c61e46265219",
+    "@timestamp": "2019-12-17T19:48:52+00:00",
+    "@log_name": "service.ui"
+  },
+  "fields": {
+    "@timestamp": [
+      "2019-12-17T19:48:52.000Z"
+    ]
+  },
+  "sort": [
+    1576612132000
+  ]
+}
+```
+```json
+{
+  "_index": "fluentd-20191217",
+  "_type": "access_log",
+  "_id": "wwZnFW8B0lVuIA-s_IqS",
+  "_version": 1,
+  "_score": null,
+  "_source": {
+    "timestamp": "2019-12-17T19:48:52.710553",
+    "pid": "1",
+    "loglevel": "INFO",
+    "progname": "",
+    "message": "GET",
+    "service": "ui",
+    "event": "request",
+    "path": "/",
+    "request_id": "08c3c38a-1725-4b7c-9665-c61e46265219",
+    "remote_addr": "185.30.195.250",
+    "response_status": "200",
+    "@timestamp": "2019-12-17T19:48:52+00:00",
+    "@log_name": "service.ui"
+  },
+  "fields": {
+    "@timestamp": [
+      "2019-12-17T19:48:52.000Z"
+    ]
+  },
+  "sort": [
+    1576612132000
+  ]
+}
+```
+
+
+### Распределенная трасировка
+
+Разобраться с темой распределенного трейсинга и решить проблему в конце данного файла.
+
+#### Zipkin
+
+Добавьте в compose-файл для сервисов логирования сервис распределенного трейсинга Zipkin
+
+[docker/docker-compose-logging.yml](docker/docker-compose-logging.yml)
+```yaml
+version: '3'
+
+services:
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+
+  ...
+
+  kibana:
+    image: kibana
+    ports:
+      - "8080:5601"  # Почему 8080??? Раньше так не было... в композ-файле прописал 5601:5601
+```
+
+
+#### docker-compose.yml
+
+Правим наш [docker/docker-compose.yml]([docker/docker-compose.yml])
+
+Добавьте для каждого сервиса поддержку `ENV` переменных и задайте параметризованный параметр `ZIPKIN_ENABLED`
+
+```yaml
+environment:
+   - ZIPKIN_ENABLED=${ZIPKIN_ENABLED}
+```
+
+В `.env` файле укажите
+```shell
+ZIPKIN_ENABLED=true
+```
+
+Перевыкатите приложение с обновлением
+
+Метод ДЗ
+```shell
+docker-compose up -d
+```
+
+Метод Make
+```shell
+make run_app
+```
+
+
+#### Networks
+
+Zipkin должен быть в одной сети с приложениями, поэтому, если вы выполняли задание с сетями, вам нужно объявить эти сети в [docker-compose-logging.yml](docker/docker-compose-logging.yml) и добавить в них zikpkin похожим образом:
+
+```yaml
+services:
+  ...
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - reddit_front
+      - reddit_back
+
+networks:
+  reddit_front:
+  reddit_back:
+```
+
+
+#### Пересоздадим наши сервисы
+
+Метод ДЗ
+```shell
+docker-compose -f docker-compose-logging.yml -f docker-compose.yml down
+docker-compose -f docker-compose-logging.yml -f docker-compose.yml up -d
+```
+Им и воспользуемся (сюрприз))
+P.S. Понадобилось поднять версию композ-файла [docker/docker-compose-logging.yml](docker/docker-compose-logging.yml) с `3.0` до `3.3`
+```log
+Status: Downloaded newer image for openzipkin/zipkin:latest
+Creating docker_kibana_1 ... 
+Creating docker_post_db_1 ... 
+Creating docker_zipkin_1  ... 
+Creating docker_post_1    ... 
+Creating docker_kibana_1        ... done
+Creating docker_post_db_1       ... done
+Creating docker_zipkin_1        ... done
+
+Creating docker_elasticsearch_1 ... done
+
+Creating docker_fluentd_1       ... done
+Creating docker_comment_1       ... done
+
+ERROR: for ui  Cannot start service ui: failed to initialize logging driver: dial tcp 127.0.0.1:24224: connect: connection refused
+
+ERROR: for post  Cannot start service post: failed to initialize logging driver: dial tcp 127.0.0.1:24224: connect: connection refused
+ERROR: Encountered errors while bringing up the project.
+```
+
+Повторный запуск помог. Похоже, приложение не смогло стартовать до полного запуска zipkin.
+```shell
+docker-compose -f docker-compose-logging.yml -f docker-compose.yml up -d
+```
+```log
+Starting docker_post_1 ... 
+docker_elasticsearch_1 is up-to-date
+docker_zipkin_1 is up-to-date
+Starting docker_ui_1   ... 
+docker_kibana_1 is up-to-date
+Starting docker_post_1    ... done
+Starting docker_ui_1      ... done
+Starting docker_comment_1 ... done
+```
+
+Откроем Zipkin WEB UI на порту 9411, пока никаких трейсов поиск не должен дать, т.к. никаких запросов нашему приложению еще не поступало (так и есть)
+
+Откроем главную страницу приложения и обновим ее несколько раз.
+
+Заглянув затем в UI Zipkin (страницу потребуется обновить), мы должны найти несколько трейсов (следов, которые оставили запросы проходя через систему наших сервисов)... Да, нашли.
+
+Нажмем на один из трейсов, чтобы посмотреть, как запрос шел через нашу систему микросервисов и каково общее время обработки запроса у нашего приложения при запросе главной страницы.
+
+Видим, что первым делом наш запрос попал к ui сервису, который смог обработать наш запрос за суммарное время равное **187.566ms**.
+
+Из этих **187ms** ms ушло **134.155ms** на то чтобы ui мог направить запрос post сервису по пути `/posts` и получить от него ответ в виде списка постов. Post сервис в свою очередь использовал функцию обращения к БД за списком постов, на что ушло **4.827ms**... На самом деле, не видны в трейсах обращения к БД, но посмотрим что будет дальше.
+
+Повторим немного терминологию: синие полоски со временем называются **span** и представляют собой одну операцию, которая произошла при обработке запроса. Набор **span**-ов называется трейсом. Суммарное время обработки нашего запроса равно верхнему **span**-у, который включает в себя время всех **span**-ов, расположенных под ним.
+
+
+### Вне заданий: проблемы с comment
+
+```shell
+docker-compose ps
+```
+```log
+      Name                   Command             State            Ports         
+--------------------------------------------------------------------------------
+docker_comment_1   puma                          Exit 1                         
+docker_post_1      python3 post_app.py           Up                             
+docker_post_db_1   docker-entrypoint.sh mongod   Up       27017/tcp             
+docker_ui_1        puma                          Up       0.0.0.0:9292->9292/tcp
+```
+
+Включим логгирование для comment
+
+[docker/docker-compose.yml](docker/docker-compose.yml)
+```yaml
+services:
+  ...
+  comment:
+    environment:
+      APP_HOME: ${COMMENT_APP_HOME}
+      ZIPKIN_ENABLED: ${ZIPKIN_ENABLED}
+    image: ${USERNAME}/comment:${COMMENT_VERSION}
+    networks:
+      - reddit_front
+      - reddit_back
+    links:
+      - "post_db:comment_db"
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.comment
+```
+
+Рестарт app
+```shell
+make run_app
+```
+
+Смотрим логи
+```log
+! Unable to load application: TZInfo::DataSourceNotFound: No source of timezone data could be found.
+```
+
+Гугление. [Первая ссылка:](https://github.com/tzinfo/tzinfo/wiki/Resolving-TZInfo::DataSourceNotFound-Errors)
+
+Создал Issue https://github.com/express42/reddit/issues/9
+
+Склонировал репо. Создал бренч `fix-comment` из `logging`. 
+
+Исправил: в [src/comment/Gemfile](src/comment/Gemfile) добавил `gem 'tzinfo-data'` - помогло)
+
+Закоммитил. НО при пуше ошибка
+```shell
+git push
+```
+```log
+ERROR: Permission to express42/reddit.git denied to vscoder.
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+```
+
+Сделал форк https://github.com/vscoder/reddit
+
+Исправил. Закоммитил. Создал PR https://github.com/express42/reddit/pull/10
+
+Исправил в своём репозитории.
+
+
+### Самостоятельное задание со звездочкой \*
+
+С нашим приложением происходит что-то странное. Пользователи жалуются, что при нажатии на пост они вынуждены долго ждать, пока у них загрузится страница с постом. Жалоб на загрузку других страниц не поступало. Нужно выяснить, в чем проблема, используя Zipkin.
+
+[Ссылка на репозиторий](https://github.com/Artemmkin/bugged-code) со сломанным кодом приложения.
+
+Описание проблемы можно опублиовать в PR, в разделе выполнения задания со звездочкой
+
+#### Репозиторий
+
+```shell
+git clone git@github.com:Artemmkin/bugged-code.git
+```
+
+Параметризуем директорию с исходниками в [Makefile](Makefile)
+```makefile
+# Source code directory
+SRC_DIR?=./src
+...
+###
+# Build
+###
+build_comment:
+	. ./env && \
+	cd ${SRC_DIR}/comment && bash ./docker_build.sh
+
+build_post:
+	. ./env && \
+	cd ${SRC_DIR}/post-py && bash ./docker_build.sh
+
+build_ui:
+	. ./env && \
+	cd ${SRC_DIR}/ui && bash ./docker_build.sh
+```
+
+Каждому образу в `./bugged-code/*/docker_build.sh` добавлен тег `bugged`
+
+Собираем образы
+
+```shell
+make build_comment build_post build_ui SRC_DIR=./bugged-code
+```
+
+В `docker/.env` меняем версию сервисов на `bugged`. 
+
+Запускаем приложение:
+```shell
+make run_app
+```
+
+
+#### Проблема
+
+При открытии страницы приложения, видим ошибку
+> Can't show blog posts, some problems with the post service. Refresh?
+
+В zipkin:
+1. находим ошибочный трейс, открываем
+2. находим ошибочный спан, открываем
+
+Видим ошибку
+```log
+error	Request connection failed.
+http.path	/posts
+Server Address	127.0.0.1:4567 (127)
+```
+
+Почему он пытаается открыть post на `127.0.0.1`? В то время когда должен лезть на сервис с именем post...
+
+Решение: в `Dockerfile` нашего приложения были заданы значения по умолчанию с адресами сервисов. В `bugged`-версии такого нет. Зададим данные переменные через `environment` в [docker-compose.yml](docker/docker-compose.yml)
+```yaml
+service:
+  ui:
+    environment:
+      APP_HOME: ${UI_APP_HOME}
+      ZIPKIN_ENABLED: ${ZIPKIN_ENABLED}
+      POST_SERVICE_HOST: post
+      POST_SERVICE_PORT: 5000
+      COMMENT_SERVICE_HOST: comment
+      COMMENT_SERVICE_PORT: 9292
+    image: ${USERNAME}/ui:${UI_VERSION}
+```
+Значения переменных заданы явно, так как адреса севрвисов захардкожены в самом композ-файле, а номара портов никак не настраиваются для приложений.
+
+Перезапускаем приложение
+```shell
+make down_app
+make run_app
+```
+
+Теперь всё работает. Продолжаем работу в рамках ДЗ
+
+
+#### Поиск проблемы
+
+Открыие страницы с постом происходит очень медленно http://34.69.62.207:9292/post/5dfa57b6ee0fa2000ea79437
+
+Смотрим zipkin:
+
+- Находим трейс `3.071s 6 spans`
+- span `post.db_find_single_post: 3.006s`
+
+Похоже, что поиск поста происходит слишком медленно
+
+Перезапустим нормальное приложение (версия `logging`): тот же спан ~105ms
+
+Проблема найдена.
+
+
+#### Проблема с EFK
+
+Посмотрим в kibana
+
+```json
+{
+  "_index": "fluentd-20191218",
+  "_type": "access_log",
+  "_id": "aTxvGm8BX5Q2VjUnBF1B",
+  "_version": 1,
+  "_score": null,
+  "_source": {
+    "error_class": "Fluent::ElasticsearchErrorHandler::ElasticsearchError",
+    "error": "400 - Rejected by Elasticsearch",
+    "location": null,
+    "tag": "service.post",
+    "time": 1576696476,
+    "record": {
+      "addr": "172.22.0.3",
+      "event": "request",
+      "level": "info",
+      "method": "GET",
+      "path": "/post/5dfa57b6ee0fa2000ea79437?",
+      "request_id": "e27e47a9-6355-4a19-aeb1-40470d5004dd",
+      "response_status": 200,
+      "service": "post",
+      "timestamp": "2019-12-18 19:14:36"
+    },
+    "message": "dump an error event: error_class=Fluent::ElasticsearchErrorHandler::ElasticsearchError error=\"400 - Rejected by Elasticsearch\" location=nil tag=\"service.post\" time=1576696476 record={\"addr\"=>\"172.22.0.3\", \"event\"=>\"request\", \"level\"=>\"info\", \"method\"=>\"GET\", \"path\"=>\"/post/5dfa57b6ee0fa2000ea79437?\", \"request_id\"=>\"e27e47a9-6355-4a19-aeb1-40470d5004dd\", \"response_status\"=>200, \"service\"=>\"post\", \"timestamp\"=>\"2019-12-18 19:14:36\"}",
+    "@timestamp": "2019-12-18T19:14:37+00:00",
+    "@log_name": "fluent.warn"
+  },
+  "fields": {
+    "@timestamp": [
+      "2019-12-18T19:14:37.000Z"
+    ]
+  },
+  "highlight": {
+    "tag": [
+      "@kibana-highlighted-field@service.post@/kibana-highlighted-field@"
+    ],
+    "message": [
+      "dump an error event: error_class=Fluent::ElasticsearchErrorHandler::ElasticsearchError error=\"400 - Rejected by Elasticsearch\" location=nil tag=\"@kibana-highlighted-field@service.post@/kibana-highlighted-field@\" time=1576696476 record={\"addr\"=>\"172.22.0.3\", \"event\"=>\"request\", \"level\"=>\"info\", \"method\"=>\"GET\", \"path\"=>\"/post/5dfa57b6ee0fa2000ea79437?\", \"request_id\"=>\"e27e47a9-6355-4a19-aeb1-40470d5004dd\", \"response_status\"=>200, \"service\"=>\"post\", \"timestamp\"=>\"2019-12-18 19:14:36\"}"
+    ],
+    "tag.keyword": [
+      "@kibana-highlighted-field@service.post@/kibana-highlighted-field@"
+    ]
+  },
+  "sort": [
+    1576696477000
+  ]
+}
+```
+
+Странные ошибки. Найдена Issue https://github.com/uken/fluent-plugin-elasticsearch/issues/467
+
+Попробуем включить дебаг в [logging/fluentd/fluent.conf](logging/fluentd/fluent.conf)
+```xml
+...
+<match *.**>
+  @type copy
+  <store>
+    @log_level debug
+    @type elasticsearch
+    host elasticsearch
+...
+```
+
+```shell
+make run_logging
+```
+
+Обновим страницу...
+В es ошибки не пропали. Лог ES:
+```log
+elasticsearch_1  | {"type": "server", "timestamp": "2019-12-18T19:24:39,220Z", "level": "DEBUG", "component": "o.e.a.b.TransportShardBulkAction", "cluster.name": "docker-cluster", "node.name": "elasticsearch", "message": "[fluentd-20191218][0] failed to execute bulk item (index) index {[fluentd-20191218][access_log][fjx4Gm8BX5Q2VjUnJV2n], source[{\"addr\":\"172.22.0.3\",\"event\":\"request\",\"level\":\"info\",\"method\":\"GET\",\"path\":\"/post/5dfa57b6ee0fa2000ea79437?\",\"request_id\":\"ce9c55fb-6522-4723-8769-c0a12f090b36\",\"response_status\":200,\"service\":\"post\",\"timestamp\":\"2019-12-18 19:24:38\",\"@timestamp\":\"2019-12-18T19:24:38+00:00\",\"@log_name\":\"service.post\"}]}", "cluster.uuid": "Tm7FR-K9RGmirE07d8jmsQ", "node.id": "R6gRLHXhQgWyqbXc3DY5iQ" , 
+elasticsearch_1  | "stacktrace": ["org.elasticsearch.index.mapper.MapperParsingException: failed to parse field [timestamp] of type [date] in document with id 'fjx4Gm8BX5Q2VjUnJV2n'. Preview of field's value: '2019-12-18 19:24:38'",
+```
+
+Не может распарсить поле `timestamp`? Сделаем его строкой))
+
+В кибане: Management -> Index Patterns -> страница 7 -> `timestamp` изменить -> Format: **String**
+
+Теперь вновь пришедшие сообщения выглядят нормально.
+
+Дебаг плагина в [logging/fluentd/fluent.conf](logging/fluentd/fluent.conf) выглючил `make fluentd_build run_logging`
+
+
+### Как запустить проект:
+
+#### Подготовка
+
+Предварительно необходимо заполнить файлы ./env и ./monitoring/alertmanager/env по примеру env.example в соответствующих директориях, а так же выполнить авторизацию в gcloud
+
+```shell
+# Установка docker-machine
+make install_docker_machine
+
+# Создание docker-machine
+make docker_machine_create_logging
+
+# Исплоьзование docker-machine
+eval $(docker-machine env logging)
+
+# Узнать docker-machine ip
+make docker_machine_ip_logging
+```
+
+#### Запуск
+
+- `make run_logging run_app` - только приложение и логгинг
+- Или `make run` - запуск всего
