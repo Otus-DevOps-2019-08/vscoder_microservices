@@ -301,6 +301,8 @@ vscoder microservices repository
   - [yaml](#yaml-2)
   - [yaml](#yaml-3)
   - [yaml](#yaml-4)
+  - [yaml](#yaml-5)
+  - [yaml](#yaml-6)
 
 # Makefile
 
@@ -10427,4 +10429,151 @@ Forwarding from [::1]:9292 -> 9292
 При открытии http://localhost:9292/ долго думает, и ругается 
 > Can't show blog posts, some problems with the post service. Refresh?
 
-TODO: задебажить и продолжить
+В процессе поиска причины, выяснил что имя хоста с БД для `post` задаётся в [src/post-py/Dockerfile](src/post-py/Dockerfile) переменной окружения `POST_DATABASE_HOST` и имеет значение по-умолчанию `post_db`.
+
+Почитал дальше ДЗ - а там говорится то же самое))) Ну чтож, бывает!
+
+Поехали по ДЗ.
+
+Посмотрим в логи, например, comment: 
+```shell
+kubectl get pods --selector component=comment
+```
+```log
+NAME                       READY   STATUS    RESTARTS   AGE
+comment-7c997b69c9-976wq   1/1     Running   8          26h
+comment-7c997b69c9-rlndx   1/1     Running   10         26h
+comment-7c997b69c9-x87lf   1/1     Running   9          26h
+```
+```shell
+kubectl logs -f comment-7c997b69c9-976wq
+```
+```log
+Puma starting in single mode...
+* Version 3.12.0 (ruby 2.2.10-p489), codename: Llamas in Pajamas
+* Min threads: 0, max threads: 16
+* Environment: development
+* Listening on tcp://0.0.0.0:9292
+Use Ctrl-C to stop
+I, [2019-12-24T18:02:35.924035 #1]  INFO -- : service=comment | event=request | path=/healthcheck
+request_id=null | remote_addr=172.17.0.9 | method= GET | response_status=200
+I, [2019-12-24T18:02:45.389633 #1]  INFO -- : service=comment | event=request | path=/healthcheck
+request_id=null | remote_addr=172.17.0.9 | method= GET | response_status=200
+I, [2019-12-24T18:02:47.939377 #1]  INFO -- : service=comment | event=request | path=/healthcheck
+request_id=null | remote_addr=172.17.0.6 | method= GET | response_status=200
+I, [2019-12-24T18:02:50.178634 #1]  INFO -- : service=comment | event=request | path=/healthcheck
+request_id=null | remote_addr=172.17.0.9 | method= GET | response_status=200
+I, [2019-12-24T18:02:55.322827 #1]  INFO -- : service=comment | event=request | path=/healthcheck
+request_id=null | remote_addr=172.17.0.9 | method= GET | response_status=200
+I, [2019-12-24T18:02:55.558306 #1]  INFO -- : service=comment | event=request | path=/healthcheck
+...
+I, [2019-12-24T18:25:22.939060 #1]  INFO -- : service=comment | event=request | path=/healthcheck
+request_id=null | remote_addr=172.17.0.6 | method= GET | response_status=200
+I, [2019-12-24T18:25:29.711918 #1]  INFO -- : service=comment | event=request | path=/healthcheck
+request_id=null | remote_addr=172.17.0.11 | method= GET | response_status=200
+I, [2019-12-24T18:25:32.967963 #1]  INFO -- : service=comment | event=request | path=/healthcheck
+request_id=null | remote_addr=172.17.0.6 | method= GET | response_status=200
+I, [2019-12-24T18:25:43.715830 #1]  INFO -- : service=comment | event=request | path=/healthcheck
+request_id=null | remote_addr=172.17.0.6 | method= GET | response_status=200
+I, [2019-12-24T18:25:45.831078 #1]  INFO -- : service=comment | event=request | path=/healthcheck
+request_id=e36bcff5-d544-4ba7-8824-ac16df7524cc | remote_addr=172.17.0.9 | method= GET | response_status=200
+```
+Что-то нет там ничего про БД, как обещано в ДЗ...
+
+Остаётся только поверить наслово, вот как должно быть:
+```log
+$ kubectl logs post-56bbbf6795-7btnm
+D, [2017-11-23T11:58:14.036381 #1] DEBUG -- : MONGODB | Topology type 'unknown' initializing.
+D, [2017-11-23T11:58:14.036584 #1] DEBUG -- : MONGODB | Server comment_db:27017 initializing.
+D, [2017-11-23T11:58:14.041398 #1] DEBUG -- : MONGODB | getaddrinfo: Name does not resolve
+D, [2017-11-23T11:58:14.090421 #1] DEBUG -- : MONGODB | getaddrinfo: Name does not resolve 
+```
+
+А, может нужен дебаг? А нет дебага(( log level `WARN` захардкожен в [src/comment/comment_app.rb](src/comment/comment_app.rb) строка 19.
+
+Похоже, проблема была в том, что у меня в скриптах `src/<service>/docker_build.sh` был захардкожен тэг `logging` по наследству из предыдущего ДЗ. Чиню пересобираю.
+
+После пересборки, перезаливки на хаб и передеплое, всё **заработало как указано в ДЗ**.
+
+Приложение ищет совсем другой адрес: `comment_db`, а не `mongodb` Аналогично и сервис `comment` ищет `post_db`.
+
+Эти адреса заданы в их Dockerfile-ах в виде переменных окружения:
+`post/Dockerfile`
+```dockerfile
+…
+ENV POST_DATABASE_HOST=post_db
+```
+`comment/Dockerfile`
+```dockerfile
+…
+ENV COMMENT_DATABASE_HOST=comment_db
+```
+
+В Docker Swarm проблема доступа к одному ресурсу под разными именами решалась с помощью сетевых алиасов.
+
+В Kubernetes такого функционала нет. Мы эту проблему можем решить с помощью тех же Service-ов.
+
+Сделаем Service для БД comment.
+[kubernetes/reddit/comment-mongodb-service.yml](kubernetes/reddit/comment-mongodb-service.yml)
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: comment-db
+  labels:
+    app: reddit
+    component: mongo
+    comment-db: "true"
+spec:
+  ports:
+    - port: 27017
+      protocol: TCP
+      targetPort: 27017
+  selector:
+    app: reddit
+    component: mongo
+    comment-db: "true"
+```
+P.S. булевые значения обязательно указывать в кавычках
+
+Так же придется обновить файл deployment для mongodb, чтобы новый Service смог найти нужный POD (не забываем исправить `apiVersion:` на `apps/v1`)
+[kubernetes/reddit/mongo-deployment.yml](kubernetes/reddit/mongo-deployment.yml)
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+    comment-db: "true"  # Лейбл в deployment чтобы было понятно, что развернуто
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+        comment-db: "true"  # label в pod, который нужно найти
+    spec:
+      containers:
+        - image: mongo:3.2
+          name: mongo
+          volumeMounts:
+            - name: mongo-persistent-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-persistent-storage
+          emptyDir: {}
+```
+
+Зададим pod-ам comment переменную окружения для обращения к базе (см слайд 34)
+
+TODO: спать и до завтра

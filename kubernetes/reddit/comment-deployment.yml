@@ -7,7 +7,7 @@ metadata:
     app: reddit
     component: comment
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: reddit
@@ -20,5 +20,8 @@ spec:
         component: comment
     spec:
       containers:
-        - image: vscoder/comment
+        - image: vscoder/comment:latest
           name: comment
+          env:
+            - name: COMMENT_DATABASE_HOST
+              value: comment-db
