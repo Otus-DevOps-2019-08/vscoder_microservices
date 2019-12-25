@@ -309,6 +309,7 @@ vscoder microservices repository
   - [yaml](#yaml-10)
   - [yaml](#yaml-11)
   - [yaml](#yaml-12)
+  - [yaml](#yaml-13)
 
 # Makefile
 
@@ -10842,7 +10843,7 @@ service/ui created
 ```
 
 
-##### Minikube
+#### Minikube
 
 Minikube может выдавать web-странцы с сервисами которые были помечены типом NodePort Попробуйте: 
 ```shell
@@ -10856,3 +10857,204 @@ minikube service ui
 | ----------- | ------ | ------------- | ----------------------------- |
 🎉  Opening service default/ui in default browser...
 ```
+
+Minikube может перенаправлять на web-странцы с сервисами которые были помечены типом NodePort Посмотрите на список сервисов:
+```shell
+minikube service list   
+```
+```log
+| ------------- | ------------ | ----------------------------- | ----- |
+| NAMESPACE     | NAME         | TARGET PORT                   | URL   |
+| ------------- | ------------ | ----------------------------- | ----- |
+| default       | comment      | No node port                  |
+| default       | comment-db   | No node port                  |
+| default       | kubernetes   | No node port                  |
+| default       | mongodb      | No node port                  |
+| default       | post         | No node port                  |
+| default       | post-db      | No node port                  |
+| default       | ui           | http://192.168.99.100:32092   |
+| kube-system   | kube-dns     | No node port                  |
+| ------------- | ------------ | ----------------------------- | ----- |
+```
+
+Minikube также имеет в комплекте несколько стандартных аддонов (расширений) для Kubernetes (kube-dns, dashboard, monitoring,…). Каждое расширение - это такие же PODы и сервисы, какие создавались нами, только они еще общаются с API самого Kubernetes
+
+Получить список расширений:
+```shell
+minikube addons list
+```
+```log
+- addon-manager: enabled
+- dashboard: disabled
+- default-storageclass: enabled
+- efk: disabled
+- freshpod: disabled
+- gvisor: disabled
+- helm-tiller: disabled
+- ingress: disabled
+- ingress-dns: disabled
+- logviewer: disabled
+- metrics-server: disabled
+- nvidia-driver-installer: disabled
+- nvidia-gpu-device-plugin: disabled
+- registry: disabled
+- registry-creds: disabled
+- storage-provisioner: enabled
+- storage-provisioner-gluster: disabled
+```
+
+Интересный аддон - dashboard. Это UI для работы с kubernetes. По умолчанию в новых версиях он включен. Как и многие kubernetes add-on'ы, dashboard запускается в виде pod'а.
+
+Если мы посмотрим на запущенные pod'ы с помощью команды `kubectl get pods`, то обнаружим только наше приложение.
+
+Потому что поды и сервисы для **dashboard**-а были запущены в **namespace** (пространстве имен) `kube-system`. Мы же запросили пространство имен `default`.
+
+
+#### Namespaces
+
+**Namespace** - это, по сути, виртуальный кластер Kubernetes внутри самого Kubernetes. Внутри каждого такого кластера находятся свои объекты (POD-ы, Service-ы, Deployment-ы и т.д.), кроме объектов, общих на все namespace-ы (nodes, ClusterRoles, PersistentVolumes)
+
+В разных namespace-ах могут находится объекты с одинаковым именем, но в рамках одного namespace имена объектов должны быть уникальны.
+
+При старте Kubernetes кластер уже имеет 3 namespace:
+
+- **default** - для объектов для которых не определен другой Namespace (в нем мы работали все это время)
+- **kube-system** - для объектов созданных Kubernetes’ом и для управления им
+- **kube-public** - для объектов к которым нужен доступ из любой точки кластера
+
+Для того, чтобы выбрать конкретное пространство имен, нужно указать флаг `-n <namespace>` или `--namespace <namespace>` при запуске `kubectl`
+
+Прежде чем искать dashboard, его нужно включить
+```shell
+minikube dashboard
+```
+```log
+🔌  Enabling dashboard ...
+🤔  Verifying dashboard health ...
+🚀  Launching proxy ...
+🤔  Verifying proxy health ...
+🎉  Opening http://127.0.0.1:37429/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/ in your default browser...
+^C
+```
+```shell
+minikube addons list
+```
+```log
+- addon-manager: enabled
+- dashboard: enabled  # теперь он включен
+- default-storageclass: enabled
+- efk: disabled
+- freshpod: disabled
+- gvisor: disabled
+- helm-tiller: disabled
+- ingress: disabled
+- ingress-dns: disabled
+- logviewer: disabled
+- metrics-server: disabled
+- nvidia-driver-installer: disabled
+- nvidia-gpu-device-plugin: disabled
+- registry: disabled
+- registry-creds: disabled
+- storage-provisioner: enabled
+- storage-provisioner-gluster: disabled
+```
+
+Найдем же объекты нашего dashboard (в ДЗ команда была неверная `kubectl get all -n kube-system --selector k8s-app=kubernetes-dashboard`)
+
+```shell
+kubectl get all -n kubernetes-dashboard --selector k8s-app=kubernetes-dashboard+
+```
+```
+NAME                                       READY   STATUS    RESTARTS   AGE
+pod/kubernetes-dashboard-79d9cd965-pmntx   1/1     Running   0          5m53s
+
+NAME                           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes-dashboard   ClusterIP   10.96.254.145   <none>        80/TCP    5m57s
+
+NAME                                   READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/kubernetes-dashboard   1/1     1            1           5m53s
+
+NAME                                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/kubernetes-dashboard-79d9cd965   1         1         1       5m53s
+```
+
+И сами посмотрим всё в неймспейса `kubernetes-dashboard`
+```shell
+kubectl get all -n kubernetes-dashboard
+```
+```log
+NAME                                             READY   STATUS    RESTARTS   AGE
+pod/dashboard-metrics-scraper-7b64584c5c-pl8sg   1/1     Running   0          4m13s
+pod/kubernetes-dashboard-79d9cd965-pmntx         1/1     Running   0          4m13s
+
+NAME                                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/dashboard-metrics-scraper   ClusterIP   10.96.199.122   <none>        8000/TCP   4m17s
+service/kubernetes-dashboard        ClusterIP   10.96.254.145   <none>        80/TCP     4m17s
+
+NAME                                        READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/dashboard-metrics-scraper   1/1     1            1           4m13s
+deployment.apps/kubernetes-dashboard        1/1     1            1           4m13s
+
+NAME                                                   DESIRED   CURRENT   READY   AGE
+replicaset.apps/dashboard-metrics-scraper-7b64584c5c   1         1         1       4m13s
+replicaset.apps/kubernetes-dashboard-79d9cd965         1         1         1       4m13s
+```
+
+
+#### Dashboard
+
+Зайдем в Dashboard:
+```shell
+minikube dashboard
+```
+```log
+🤔  Verifying dashboard health ...
+🚀  Launching proxy ...
+🤔  Verifying proxy health ...
+🎉  Opening http://127.0.0.1:36773/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/ in your default browser...
+```
+
+В самом Dashboard можно:
+
+- отслеживать состояние кластера и рабочих нагрузок в нем
+- создавать новые объекты (загружать YAML-файлы)
+- Удалять и изменять объекты (кол-во реплик, yaml-файлы)
+- отслеживать логи в Pod-ах
+- при включении Heapster-аддона смотреть нагрузку на Podах
+- и т.д.
+
+Ознакомьтесь, покликайте - в minikube не страшно ничего сломать (есличто заново поднять).
+
+Используем же namespace в наших целях. Отделим среду для разработки приложения от всего остального кластера. Для этого создадим свой Namespace dev
+
+```yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+```
+
+```shell
+kubectl apply -f dev-namespace.yml
+```
+```log
+namespace/dev created
+```
+
+Запустим приложение в `dev` неймспейсе:
+```shell
+kubectl apply -n dev -f .
+```
+```log
+TODO!!!!!!!!!!!!!!!!!!!!!!!!!
+```
+
+Если возник конфликт портов у **ui-service**, то убираем из описания значение `NodePort`
+
+Смотрим результат:
+```shell
+minikube service ui -n dev
+```
+
+Давайте добавим инфу об окружении внутрь контейнера UI
