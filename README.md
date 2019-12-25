@@ -303,6 +303,12 @@ vscoder microservices repository
   - [yaml](#yaml-4)
   - [yaml](#yaml-5)
   - [yaml](#yaml-6)
+  - [yaml](#yaml-7)
+  - [yaml](#yaml-8)
+  - [yaml](#yaml-9)
+  - [yaml](#yaml-10)
+  - [yaml](#yaml-11)
+  - [yaml](#yaml-12)
 
 # Makefile
 
@@ -10493,6 +10499,33 @@ D, [2017-11-23T11:58:14.090421 #1] DEBUG -- : MONGODB | getaddrinfo: Name does n
 
 Похоже, проблема была в том, что у меня в скриптах `src/<service>/docker_build.sh` был захардкожен тэг `logging` по наследству из предыдущего ДЗ. Чиню пересобираю.
 
+Так же потребовалось поменять код в [src/comment/comment_app.rb](src/comment/comment_app.rb), как это было указано выше. Изменил
+```ruby
+configure do
+  Mongo::Logger.logger.level = Logger::WARN
+  db = Mongo::Client.new(DB_URL, database: COMMENT_DATABASE,
+                                 heartbeat_frequency: 2)
+  set :mongo_db, db[:comments]
+  set :bind, '0.0.0.0'
+  set :server, :puma
+  set :logging, false
+  set :mylogger, Logger.new(STDOUT)
+end
+```
+на
+```ruby
+configure do
+  Mongo::Logger.logger.level = Logger::DEBUG
+  db = Mongo::Client.new(DB_URL, database: COMMENT_DATABASE,
+                                 heartbeat_frequency: 2)
+  set :mongo_db, db[:comments]
+  set :bind, '0.0.0.0'
+  set :server, :puma
+  set :logging, false
+  set :mylogger, Logger.new(STDOUT)
+end
+```
+
 После пересборки, перезаливки на хаб и передеплое, всё **заработало как указано в ДЗ**.
 
 Приложение ищет совсем другой адрес: `comment_db`, а не `mongodb` Аналогично и сервис `comment` ищет `post_db`.
@@ -10575,5 +10608,251 @@ spec:
 ```
 
 Зададим pod-ам comment переменную окружения для обращения к базе (см слайд 34)
+[kubernetes/reddit/comment-deployment.yml](kubernetes/reddit/comment-deployment.yml)
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comment
+  labels:
+    app: reddit
+    component: comment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: reddit
+      component: comment
+  template:
+    metadata:
+      name: comment
+      labels:
+        app: reddit
+        component: comment
+    spec:
+      containers:
+        - image: vscoder/comment:latest
+          name: comment
+          env:
+            - name: COMMENT_DATABASE_HOST
+              value: comment-db
+```
 
-TODO: спать и до завтра
+Мы сделали базу доступной для comment. 
+
+Проделайте аналогичные же действия для postсервиса. Название сервиса должно `post-db`.
+
+Итак, создаём [kubernetes/reddit/post-mongodb-service.yml](kubernetes/reddit/post-mongodb-service.yml)
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: post-db
+  labels:
+    app: reddit
+    component: mongo
+    post-db: "true"
+spec:
+  ports:
+    - port: 27017
+      protocol: TCP
+      targetPort: 27017
+  selector:
+    app: reddit
+    component: mongo
+    post-db: "true"
+```
+[kubernetes/reddit/mongo-deployment.yml](kubernetes/reddit/mongo-deployment.yml)
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+    comment-db: "true"
+    post-db: "true"  # Лейбл в deployment чтобы было понятно, что развернуто
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+        comment-db: "true"
+        post-db: "true"  # label в pod, который нужно найти
+    spec:
+      containers:
+        - image: mongo:3.2
+          name: mongo
+          volumeMounts:
+            - name: mongo-persistent-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-persistent-storage
+          emptyDir: {}
+```
+
+[kubernetes/reddit/post-deployment.yml](kubernetes/reddit/post-deployment.yml)
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: post
+  labels:
+    app: reddit
+    component: post
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: reddit
+      component: post
+  template:
+    metadata:
+      name: post
+      labels:
+        app: reddit
+        component: post
+    spec:
+      containers:
+        - image: vscoder/post
+          name: post
+          env:
+            - name: POST_DATABASE_HOST
+              value: post-db
+```
+
+```shell
+kubectl apply -f ./kubernetes/reddit
+```
+```log
+deployment.apps/comment unchanged
+service/comment-db created
+service/comment unchanged
+deployment.apps/mongo configured
+service/mongodb unchanged
+deployment.apps/post configured
+service/post-db created
+service/post unchanged
+deployment.apps/ui unchanged
+```
+
+После этого снова сделайте port-forwarding на UI и убедитесь, что приложение запустилось без ошибок и посты создаются. **Всё заработало**.
+
+Проверим логи post снова
+```shell
+kubectl get pods --selector component=comment
+kubectl logs -f comment-68cdb988fd-9c9dd
+```
+```log
+request_id=null | remote_addr=172.17.0.8 | method= GET | response_status=200
+D, [2019-12-25T05:26:40.628648 #1] DEBUG -- : MONGODB | Topology type 'unknown' initializing.
+D, [2019-12-25T05:26:40.629523 #1] DEBUG -- : MONGODB | Server comment-db:27017 initializing.
+D, [2019-12-25T05:26:40.722276 #1] DEBUG -- : MONGODB | Topology type 'unknown' changed to type 'single'.
+D, [2019-12-25T05:26:40.731802 #1] DEBUG -- : MONGODB | Server description for comment-db:27017 changed from 'unknown' to 'standalone'.
+D, [2019-12-25T05:26:40.732365 #1] DEBUG -- : MONGODB | There was a change in the members of the 'single' topology.
+D, [2019-12-25T05:26:40.737144 #1] DEBUG -- : MONGODB | comment-db:27017 | admin.listDatabases | STARTED | {"listDatabases"=>1}
+D, [2019-12-25T05:26:40.745121 #1] DEBUG -- : MONGODB | comment-db:27017 | admin.listDatabases | SUCCEEDED | 0.00496289s
+```
+
+Удалите объект mongodb-service 
+```shell
+cd kubernetes/reddit
+kubectl delete -f mongodb-service.yml
+```
+```log
+service "mongodb" deleted
+```
+
+
+Нам нужно как-то обеспечить доступ к ui-сервису снаружи. Для этого нам понадобится Service для UI-компоненты
+
+[kubernetes/reddit/ui-service.yml](kubernetes/reddit/ui-service.yml)
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  labels:
+    app: reddit
+    component: ui
+spec:
+  type: NodePort  # Пробрасываем порт на ноду
+  ports:  
+    - port: 9292
+      protocol: TCP
+      targetPort: 9292
+  selector:
+    app: reddit
+    component: ui
+```
+
+По-умолчанию все сервисы имеют тип ClusterIP - это значит, что сервис распологается на внутреннем диапазоне IP-адресов кластера. Снаружи до него нет доступа.
+
+Тип **NodePort** - на каждой ноде кластера открывает порт из диапазона **30000-32767** и переправляет трафик с этого порта на тот, который указан в targetPort Pod (похоже на стандартный expose в docker)
+
+Теперь до сервиса можно дойти по <Node-IP>:<NodePort>.
+
+Также можно указать самим NodePort (но все равно из диапазона):
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  labels:
+    app: reddit
+    component: ui
+spec:
+  type: NodePort
+  ports:
+    - nodePort: 32092 # Указываем номер порта на ноде
+      port: 9292
+      protocol: TCP
+      targetPort: 9292
+  selector:
+    app: reddit
+    component: ui
+
+```
+
+Т.е. в описании service 
+
+**NodePort** - для доступа снаружи кластера
+**port** - для доступа к сервису изнутри кластера
+
+Применяем:
+```shell
+kubectl apply -f ui-service.yml
+```
+```log
+service/ui created
+```
+
+
+##### Minikube
+
+Minikube может выдавать web-странцы с сервисами которые были помечены типом NodePort Попробуйте: 
+```shell
+minikube service ui
+```
+```log
+| ----------- | ------ | ------------- | ----------------------------- |
+| NAMESPACE   | NAME   | TARGET PORT   | URL                           |
+| ----------- | ------ | ------------- | ----------------------------- |
+| default     | ui     |               | http://192.168.99.103:32092   |
+| ----------- | ------ | ------------- | ----------------------------- |
+🎉  Opening service default/ui in default browser...
+```
