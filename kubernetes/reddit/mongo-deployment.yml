@@ -6,7 +6,8 @@ metadata:
   labels:
     app: reddit
     component: mongo
-    comment-db: "true"
+    comment-db: "true" # Лейбл в deployment чтобы было понятно, что развернуто
+    post-db: "true" # Лейбл в deployment чтобы было понятно, что развернуто
 spec:
   replicas: 1
   selector:
@@ -19,7 +20,8 @@ spec:
       labels:
         app: reddit
         component: mongo
-        comment-db: "true"
+        comment-db: "true" # label в pod, который нужно найти
+        post-db: "true" # label в pod, который нужно найти
     spec:
       containers:
         - image: mongo:3.2
