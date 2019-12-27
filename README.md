@@ -273,6 +273,15 @@ vscoder microservices repository
     - [Как запустить проект:](#%d0%9a%d0%b0%d0%ba-%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d1%82%d1%8c-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82)
       - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-5)
       - [Запуск](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-1)
+  - [HomeWork 19: Введение в Kubernetes](#homework-19-%d0%92%d0%b2%d0%b5%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b2-kubernetes)
+    - [Создание примитивов](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%b8%d0%bc%d0%b8%d1%82%d0%b8%d0%b2%d0%be%d0%b2)
+    - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5)
+    - [Kubernetes The Hard Way](#kubernetes-the-hard-way)
+    - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-1)
+    - [Возможные проблемы](#%d0%92%d0%be%d0%b7%d0%bc%d0%be%d0%b6%d0%bd%d1%8b%d0%b5-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b)
+    - [Задание со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be)
+    - [Выполнение задания](#%d0%92%d1%8b%d0%bf%d0%be%d0%bb%d0%bd%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f)
+    - [Проверка деплоя](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b4%d0%b5%d0%bf%d0%bb%d0%be%d1%8f)
 
 # Makefile
 
@@ -9492,3 +9501,129 @@ make docker_machine_ip_logging
 
 - `make run_logging run_app` - только приложение и логгинг
 - Или `make run` - запуск всего
+
+
+## HomeWork 19: Введение в Kubernetes
+
+### Создание примитивов
+
+Опишем приложение в контексте Kubernetes с помощью manifest-ов в YAML-формате. Основным примитивом будет *Deployment*. Основные задачи сущности *Deployment*:
+
+- Создание *Replication Controller*-а (следит, чтобы число запущенных *Pod*-ов соответствовало описанному);
+- Ведение истории версий запущенных *Pod*-ов (для различных стратегий деплоя, для возможностей отката);
+- Описание процесса деплоя (стратегия, параметры стратегий).
+
+Пример *Deployment*:
+`post-deployment.yml`
+```yaml
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: post-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: post
+  template:
+    metadata:
+      name: post
+      labels:
+        app: post
+    spec:
+      containers:
+      - image: vscoder/post
+        name: post
+```
+
+### Задание
+
+- Создайте директорию `kubernetes` в корне репозитория;
+- Внутри директории `kubernetes` создайте директорию `reddit`;
+- Сохраните файл [post-deployment.yml](kubernetes/reddit/post-deployment.yml) в директории `kubernetes/reddit`;
+- Создайте собственные файлы с *Deployment* манифестами приложений и сохраните в папке `kubernetes/reddit`;
+  - [ui-deployment.yml](kubernetes/reddit/ui-deployment.yml)
+  - [comment-deployment.yml](kubernetes/reddit/comment-deployment.yml)
+  - [mongo-deployment.yml](kubernetes/reddit/mongo-deployment.yml)
+
+P.S. Эту директорию и файлы в ней в дальнейшем мы будем развивать (пока это нерабочие экземпляры).
+
+
+### Kubernetes The Hard Way
+
+["Сложный путь"](https://github.com/kelseyhightower/kubernetes-the-hard-way) установить Kubernetes
+
+В качестве домашнего задания предлагается пройти [Kubernetes The Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way) разработанный инженером Google Kelsey Hightower
+Туториал представляет собой: 
+- Пошаговое руководство по ручной инсталляции основных компонентов Kubernetes кластера;
+- Краткое описание необходимых действий и объектов.
+
+На текущий момент:
+
+- Версия Kubernetes в данном гайде зависла на 1.15
+
+Тем, кто уже проходил THW ранее, советуем попробовать установить версию 1.17 самостоятельно, не прибегая к помощи репозитория.
+
+### Задание
+
+- Создать отдельную директорию `the_hard_way` в директории `kubernetes`;
+- Пройти **Kubernetes The Hard Way**;
+- Проверить, что `kubectl apply -f <filename>` проходит по созданным до этого deployment-ам (`ui`, `post`, `mongo`, `comment`) и поды запускаются;
+- Удалить кластер после прохождения THW;
+- Все созданные в ходе прохождения THW файлы (кроме бинарных) поместить в папку `kubernetes/the_hard_way` репозитория (сертификаты и ключи тоже можно коммитить, но только после удаления кластера).
+
+### Возможные проблемы
+
+Если на шаге **Bootstrapping the etcd Cluster** у вас не работает команда `sudo systemctl start etcd`, то, вероятно, Вы не используете параллельный ввод с помощью tmux, а выполняете команды для каждого сервера отдельно. Для того, чтобы команда выполнилась успешно, установите `etcd` на каждый необходимый инстанс и **одновременно** запустите её на всех инстансах.
+
+Если в процессе выполнения команд возникает ошибка `(gcloud.compute.addresses.describe) argument --region: expected one argument`, то убедитесь, что Вы выполняете команду в нужном месте. Обычно это происходит, когда команду необходимо выполнять на локальной машине, а она выполняется на каком то из инстансов. Если команда точно выполняется локально, то выполните:
+```
+{
+  gcloud config set compute/region us-west1
+  gcloud config set compute/zone us-west1-c
+}
+```
+
+### Задание со \*
+
+- Описать установку компонентов Kubernetes из THW в виде Ansible-плейбуков в папке `kubernetes/ansible`;
+- Задание достаточно выполнить в виде Proof of Concept, просто автоматизация некоторых действий туториала.
+
+Задание со * выполнять не буду, так как практическое применение не предвидится, к тому же есть же [KubeSpray](https://github.com/kubernetes-sigs/kubespray)
+
+### Выполнение задания
+
+Выполнение задания будет описано в отдельном файле [kubernetes/the_hard_way/README.md](kubernetes/the_hard_way/README.md)
+
+### Проверка деплоя
+
+Кластер развёрнут по THW: [описание процесса](./kubernetes/the_hard_way/README.md)
+
+Далее - деплой подов нашего приложения:
+
+```shell
+cd kubernetes/reddit
+kubectl apply -f ./
+```
+```log
+deployment.apps/comment-deployment created
+deployment.apps/mongo-deployment created
+deployment.apps/post-deployment created
+deployment.apps/ui-deployment created
+```
+
+```shell
+kubectl get pods
+```
+```log
+NAME                                  READY   STATUS    RESTARTS   AGE
+busybox                               1/1     Running   0          51m
+comment-deployment-5bb6744cdd-rprz9   1/1     Running   0          32s
+mongo-deployment-86d49445c4-fzsbp     1/1     Running   0          31s
+nginx-554b9c67f9-zkpn2                1/1     Running   0          42m
+post-deployment-7576fb4896-m9tm7      1/1     Running   0          31s
+ui-deployment-57d7c9fd56-s7gcq        1/1     Running   0          30s
+```
+
+Как видим, работает. Далее очистка и коммит
