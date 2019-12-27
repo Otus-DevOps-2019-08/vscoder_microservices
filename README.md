@@ -311,7 +311,7 @@ vscoder microservices repository
   - [yaml](#yaml-12)
   - [yaml](#yaml-13)
   - [yaml](#yaml-14)
-    - [Разворачиваем Kubernetes](#%d0%a0%d0%b0%d0%b7%d0%b2%d0%be%d1%80%d0%b0%d1%87%d0%b8%d0%b2%d0%b0%d0%b5%d0%bc-kubernetes)
+      - [ОШИБКА: Не отображаются комменты](#%d0%9e%d0%a8%d0%98%d0%91%d0%9a%d0%90-%d0%9d%d0%b5-%d0%be%d1%82%d0%be%d0%b1%d1%80%d0%b0%d0%b6%d0%b0%d1%8e%d1%82%d1%81%d1%8f-%d0%ba%d0%be%d0%bc%d0%bc%d0%b5%d0%bd%d1%82%d1%8b)
 
 # Makefile
 
@@ -11122,3 +11122,110 @@ deployment.apps/ui configured
 Мы подготовили наше приложение в локальном окружении. Теперь самое время запустить его на реальном кластере Kubernetes.
 
 В качестве основной платформы будем использовать Google Kubernetes Engine.
+
+Зайдите в свою gcloud console, перейдите в “kubernetes clusters”
+
+Нажмите Create Cluster”
+
+Укажите следующие настройки кластера:
+- Тип машины - небольшая машина (**g1-small** 1,7 ГБ) (для экономии
+ресурсов)
+- Размер - 2 (не нашёл такого, возможно - **Number of nodes**?)
+- Базовая аутентификация - отключена (не нашёл такого)
+- Устаревшие права доступа - отключено (не нашёл такого)
+- Панель управления Kubernetes - отключено (не нашёл такого)
+- Размер загрузочного диска - 20 ГБ (для экономии) (сделал)
+
+Жмем “Создать” и ждем, пока поднимется кластер
+
+
+### GKE
+
+Компоненты управления кластером запускаются в container engine и
+управляются Google:
+- kube-apiserver
+- kube-scheduler
+- kube-controller-manager
+- etcd
+
+Рабочая нагрузка (собственные POD-ы), аддоны, мониторинг, логирование и т.д. запускаются на рабочих нодах
+
+Рабочие ноды - стандартные ноды Google compute engine. Их можно увидеть в списке запущенных узлов.
+На них всегда можно зайти по ssh 
+Их можно остановить и запустить.
+
+Подключимся к GKE для запуска нашего приложения.
+
+_Clusters_ -> **Connect**
+
+Нажмите и скопируйте команду вида:
+```shell
+gcloud container clusters get-credentials your-first-cluster-1 --zone us-central1-a --project docker-XXXXXX
+```
+
+Введите в консоли скопированную команду. 
+
+В результате в файл ~/.kube/config будут добавлены user, cluster и context для подключения к кластеру в GKE. Также текущий контекст будет выставлен для подключения к этому кластеру. Убедиться можно, введя
+```shell
+kubectl config current-context
+```
+```log
+gke_docker-XXXXXX_us-central1-a_your-first-cluster-1
+```
+
+Запустим наше приложение в GKE
+
+Создадим dev namespace
+```shell
+kubectl apply -f ./kubernetes/reddit/dev-namespace.yml
+```
+```log
+namespace/dev created
+```
+
+Задеплоим все компоненты приложения в namespace dev:
+```shell
+kubectl apply -f ./kubernetes/reddit/ -n dev
+```
+
+Откроем Reddit для внешнего мира:
+
+Зайдите в “правила брандмауэра” _VPC Network_ -> _Firewall rules_
+
+Нажмите “создать правило брандмауэра” **Create firewall rule**
+
+Откроем диапазон портов kubernetes для публикации сервисов
+
+Настройте:
+- Название - произвольно, но понятно
+- Целевые экземпляры - все экземпляры в сети
+- Диапазоны IP-адресов источников  - **0.0.0.0/0**
+
+Протоколы и порты - Указанные протоколы и порты **tcp:30000-32767**
+
+**Create**
+
+Найдите внешний IP-адрес любой ноды из кластера либо в веб-консоли, либо External IP в выводе:
+```shell
+kubectl get nodes -o wide
+```
+```log
+NAME                                            STATUS   ROLES    AGE   VERSION          INTERNAL-IP   EXTERNAL-IP    OS-IMAGE                             KERNEL-VERSION   CONTAINER-RUNTIME
+gke-your-first-cluster-1-pool-1-c8223392-0btx   Ready    <none>   27m   v1.15.4-gke.22   10.128.0.6    35.225.38.22   Container-Optimized OS from Google   4.19.76+         docker://19.3.1
+gke-your-first-cluster-1-pool-1-c8223392-bz3m   Ready    <none>   27m   v1.15.4-gke.22   10.128.0.7    34.69.56.68    Container-Optimized OS from Google   4.19.76+         docker://19.3.1
+```
+
+Найдите порт публикации сервиса ui
+```shell
+kubectl describe service ui -n dev | grep NodePort
+```
+```log
+Type:                     NodePort
+NodePort:                 <unset>  32164/TCP
+```
+
+Идем по адресу http://35.225.38.22:32164
+
+#### ОШИБКА: Не отображаются комменты
+
+В ui нет возможности оставлять комментарии
