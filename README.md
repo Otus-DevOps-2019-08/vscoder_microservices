@@ -310,6 +310,8 @@ vscoder microservices repository
   - [yaml](#yaml-11)
   - [yaml](#yaml-12)
   - [yaml](#yaml-13)
+  - [yaml](#yaml-14)
+    - [Разворачиваем Kubernetes](#%d0%a0%d0%b0%d0%b7%d0%b2%d0%be%d1%80%d0%b0%d1%87%d0%b8%d0%b2%d0%b0%d0%b5%d0%bc-kubernetes)
 
 # Makefile
 
@@ -11047,7 +11049,17 @@ namespace/dev created
 kubectl apply -n dev -f .
 ```
 ```log
-TODO!!!!!!!!!!!!!!!!!!!!!!!!!
+deployment.apps/comment created
+service/comment-db created
+service/comment created
+namespace/dev unchanged
+deployment.apps/mongo created
+service/mongodb created
+deployment.apps/post created
+service/post-db created
+service/post created
+deployment.apps/ui created
+service/ui created
 ```
 
 Если возник конфликт портов у **ui-service**, то убираем из описания значение `NodePort`
@@ -11056,5 +11068,57 @@ TODO!!!!!!!!!!!!!!!!!!!!!!!!!
 ```shell
 minikube service ui -n dev
 ```
+Да, всё открывается.
 
 Давайте добавим инфу об окружении внутрь контейнера UI
+
+[kubernetes/reddit/ui-deployment.yml](kubernetes/reddit/ui-deployment.yml)
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ui
+  labels:
+    app: reddit
+    component: ui
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: reddit
+      component: ui
+  template:
+    metadata:
+      name: ui-pod
+      labels:
+        app: reddit
+        component: ui
+    spec:
+      containers:
+        - image: vscoder/ui
+          name: ui
+          env:
+            - name: ENV
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+```
+
+```shell
+kubectl apply -f ui-deployment.yml -n dev
+```
+```log
+deployment.apps/ui configured
+```
+На дашборде видно, что в неймспейсе `dev` поды деплоймента `ui` были пересозданы
+
+Проверяем - да
+> Microservices Reddit in dev ui-687c9cfd9-6pjk9 container
+
+
+### Разворачиваем Kubernetes
+
+Мы подготовили наше приложение в локальном окружении. Теперь самое время запустить его на реальном кластере Kubernetes.
+
+В качестве основной платформы будем использовать Google Kubernetes Engine.
