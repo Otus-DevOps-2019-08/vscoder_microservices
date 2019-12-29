@@ -311,7 +311,7 @@ vscoder microservices repository
   - [yaml](#yaml-12)
   - [yaml](#yaml-13)
   - [yaml](#yaml-14)
-      - [ОШИБКА: Не отображаются комменты](#%d0%9e%d0%a8%d0%98%d0%91%d0%9a%d0%90-%d0%9d%d0%b5-%d0%be%d1%82%d0%be%d0%b1%d1%80%d0%b0%d0%b6%d0%b0%d1%8e%d1%82%d1%81%d1%8f-%d0%ba%d0%be%d0%bc%d0%bc%d0%b5%d0%bd%d1%82%d1%8b)
+- [Ставим curl](#%d0%a1%d1%82%d0%b0%d0%b2%d0%b8%d0%bc-curl)
     - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-2)
 
 # Makefile
@@ -9740,6 +9740,14 @@ minikube version: v1.6.2
 commit: 54f28ac5d3a815d1196cd5d57d707439ee4bb392
 ```
 
+Дать больше памяти
+```shell
+minikube config set memory 4096
+```
+```log
+⚠️  These changes will take effect upon a minikube delete and then a minikube start
+```
+
 Запустим наш Minukube-кластер.
 ```shell
 minikube start
@@ -9750,7 +9758,7 @@ minikube start
 💿  Downloading VM boot image ...
     > minikube-v1.6.0.iso.sha256: 65 B / 65 B [--------------] 100.00% ? p/s 0s
     > minikube-v1.6.0.iso: 150.93 MiB / 150.93 MiB [] 100.00% 10.95 MiB p/s 14s
-🔥  Creating virtualbox VM (CPUs=2, Memory=2000MB, Disk=20000MB) ...
+🔥  Creating virtualbox VM (CPUs=2, Memory=4096MB, Disk=20000MB) ...
 🐳  Preparing Kubernetes v1.17.0 on Docker '19.03.5' ...
 💾  Downloading kubeadm v1.17.0
 💾  Downloading kubelet v1.17.0
@@ -11229,9 +11237,94 @@ NodePort:                 <unset>  32164/TCP
 
 #### ОШИБКА: Не отображаются комменты
 
-В ui нет возможности оставлять комментарии
+В ui нет возможности оставлять комментарии. Не отображается приложение comment.
 
-TODO: Fix it. Решать буду после поднятия кластера терраформом
+Для начала, запустим приложение в minikube (насколько помню, ранее там всё работало)
+
+```shell
+minikube delete
+minikube config set memory 4096
+minikube start
+```
+```log
+😄  minikube v1.6.2 on Ubuntu 18.04
+✨  Automatically selected the 'virtualbox' driver (alternates: [none])
+🔥  Creating virtualbox VM (CPUs=2, Memory=4096MB, Disk=20000MB) ...
+🐳  Preparing Kubernetes v1.17.0 on Docker '19.03.5' ...
+🚜  Pulling images ...
+🚀  Launching Kubernetes ... 
+⌛  Waiting for cluster to come online ...
+🏄  Done! kubectl is now configured to use "minikube"
+```
+
+Проверяем контекст
+```shell
+kubectl config get-contexts
+```
+```log
+CURRENT   NAME                                                   CLUSTER                                                AUTHINFO                                               NAMESPACE
+          gke_docker-257914_us-central1-a_your-first-cluster-1   gke_docker-257914_us-central1-a_your-first-cluster-1   gke_docker-257914_us-central1-a_your-first-cluster-1   
+*         minikube                                               minikube                                               minikube
+```
+
+
+```shell
+kubectl apply -f ./kubernetes/reddit/dev-namespace.yml 
+```
+```log
+namespace/dev created
+```
+```shell
+kubectl apply -f ./kubernetes/reddit/ -n dev
+```
+```log
+deployment.apps/comment created
+service/comment-db created
+service/comment created
+namespace/dev unchanged
+deployment.apps/mongo created
+service/mongodb created
+deployment.apps/post created
+service/post-db created
+service/post created
+deployment.apps/ui created
+service/ui created
+```
+Проверка показала, что в миникубе проблема так же присутствует.
+
+Возвращаемя к работе с GKE
+```shell
+kubectl config use-context gke_docker-<project-id>_us-central1-a_your-first-cluster-1
+```
+```log
+Switched to context "gke_docker-257914_us-central1-a_your-first-cluster-1".
+```
+
+Через веб-интерфейс приложения создан пост `5e08b33850fa42000e78bd01`
+
+Подключаемся к поду `ui-595f89d499-44bjf`
+```shell
+kubectl -n dev exec -it ui-595f89d499-44bjf -- /bin/sh
+# Ставим curl
+apk update && apk add curl
+```
+Проверяем
+```shell
+curl http://comment:9292/5e08b33850fa42000e78bd01/comments
+```
+```log
+[]
+```
+Сервис comment доступен, результат возвращает (коментариев нет, поэтому пустой список). **Вывод:** проблему нужно искать в компоненте _ui_.
+
+Проверяем здоровье http://23.251.155.88:30927/healthcheck
+```json
+{"status":1,"dependent_services":{"comment":1,"post":1},"version":"0.0.1"}
+```
+Все здоровы О_о
+
+Случайно выяснилось, что верстальщик нехороший человек. При определённом размере окна браузера (как раз у меня был такой) не видно div с интерфейсом добавления комментария. При изменении масштаба или размера окна, элементы управления для добавления комментария появлялись.
+https://otus-devops.slack.com/archives/CMSD007E0/p1577619070042800
 
 ### Задание
 
