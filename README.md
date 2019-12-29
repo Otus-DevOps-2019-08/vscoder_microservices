@@ -312,7 +312,7 @@ vscoder microservices repository
   - [yaml](#yaml-13)
   - [yaml](#yaml-14)
 - [Ставим curl](#%d0%a1%d1%82%d0%b0%d0%b2%d0%b8%d0%bc-curl)
-    - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-2)
+    - [Задание со * TODO!!!!!!!!!!!!!1](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--todo1)
 
 # Makefile
 
@@ -11335,3 +11335,93 @@ https://otus-devops.slack.com/archives/CMSD007E0/p1577619070042800
 TODO: Do it!
 
 
+### GKE Dashboard
+
+В GKE также можно запустить Dashboard для кластера.
+
+Нажмите на имя кластера -> __Edit__
+
+В этом меню можно поменять конфигурацию кластера. Нам нужно включить дополнение “Панель управления Kubernetes” - говорили они... Врут, ничего так сделать нельзя, нету этой кнопочки.
+
+Будем читать офф. доки https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/
+
+Из офф доков, нужно применить:
+```shell
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
+```
+```log
+namespace/kubernetes-dashboard unchanged
+serviceaccount/kubernetes-dashboard created
+service/kubernetes-dashboard created
+secret/kubernetes-dashboard-certs created
+secret/kubernetes-dashboard-csrf created
+secret/kubernetes-dashboard-key-holder created
+configmap/kubernetes-dashboard-settings created
+role.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrole.rbac.authorization.k8s.io/kubernetes-dashboard unchanged
+rolebinding.rbac.authorization.k8s.io/kubernetes-dashboard created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-dashboard unchanged
+deployment.apps/kubernetes-dashboard created
+service/dashboard-metrics-scraper created
+deployment.apps/dashboard-metrics-scraper created
+```
+
+Смотрим
+```shell
+kubectl proxy
+```
+```log
+Starting to serve on 127.0.0.1:8001
+```
+
+Kubectl will make Dashboard available at http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+
+Требует авторизацию. Не даёт пропустить, отсутствует кнопка **Skip**
+
+Гугление: https://stackoverflow.com/questions/50747783/how-to-access-gke-kubectl-proxy-dashboard
+
+> Provided you are authenticated with gcloud auth login and the current project and k8s cluster is configured to the one you need, authenticate kubectl to the cluster (this will write ~/.kube/config):
+>
+> ```shell
+> gcloud container clusters get-credentials <cluster name> --zone <zone> --project <project>
+> ```
+> 
+> retrieve the auth token that the kubectl itself uses to authenticate as you
+> 
+> ```shell
+> gcloud config config-helper --format=json | jq -r '.credential.access_token'
+> ```
+> 
+> run
+> ```shell
+> kubectl proxy
+> ```
+> 
+> Then open a local machine web browser on
+> 
+> http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy (This will only work if you checked the checkbox Deploy Dashboard in GCP console)
+> 
+> and use the token from the second command to log in with your Google Account's permissions.
+
+Полученный токен вводим, и получаем дашборд.
+
+Дашборд всё отображает, прав ему хватает, в отличие от сказанного в ДЗ. Видимо, потому что мы дали ему токен сервисаккаунта. Но, вероятно, это неправильно. Поэтому пересоздадим дашборд и попробуем выполнить действия из ДЗ.
+
+У dashboard не хватает прав, чтобы посмотреть на кластер. Его не пускает RBAC (ролевая система контроля доступа). Нужно нашему Service Account назначить роль с достаточными правами на просмотр информации о кластере.
+
+В кластере уже есть объект ClusterRole с названием cluster-admin. Тот, кому назначена эта роль имеет полный доступ ко всем объектам кластера.
+```shell
+kubectl create clusterrolebinding kubernetes-dashboard  --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+```
+```log
+Error from server (AlreadyExists): clusterrolebindings.rbac.authorization.k8s.io "kubernetes-dashboard" already exists
+```
+Ну значит уже есть
+
+Для clusterrole, serviceaccount `--serviceaccount=kube-system:kubernetes-dashboard` - это комбинация serviceaccount и namespace, в котором он создан
+
+### Задание со \* TODO!!!!!!!!!!!!!1
+
+1. Разверните Kubenetes-кластер в GKE с помощью [Terraform модуля](https://www.terraform.io/docs/providers/google/r/container_cluster.html) 
+2. Создайте YAML-манифесты для описания созданных сущностей для включения dashboard.
+3. Приложите конфигурацию к PR
