@@ -312,7 +312,8 @@ vscoder microservices repository
   - [yaml](#yaml-13)
   - [yaml](#yaml-14)
 - [Ставим curl](#%d0%a1%d1%82%d0%b0%d0%b2%d0%b8%d0%bc-curl)
-    - [Задание со * TODO!!!!!!!!!!!!!1](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--todo1)
+- [gruntwork-install](#gruntwork-install)
+- [kubergrunt](#kubergrunt)
 
 # Makefile
 
@@ -11416,7 +11417,7 @@ kubectl create clusterrolebinding kubernetes-dashboard  --clusterrole=cluster-ad
 ```log
 Error from server (AlreadyExists): clusterrolebindings.rbac.authorization.k8s.io "kubernetes-dashboard" already exists
 ```
-Ну значит уже есть
+Ну значит уже есть (всё что нужно, было создано при деплое дашборда)
 
 Для clusterrole, serviceaccount `--serviceaccount=kube-system:kubernetes-dashboard` - это комбинация serviceaccount и namespace, в котором он создан
 
@@ -11425,3 +11426,161 @@ Error from server (AlreadyExists): clusterrolebindings.rbac.authorization.k8s.io
 1. Разверните Kubenetes-кластер в GKE с помощью [Terraform модуля](https://www.terraform.io/docs/providers/google/r/container_cluster.html) 
 2. Создайте YAML-манифесты для описания созданных сущностей для включения dashboard.
 3. Приложите конфигурацию к PR
+
+Нашёл 2 модуля для создания GKE-кластера
+
+1. От google https://github.com/terraform-google-modules/terraform-google-kubernetes-engine
+2. От gruntwork-io https://registry.terraform.io/modules/gruntwork-io/gke/google/0.3.9
+
+Так как с использованием модуля от google примеры в репозиториях коллег уже есть, для возможного будущего использования, попробуем модуль от gruntwork-io https://registry.terraform.io/modules/gruntwork-io/gke/google/0.3.9
+
+Создана ннфраструктура terraform в `./kubernetes/terraform`
+```log
+├── main.tf
+├── outputs.tf
+├── terraform.tfvars
+├── terraform.tfvars.example
+└── variables.tf
+```
+
+Создан [kubernetes/terraform/Makefile](kubernetes/terraform/Makefile)
+
+Создан файл с переменными [kubernetes/terraform/terraform.tfvars](kubernetes/terraform/terraform.tfvars)
+
+Выполнена проверка синтаксиса
+```shell
+make tflint validate 
+```
+```log
+~/bin/tflint
+~/bin/terraform --version
+Terraform v0.12.18
++ provider.external v1.2.0
++ provider.google v2.9.1
++ provider.google-beta v2.9.1
++ provider.helm v0.10.4
++ provider.kubernetes v1.7.0
++ provider.null v2.1.2
++ provider.random v2.2.1
++ provider.template v2.1.2
++ provider.tls v2.1.1
+~/bin/terraform validate
+
+Warning: External references from destroy provisioners are deprecated
+
+  on .terraform/modules/gke.tiller/modules/k8s-tiller/main.tf line 275, in resource "null_resource" "tiller_tls_ca_certs":
+ 275:     command = <<-EOF
+ 276:       ${var.kubectl_server_endpoint != "" ? "echo \"$KUBECTL_CA_DATA\" > ${path.module}/kubernetes_server_ca.pem" : ""}
+ 277:       ${lookup(module.require_executables.executables, "kubectl", "")} ${local.esc_newl}
+ 278:         ${local.kubectl_auth_params} ${local.esc_newl}
+ 279:         --namespace ${var.tiller_tls_ca_cert_secret_namespace} ${local.esc_newl}
+ 280:         delete secret ${local.tiller_tls_ca_certs_secret_name}
+ 281:       EOF
+
+Destroy-time provisioners and their connection configurations may only
+reference attributes of the related resource, via 'self', 'count.index', or
+'each.key'.
+
+References to other resources during the destroy phase can cause dependency
+cycles and interact poorly with create_before_destroy.
+
+(and 23 more similar warnings elsewhere)
+
+Success! The configuration is valid, but there were some validation warnings as shown above.
+```
+
+Применяем (стейт будет локальным)
+```shell
+cd ./kubernetes/terraform
+make apply
+```
+
+Пошла создаваться инфраструктура...
+
+Вышла ошибка
+```log
+Error: Get http://localhost/api/v1/namespaces/kube-system/serviceaccounts/tiller: dial tcp 127.0.0.1:80: connect: connection refused
+```
+И ещё несколько подобных при попытке удалить инфраструктуру.
+
+После **вдумчивого чтения** [документации](https://registry.terraform.io/modules/gruntwork-io/gke/google/0.3.9), в часности [gke-private-tiller example documentation](https://github.com/gruntwork-io/terraform-google-gke/tree/master/examples/gke-private-tiller), пришёл к выводу, что нужно бы установить [kubergrunt](https://github.com/gruntwork-io/kubergrunt), для установки которого, в свою очередь, нужен [gruntwork-installer](https://github.com/gruntwork-io/gruntwork-installer).
+
+Ну чтож, приступим.
+
+В [Makefile](kubernetes/terraform/Makefile) добавим необходимые цели и переменные
+```makefile
+# gruntwork-install
+GRUNTWORK_INSTALL_VERSION?=v0.0.23
+
+install_gruntwork_install:
+	curl -LsS https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version $GRUNTWORK_INSTALL_VERSION
+```
+Устанавливаем: в процессе скрипт просит рута. Не порядок. Смотрим [исходники скрипта установки](https://github.com/gruntwork-io/gruntwork-installer/blob/master/bootstrap-gruntwork-installer.sh) и видим там `readonly BIN_DIR="/usr/local/bin"`. Печально, но я не ставлю в систему бинарники не из пакетов.
+
+Выходов 3: 
+- менять скрипт
+- ставить `kubergrunt` из исходников
+- использовать модуль от гугла
+
+Для завершения начатого дела, установим `kubergrunt` из исходников (заодно посмотрим что за утилитка такая)
+
+Уберём из [Makefile](kubernetes/terraform/Makefile) ранее добавленную цель `install_gruntwork_install` и добавим цель для установки `kubergrunt`
+```makefile
+# kubergrunt
+KUBERGRUNT_VERSION?=v0.5.8
+KUBERGRUNT_URL=https://github.com/gruntwork-io/kubergrunt/releases/download/${KUBERGRUNT_VERSION}/kubergrunt_linux_amd64
+KUBERGRUNT?=${BIN_DIR}/kubergrunt
+
+install_kubergrunt:
+	wget ${KUBERGRUNT_URL} -O ${TEMP_DIR}/kubergrunt-${KUBERGRUNT_VERSION}
+	mv ${TEMP_DIR}/kubergrunt-${KUBERGRUNT_VERSION} ${BIN_DIR}/kubergrunt-${KUBERGRUNT_VERSION}
+	ln -sf kubergrunt-${KUBERGRUNT_VERSION} ${BIN_DIR}/kubergrunt
+	chmod +x ${BIN_DIR}/kubergrunt
+	${BIN_DIR}/kubergrunt --version
+```
+Устанавливаем
+```shell
+make install_kubergrunt
+```
+
+Попробуем ещё раз поднять инфру.
+```shell
+make apply
+```
+
+А вот и наши ошибочки))
+```log
+...
+module.gke.null_resource.configure_kubectl: Creating...
+module.gke.null_resource.configure_kubectl: Provisioning with 'local-exec'...
+module.gke.null_resource.configure_kubectl (local-exec): Executing: ["/bin/sh" "-c" "gcloud beta container clusters get-credentials reddit-private --region us-central1 --project docker-257914"]
+module.gke.null_resource.configure_kubectl (local-exec): Fetching cluster endpoint and auth data.
+module.gke.null_resource.configure_kubectl (local-exec): ERROR: (gcloud.beta.container.clusters.get-credentials) ResponseError: code=404, message=Not found: projects/docker-257914/locations/us-central1/clusters/reddit-private.
+module.gke.null_resource.configure_kubectl (local-exec): Could not find [reddit-private] in [us-central1].
+module.gke.null_resource.configure_kubectl (local-exec): Did you mean [reddit-private] in [us-central1-a]?
+
+
+Error: Error running command 'gcloud beta container clusters get-credentials reddit-private --region us-central1 --project docker-257914': exit status 1. Output: Fetching cluster endpoint and auth data.
+ERROR: (gcloud.beta.container.clusters.get-credentials) ResponseError: code=404, message=Not found: projects/docker-257914/locations/us-central1/clusters/reddit-private.
+Could not find [reddit-private] in [us-central1].
+Did you mean [reddit-private] in [us-central1-a]?
+
+
+
+
+Error: Get https://35.238.240.243/apis/apps/v1/namespaces/kube-system/deployments/tiller-deploy: dial tcp 35.238.240.243:443: connect: connection refused
+
+  on .terraform/modules/gke.tiller/modules/k8s-tiller/main.tf line 38, in resource "kubernetes_deployment" "tiller":
+  38: resource "kubernetes_deployment" "tiller" {
+
+
+Makefile:68: recipe for target 'apply' failed
+make: *** [apply] Error 1
+```
+При этом кластер не создан.
+
+Немного танцев с бубном результата не дали. Пора спать.
+
+Унечтожаем инфру.
+
+TODO доделать!
