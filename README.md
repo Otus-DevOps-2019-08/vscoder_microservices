@@ -4194,7 +4194,7 @@ make: *** [Makefile:11: build_post] Error 1
   - предполагается использование отдельного хоста
   - By adding gitlab-runner to the docker group you are effectively granting gitlab-runner full root permissions
 - Так же возможно использовать [docker-in-docker workflow with Docker executor](https://docs.gitlab.com/ce/ci/docker/using_docker_build.html#use-docker-in-docker-workflow-with-docker-executor)
-  - Читать https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/ до просветления, почему так лучше не делать (TODO)
+  - Читать https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/ до просветления, почему так лучше не делать
 - Тертий способ -- [Use Docker socket binding](https://docs.gitlab.com/ce/ci/docker/using_docker_build.html#use-docker-socket-binding)
   - **WARNING** Docker in privileged mode
 
@@ -4511,8 +4511,6 @@ build_job:
 ### Задание со \*: Деплой контейнера на созданный для ветки сервер
 
 Деплойте контейнер с reddit на созданный для ветки сервер.
-
-TODO: Анализ, Реализация
 
 Примерный план:
 - в packer подготовить образ с docker
@@ -11333,8 +11331,6 @@ https://otus-devops.slack.com/archives/CMSD007E0/p1577619070042800
 
 К PR приложить скриншот веб-интерфейса приложения в GKE (по-желанию) или ссылку на него.
 
-TODO: Do it!
-
 
 ### GKE Dashboard
 
@@ -11421,7 +11417,7 @@ Error from server (AlreadyExists): clusterrolebindings.rbac.authorization.k8s.io
 
 Для clusterrole, serviceaccount `--serviceaccount=kube-system:kubernetes-dashboard` - это комбинация serviceaccount и namespace, в котором он создан
 
-### Задание со \* TODO!!!!!!!!!!!!!1
+### Задание со \*
 
 1. Разверните Kubenetes-кластер в GKE с помощью [Terraform модуля](https://www.terraform.io/docs/providers/google/r/container_cluster.html) 
 2. Создайте YAML-манифесты для описания созданных сущностей для включения dashboard.
@@ -11747,6 +11743,79 @@ gke-reddit-private-private-pool-02dd335c-j19w   Ready    <none>   34m   v1.15.4-
 cd kubernetes/terraform
 make destroy
 ```
+```log
+Destroy complete! Resources: 16 destroyed.
+```
+
+Переместим текущую конфигурацию в `kubernetes/terraform/private-cluster`
 
 
+Попробуем **public-cluster**, опять же без тиллера
 
+Пример конфигурации возьмём из https://github.com/gruntwork-io/terraform-google-gke/tree/master/examples/gke-public-cluster
+
+В [kubernetes/terraform/main.tf](kubernetes/terraform/main.tf) исправим пути к модулям
+
+В файле `kubernetes/terraform/terraform.tfvars` исправим имя кластера на `reddit-public` и удалим неиспользуемую переменную `master_ipv4_cidr_block = "10.5.0.0/28"`
+
+Выполним инициализацию
+```shell
+make init
+```
+
+Выполним проверку
+```shell
+make tflint validate
+```
+всё ок
+
+Применяем
+```shell
+make apply
+```
+```log
+Apply complete! Resources: 16 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+client_certificate = 
+client_key = <sensitive>
+cluster_ca_certificate = <sensitive>
+cluster_endpoint = <sensitive>
+```
+
+kubectl
+```shell
+gcloud container clusters get-credentials reddit-public --zone us-central1-a --project docker-<project_id>
+```
+
+Деплоим
+```shell
+kubectl apply -f ./kubernetes/reddit/dev-namespace.yml
+kubectl -n dev apply -f ./kubernetes/reddit/
+```
+
+Проверяем
+```shell
+kubectl -n dev get nodes -o wide
+```
+```log
+NAME                                        STATUS   ROLES    AGE     VERSION          INTERNAL-IP   EXTERNAL-IP      OS-IMAGE                             KERNEL-VERSION   CONTAINER-RUNTIME
+gke-reddit-public-main-pool-55932370-0jm2   Ready    <none>   73s     v1.15.4-gke.22   10.3.0.6      35.226.120.37    Container-Optimized OS from Google   4.19.76+         docker://19.3.1
+gke-reddit-public-main-pool-55932370-6fg2   Ready    <none>   6m46s   v1.15.4-gke.22   10.3.0.4      35.192.163.208   Container-Optimized OS from Google   4.19.76+         docker://19.3.1
+gke-reddit-public-main-pool-55932370-fvqw   Ready    <none>   2m41s   v1.15.4-gke.22   10.3.0.5      35.225.118.4     Container-Optimized OS from Google   4.19.76+         docker://19.3.1
+gke-reddit-public-main-pool-55932370-pwcw   Ready    <none>   14m     v1.15.4-gke.22   10.3.0.3      35.238.28.0      Container-Optimized OS from Google   4.19.76+         docker://19.3.1
+```
+
+```shell
+kubectl describe service ui -n dev | grep NodePort
+```
+```log
+Type:                     NodePort
+NodePort:                 <unset>  31572/TCP
+```
+
+Проверяем http://35.192.163.208:31572
+
+Приложение открывается
+![reddit-gke.png](kubernetes/img/reddit-gke.png)
