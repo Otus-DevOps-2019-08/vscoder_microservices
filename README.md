@@ -296,24 +296,19 @@ vscoder microservices repository
           - [UI](#ui)
           - [Comment](#comment)
           - [Post](#post)
-  - [yaml](#yaml)
-  - [yaml](#yaml-1)
-  - [yaml](#yaml-2)
-  - [yaml](#yaml-3)
-  - [yaml](#yaml-4)
-  - [yaml](#yaml-5)
-  - [yaml](#yaml-6)
-  - [yaml](#yaml-7)
-  - [yaml](#yaml-8)
-  - [yaml](#yaml-9)
-  - [yaml](#yaml-10)
-  - [yaml](#yaml-11)
-  - [yaml](#yaml-12)
-  - [yaml](#yaml-13)
-  - [yaml](#yaml-14)
-- [Ставим curl](#%d0%a1%d1%82%d0%b0%d0%b2%d0%b8%d0%bc-curl)
-- [gruntwork-install](#gruntwork-install)
-- [kubergrunt](#kubergrunt)
+          - [MongoDB](#mongodb)
+      - [Services](#services)
+        - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-2)
+        - [Services](#services-1)
+      - [Minikube](#minikube-1)
+      - [Namespaces](#namespaces)
+      - [Dashboard](#dashboard)
+    - [Разворачиваем Kubernetes](#%d0%a0%d0%b0%d0%b7%d0%b2%d0%be%d1%80%d0%b0%d1%87%d0%b8%d0%b2%d0%b0%d0%b5%d0%bc-kubernetes)
+    - [GKE](#gke)
+      - [ОШИБКА: Не отображаются комменты](#%d0%9e%d0%a8%d0%98%d0%91%d0%9a%d0%90-%d0%9d%d0%b5-%d0%be%d1%82%d0%be%d0%b1%d1%80%d0%b0%d0%b6%d0%b0%d1%8e%d1%82%d1%81%d1%8f-%d0%ba%d0%be%d0%bc%d0%bc%d0%b5%d0%bd%d1%82%d1%8b)
+    - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-3)
+    - [GKE Dashboard](#gke-dashboard)
+    - [Задание со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--1)
 
 # Makefile
 
@@ -9183,6 +9178,7 @@ networks:
 docker-compose -f docker-compose-logging.yml -f docker-compose.yml down
 docker-compose -f docker-compose-logging.yml -f docker-compose.yml up -d
 ```
+
 Им и воспользуемся (сюрприз))
 P.S. Понадобилось поднять версию композ-файла [docker/docker-compose-logging.yml](docker/docker-compose-logging.yml) с `3.0` до `3.3`
 ```log
@@ -10097,7 +10093,8 @@ spec:
 kubectl apply -f post-deployment.yml
 ```
 ```log
-deployment.apps/post created```
+deployment.apps/post created
+```
 ```shell
 kubectl get deployment
 ```
