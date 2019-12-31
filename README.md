@@ -11581,6 +11581,172 @@ make: *** [apply] Error 1
 
 Немного танцев с бубном результата не дали. Пора спать.
 
-Унечтожаем инфру.
+Уничтожаем инфру.
+```shell
+terraform state rm module.gke.kubernetes_service_account.tiller
+terraform state rm module.gke.kubernetes_cluster_role_binding.user
+terraform state rm module.gke.module.tiller.kubernetes_service.tiller
+make destroy
+```
 
-TODO доделать!
+
+Воспользуемся вариантом из примера https://github.com/gruntwork-io/terraform-google-gke/tree/master/examples/gke-private-cluster
+
+Переместим текущую невзлетающую конфигурацию в директорию `kubernetes/terraform/donotwork`
+
+Добавим модули `gke-cluster` и `gke-cluster-account` в `kubernetes/terraform/modules`
+
+Возьмём файлы `main.tf`, `variables.tf` и `outputs.tf` из пирмера https://github.com/gruntwork-io/terraform-google-gke/tree/master/examples/gke-private-cluster
+
+В [kubernetes/terraform/main.tf](kubernetes/terraform/main.tf) исправим пути к модулям
+
+Файл `kubernetes/terraform/terraform.tfvars` у нас остался с предыдущей попытки. Он актуален.
+
+Выполним инициализацию
+```shell
+make init
+```
+
+Выполним проверку
+```shell
+make tflint validate
+```
+```log
+~/bin/tflint
+~/bin/terraform --version
+Terraform v0.12.18
++ provider.google v2.9.1
++ provider.google-beta v2.9.1
++ provider.random v2.2.1
+~/bin/terraform validate
+Success! The configuration is valid.
+```
+
+Применяем инфру
+```shell
+make apply
+```
+Йуху!
+```log
+...
+Apply complete! Resources: 16 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+client_certificate = 
+client_key = <sensitive>
+cluster_ca_certificate = <sensitive>
+cluster_endpoint = <sensitive>
+```
+
+Настраиваем `kubectl`
+```shell
+gcloud container clusters get-credentials reddit-private --zone us-central1-a --project docker-<project_id>
+```
+
+Проверяем
+```shell
+kubectl cluster-info
+```
+```log
+Kubernetes master is running at https://35.222.6.91
+calico-typha is running at https://35.222.6.91/api/v1/namespaces/kube-system/services/calico-typha:calico-typha/proxy
+GLBCDefaultBackend is running at https://35.222.6.91/api/v1/namespaces/kube-system/services/default-http-backend:http/proxy
+Heapster is running at https://35.222.6.91/api/v1/namespaces/kube-system/services/heapster/proxy
+KubeDNS is running at https://35.222.6.91/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+Metrics-server is running at https://35.222.6.91/api/v1/namespaces/kube-system/services/https:metrics-server:/proxy
+```
+
+Создаём неймспейс
+```shell
+kubectl apply -f ./kubernetes/reddit/dev-namespace.yml 
+```
+```log
+namespace/dev created
+```
+
+Деплоим приложение
+```shell
+kubectl -n dev apply -f ./kubernetes/reddit/                 
+```
+```log
+deployment.apps/comment created
+service/comment-db created
+service/comment created
+namespace/dev unchanged
+deployment.apps/mongo created
+service/mongodb created
+deployment.apps/post created
+service/post-db created
+service/post created
+deployment.apps/ui created
+service/ui created
+```
+
+Проверим
+```shell
+kubectl -n dev get deployments 
+```
+```log
+NAME      READY   UP-TO-DATE   AVAILABLE   AGE
+comment   3/3     3            3           39s
+mongo     1/1     1            1           55s
+post      3/3     3            3           54s
+ui        3/3     3            3           52s
+```
+```shell
+kubectl -n dev get services
+```
+```log
+NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)          AGE
+comment      ClusterIP   10.4.13.2    <none>        9292/TCP         2m15s
+comment-db   ClusterIP   10.4.3.21    <none>        27017/TCP        2m16s
+mongodb      ClusterIP   10.4.14.40   <none>        27017/TCP        2m31s
+post         ClusterIP   10.4.0.179   <none>        5000/TCP         2m30s
+post-db      ClusterIP   10.4.4.7     <none>        27017/TCP        2m30s
+ui           NodePort    10.4.9.143   <none>        9292:30652/TCP   2m29s
+```
+```shell
+kubectl -n dev get pods --selector component=ui
+```
+```log
+NAME                  READY   STATUS    RESTARTS   AGE
+ui-595f89d499-9qmsm   1/1     Running   0          3m18s
+ui-595f89d499-d5b47   1/1     Running   0          3m18s
+ui-595f89d499-z57wg   1/1     Running   0          3m18s
+```
+```shell
+kubectl -n dev port-forward ui-595f89d499-9qmsm 9292:9292
+```
+```log
+Forwarding from 127.0.0.1:9292 -> 9292
+Forwarding from [::1]:9292 -> 9292
+```
+Приложение доступно по http://127.0.0.1:9292, работает.
+
+```shell
+kubectl describe service ui -n dev | grep NodePort
+```
+```log
+Type:                     NodePort
+NodePort:                 <unset>  30652/TCP
+```
+```shell
+kubectl get nodes -o wide
+```
+```log
+NAME                                            STATUS   ROLES    AGE   VERSION          INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                             KERNEL-VERSION   CONTAINER-RUNTIME
+gke-reddit-private-private-pool-02dd335c-65rz   Ready    <none>   26m   v1.15.4-gke.22   10.3.0.4                    Container-Optimized OS from Google   4.19.76+         docker://19.3.1
+gke-reddit-private-private-pool-02dd335c-j19w   Ready    <none>   34m   v1.15.4-gke.22   10.3.0.3                    Container-Optimized OS from Google   4.19.76+         docker://19.3.1
+```
+
+Так как кластер приватный, внешних адресов нет. Подключатсья не к чему =)
+
+Уничтожим:
+```shell
+cd kubernetes/terraform
+make destroy
+```
+
+
+
