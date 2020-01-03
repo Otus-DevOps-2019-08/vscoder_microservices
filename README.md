@@ -314,10 +314,16 @@ vscoder microservices repository
     - [Сетевое взаимодействие](#%d0%a1%d0%b5%d1%82%d0%b5%d0%b2%d0%be%d0%b5-%d0%b2%d0%b7%d0%b0%d0%b8%d0%bc%d0%be%d0%b4%d0%b5%d0%b9%d1%81%d1%82%d0%b2%d0%b8%d0%b5)
       - [Service](#service)
       - [Kube-dns](#kube-dns)
-      - [kube-dns](#kube-dns)
-        - [А в рамках кластера?](#%d0%90-%d0%b2-%d1%80%d0%b0%d0%bc%d0%ba%d0%b0%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%82%d0%b5%d1%80%d0%b0)
-      - [kubenet](#kubenet)
-        - [А в рамках кластера?](#%d0%90-%d0%b2-%d1%80%d0%b0%d0%bc%d0%ba%d0%b0%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%82%d0%b5%d1%80%d0%b0-1)
+  - [yaml](#yaml)
+  - [yaml](#yaml-1)
+  - [yaml](#yaml-2)
+  - [yaml](#yaml-3)
+  - [yaml](#yaml-4)
+  - [writing new private key to 'tls.key'](#writing-new-private-key-to-tlskey)
+  - [writing new private key to 'tls.key'](#writing-new-private-key-to-tlskey-1)
+- [Data](#data)
+  - [yaml](#yaml-5)
+      - [Задание со * Secret в виде Kubernetes-манифеста](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--secret-%d0%b2-%d0%b2%d0%b8%d0%b4%d0%b5-kubernetes-%d0%bc%d0%b0%d0%bd%d0%b8%d1%84%d0%b5%d1%81%d1%82%d0%b0)
 
 # Makefile
 
@@ -12792,3 +12798,379 @@ Kubernetes не имеет в комплекте механизма органи
 ##### А в рамках кластера?
 
 Посмотреть правила, согласно которым трафик отправляется на ноды можно здесь: https://console.cloud.google.com/networking/routes/
+
+#### nodePort
+
+Service с типом **NodePort** - похож на сервис типа **ClusterIP**, только к нему прибавляется прослушивание портов нод (всех нод) для доступа к сервисам **снаружи**.  При этом ClusterIP также назначается этому сервису для доступа к нему изнутри кластера.
+
+**kube-proxy** прослушивается либо заданный порт (`nodePort: 32092`), либо порт из диапазона **30000-32670**.
+
+Дальше _IPTables_ решает, на какой Pod попадет трафик.
+
+Сервис UI мы уже публиковали наружу с помощью **NodePort**
+
+`ui-service.yml`
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  labels:
+    app: reddit
+    component: ui
+spec:
+  type: NodePort
+  ports:
+  - port: 9292
+    nodePort: 32092
+    protocol: TCP
+    targetPort: 9292
+  selector:
+    app: reddit
+    component: ui
+```
+
+Схема приобретает следующий вид
+![scheme-nodeport.png](kubernetes/img/scheme-nodeport.png)
+
+
+#### LoadBalancer
+
+Тип **NodePort** хоть и предоставляет доступ к сервису снаружи, но открывать все порты наружу или искать IP-адреса наших нод (которые вообще динамические) не очень удобно.
+
+Тип **LoadBalancer** позволяет нам использовать внешний облачный балансировщик нагрузки как единую точку входа в наши сервисы, а не полагаться на IPTables и не открывать наружу весь кластер.
+
+Схема приобретает следующий вид
+![scheme-loadbalancer.png](kubernetes/img/scheme-loadbalancer.png)
+
+Настроим соответствующим образом Service UI
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  labels:
+    app: reddit
+    component: ui
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80  # Порт, который будет открыт на балансировщике
+      nodePort: 32092  # Также на ноде будет открыт порт, но нам он не нужен и его можно даже убрать
+      protocol: TCP
+      targetPort: 9292  # Порт POD-а
+  selector:
+    app: reddit
+    component: ui
+```
+
+Настроим соответствующим образом Service UI
+```shell
+kubectl apply -f ui-service.yml -n dev
+```
+
+Посмотрим что там
+```shell
+kubectl get service -n dev --selector component=ui
+```
+```log
+NAME   TYPE           CLUSTER-IP   EXTERNAL-IP    PORT(S)        AGE
+ui     LoadBalancer   10.4.7.57    34.67.99.206   80:32092/TCP   2m39s
+```
+
+Проверим в браузере: http://34.67.99.206:80
+
+Все компоненты приложения работают.
+
+Будет создано правило для балансировки: _Network services_ -> _Load balancing_
+![screenshot-loadbalancer.png](kubernetes/img/screenshot-loadbalancer.png)
+
+Балансировка с помощью Service типа LoadBalancing имеет ряд недостатков:
+- нельзя управлять с помощью http URI (L7-балансировка)
+- используются **только** облачные балансировщики (AWS, GCP)
+- нет гибких правил работы с трафиком
+
+#### Ingress
+
+Для более удобного управления входящим снаружи трафиком и решения недостатков LoadBalancer можно использовать другой объект Kubernetes - **Ingress**.
+
+**Ingress** – это набор правил внутри кластера Kubernetes, предназначенных для того, чтобы входящие подключения могли достичь сервисов (Services)
+
+Сами по себе Ingress’ы это просто правила. Для их применения нужен **Ingress Controller**.
+
+##### Ingress Conroller
+
+Для работы Ingress-ов необходим **Ingress Controller**. В отличие остальных контроллеров k8s - он не стартует вместе с кластером.
+
+**Ingress Controller** - это скорее плагин (а значит и отдельный POD), который состоит из 2-х функциональных частей: 
+- Приложение, которое отслеживает через k8s API новые объекты Ingress и обновляет конфигурацию балансировщика
+- Балансировщик (Nginx, haproxy, traefik,…), который и занимается управлением сетевым трафиком
+
+##### Ingress
+
+Основные задачи, решаемые с помощью Ingress’ов:
+- Организация единой точки входа в приложения снаружи
+- Обеспечение балансировки трафика
+- Терминация SSL 
+- Виртуальный хостинг на основе имен и т.д
+
+Посколько у нас web-приложение, нам вполне было бы логично использовать L7-балансировщик вместо Service LoadBalancer.
+
+Google в GKE уже предоставляет возможность использовать их собственные решения балансирощик в качестве Ingress controller-ов.
+
+Перейдите в настройки кластера в [веб-консоли gcloud](https://console.cloud.google.com/kubernetes)
+
+Убедитесь, что встроенный Ingress включен. Если нет - включите
+
+Создадим Ingress для сервиса UI
+`ui-ingress.yml`
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ui
+spec:
+  backend:
+    serviceName: ui
+    servicePort: 80
+```
+Это **Singe Service Ingress** - значит, что весь ingress контроллер будет просто балансировать нагрузку на Node-ы для одного сервиса (очень похоже на Service LoadBalancer)
+
+Применим конфиг
+```shell
+kubectl apply -f ui-ingress.yml -n dev
+```
+```log
+ingress.extensions/ui created
+```
+
+Зайдем в [консоль GCP](https://console.cloud.google.com/net-services/loadbalancing/loadBalancers/list) и увидим уже несколько правил
+![screenshot-loadbalancers.png](kubernetes/img/screenshot-loadbalancers.png)
+
+Нас интересует 1-е
+![screenshot-loadbalancer-ingress.png](kubernetes/img/screenshot-loadbalancer-ingress.png)
+
+Видим NodePort опубликованного сервиса. Т.е. для работы с Ingress в GCP нам нужен минимум Service с типом **NodePort** (он уже есть)
+
+Посмотрим в сам кластер:
+```shell
+kubectl get ingress -n dev
+```
+```log
+NAME   HOSTS   ADDRESS         PORTS   AGE
+ui     *       34.95.116.107   80      5m52s
+```
+
+Схема приобретает следующий вид
+![scheme-ingress.png](kubernetes/img/scheme-ingress.png)
+
+В текущей схеме есть несколько недостатков:
+- у нас 2 балансировщика для 1 сервиса
+- Мы не умеем управлять трафиком на уровне HTTP
+
+Один балансировщик можно спокойно убрать. Обновим сервис для UI
+`kubernetes/reddit/ui-service.yml`
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  labels:
+    app: reddit
+    component: ui
+spec:
+  type: NodePort
+  ports:
+    - port: 9292
+      protocol: TCP
+      targetPort: 9292
+  selector:
+    app: reddit
+    component: ui
+```
+
+Применим
+```shell
+kubectl apply -f ui-service.yml -n dev
+```
+```log
+service/ui configured
+```
+
+Заставим работать Ingress Controller как классический веб
+`kubernetes/reddit/ui-ingress.yml`
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ui
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: ui
+              servicePort: 9292
+```
+```shell
+kubectl apply -f ui-ingress.yml -n dev
+```
+```log
+ingress.extensions/ui configured
+```
+```shell
+kubectl get ingress -n dev
+```
+```log
+NAME   HOSTS   ADDRESS         PORTS   AGE
+ui     *       34.95.116.107   80      14m
+```
+
+При попытке открыть http://34.95.116.107:80 ошибка 502
+```log
+Error: Server Error
+The server encountered a temporary error and could not complete your request.
+Please try again in 30 seconds.
+```
+
+Подождём... Проверил через 10 минут - всё работает.
+
+#### Secret
+
+Теперь давайте защитим наш сервис с помощью TLS. Для начала вспомним Ingress IP
+```shell
+kubectl get ingress -n dev 
+```
+```log
+NAME   HOSTS   ADDRESS         PORTS   AGE
+ui     *       34.95.116.107   80      31m
+```
+
+Далее подготовим сертификат используя IP как CN
+```shell
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=34.95.116.107"
+```
+```log
+Can't load /home/myusername/.rnd into RNG
+139682105135552:error:2406F079:random number generator:RAND_load_file:Cannot open file:../crypto/rand/randfile.c:88:Filename=/home/myusername/.rnd
+Generating a RSA private key
+.......................................+++++
+........+++++
+writing new private key to 'tls.key'
+-----
+```
+Ошибки какие-то ^_^ но ключ создан))
+
+Гугление ошибки привело к [следующему решению](https://github.com/openssl/openssl/issues/7754#issuecomment-541307674), а именно
+> I had the same issue as you on Ubuntu 18.04.x. Removing (or commenting out) `RANDFILE = $ENV::HOME/.rnd` from `/etc/ssl/openssl.cnf` worked for me.
+
+Попробуем пересоздать сертификат
+```shell
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=34.95.116.107"
+```
+```log
+Generating a RSA private key
+.........................................................................+++++
+................................................................................................................................................................................................................................................................+++++
+writing new private key to 'tls.key'
+-----
+```
+На этот раз без ошибок. Продолжаем
+
+И загрузит сертификат в кластер kubernetes
+```shell
+kubectl create secret tls ui-ingress --key tls.key --cert tls.crt -n dev
+```
+```log
+secret/ui-ingress created
+```
+
+Проверить можно командой
+```shell
+kubectl describe secret ui-ingress -n dev
+```
+```log
+Name:         ui-ingress
+Namespace:    dev
+Labels:       <none>
+Annotations:  <none>
+
+Type:  kubernetes.io/tls
+
+Data
+====
+tls.crt:  1123 bytes
+tls.key:  1704 bytes
+```
+
+##### TLS Termination
+
+Теперь настроим Ingress на прием только HTTPS траффика
+`kubernetes/reddit/ui-ingress.yml`
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ui
+  annotations:
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  tls:
+    - secretName: ui-ingress
+  backend:
+    serviceName: ui
+    servicePort: 9292
+```
+```shell
+kubectl apply -f ui-ingress.yml -n dev
+```
+```log
+ingress.extensions/ui configured
+```
+
+Зайдем на страницу [web console](https://console.cloud.google.com/net-services/loadbalancing/loadBalancers/list) и увидим в описании нашего балансировщика только один протокол HTTPS (пока ещё нет)
+
+Иногда протокол HTTP может не удалиться у существующего Ingress правила, тогда нужно его вручную удалить и пересоздать
+```shell
+kubectl delete ingress ui -n dev
+```
+```log
+ingress.extensions "ui" deleted
+```
+```shell
+kubectl apply -f ui-ingress.yml -n dev
+```
+```log
+ingress.extensions/ui created
+```
+В веб-консоли теперь указан только https
+
+```shell
+kubectl get ingress -n dev 
+```
+```log
+NAME   HOSTS   ADDRESS          PORTS     AGE
+ui     *       35.244.235.133   80, 443   4m3s
+```
+
+Заходим на страницу нашего приложения по https, подтверждаем исключение безопасности (у нас сертификат самоподписанный) и видим что все работает
+
+https://35.244.235.133
+![screenshot-reddit-https.png](kubernetes/img/screenshot-reddit-https.png)
+
+Правила Ingress могут долго применяться, если не получилось зайти с первой попытки - подождите и попробуйте еще раз
+
+#### Задание со \* Secret в виде Kubernetes-манифеста
+
+Опишите создаваемый объект Secret в виде Kubernetes-манифеста.
+
+https://kubernetes.io/docs/concepts/configuration/secret/
+
+TODO!
