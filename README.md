@@ -314,17 +314,21 @@ vscoder microservices repository
     - [Сетевое взаимодействие](#%d0%a1%d0%b5%d1%82%d0%b5%d0%b2%d0%be%d0%b5-%d0%b2%d0%b7%d0%b0%d0%b8%d0%bc%d0%be%d0%b4%d0%b5%d0%b9%d1%81%d1%82%d0%b2%d0%b8%d0%b5)
       - [Service](#service)
       - [Kube-dns](#kube-dns)
-  - [yaml](#yaml)
-  - [yaml](#yaml-1)
-  - [yaml](#yaml-2)
-  - [yaml](#yaml-3)
-  - [yaml](#yaml-4)
-  - [writing new private key to 'tls.key'](#writing-new-private-key-to-tlskey)
-  - [writing new private key to 'tls.key'](#writing-new-private-key-to-tlskey-1)
-- [Data](#data)
-  - [yaml](#yaml-5)
-  - [yaml](#yaml-6)
-- [Data](#data-1)
+      - [Service](#service-1)
+      - [kube-dns](#kube-dns)
+        - [А в рамках кластера?](#%d0%90-%d0%b2-%d1%80%d0%b0%d0%bc%d0%ba%d0%b0%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%82%d0%b5%d1%80%d0%b0)
+      - [kubenet](#kubenet)
+        - [А в рамках кластера?](#%d0%90-%d0%b2-%d1%80%d0%b0%d0%bc%d0%ba%d0%b0%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%82%d0%b5%d1%80%d0%b0-1)
+      - [nodePort](#nodeport)
+      - [LoadBalancer](#loadbalancer)
+      - [Ingress](#ingress)
+        - [Ingress Conroller](#ingress-conroller)
+        - [Ingress](#ingress-1)
+      - [Secret](#secret)
+        - [TLS Termination](#tls-termination)
+      - [Задание со * Secret в виде Kubernetes-манифеста](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--secret-%d0%b2-%d0%b2%d0%b8%d0%b4%d0%b5-kubernetes-%d0%bc%d0%b0%d0%bd%d0%b8%d1%84%d0%b5%d1%81%d1%82%d0%b0)
+        - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-5)
+        - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-8)
 
 # Makefile
 
@@ -11923,11 +11927,11 @@ ui           NodePort    10.4.14.189   <none>        9292:31596/TCP   33s
 
 1. Проскейлим в 0 сервис, который следит, чтобы dns-kube подов всегда хватало
    ```shell
-    kubectl scale deployment --replicas 0 -n kube-system kube-dns-autoscaler
-    ```
-    ```log
-    deployment.extensions/kube-dns-autoscaler scaled
-    ```
+   kubectl scale deployment --replicas 0 -n kube-system kube-dns-autoscaler
+   ```
+   ```log
+   deployment.extensions/kube-dns-autoscaler scaled
+   ```
 2. Проскейлим в 0 сам kube-dns
    ```shell
    kubectl scale deployment --replicas 0 -n kube-system kube-dns
