@@ -331,6 +331,17 @@ vscoder microservices repository
         - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-8)
       - [Network Policy](#network-policy)
         - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-4)
+    - [Хранилище для базы](#%d0%a5%d1%80%d0%b0%d0%bd%d0%b8%d0%bb%d0%b8%d1%89%d0%b5-%d0%b4%d0%bb%d1%8f-%d0%b1%d0%b0%d0%b7%d1%8b)
+      - [Volume](#volume)
+      - [PersistentVolume](#persistentvolume)
+      - [PersistentVolumeClaim](#persistentvolumeclaim)
+      - [PersistentVolume](#persistentvolume-1)
+      - [PersistentVolumeClaim](#persistentvolumeclaim-1)
+      - [Подключим PVC к нашим Pod'ам](#%d0%9f%d0%be%d0%b4%d0%ba%d0%bb%d1%8e%d1%87%d0%b8%d0%bc-pvc-%d0%ba-%d0%bd%d0%b0%d1%88%d0%b8%d0%bc-pod%d0%b0%d0%bc)
+      - [Динамическое выделение Volume'ов](#%d0%94%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b5-%d0%b2%d1%8b%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-volume%d0%be%d0%b2)
+      - [StorageClass](#storageclass)
+      - [PVC + StorageClass](#pvc--storageclass)
+      - [Подключение динамического PVC](#%d0%9f%d0%be%d0%b4%d0%ba%d0%bb%d1%8e%d1%87%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b4%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b3%d0%be-pvc)
 
 # Makefile
 
@@ -13309,6 +13320,8 @@ tls.key:  1704 bytes
 
 #### Network Policy
 
+https://cloud.google.com/kubernetes-engine/docs/how-to/network-policy
+
 В прошлых проектах мы договорились о том, что хотелось бы разнести сервисы базы данных и сервис фронтенда по разным сетям, сделав их недоступными друг для друга. И приняли следующую схему сервисов.
 
 В Kubernetes у нас так сделать не получится с помощью отдельных сетей, так как все POD-ы могут достучаться друг до друга по-умолчанию.
@@ -13442,7 +13455,8 @@ Spec:
 
 Post-сервис не может достучаться до базы, говорили они. А у меня всё работает О_о... то есть при открытии сайта он работает. Предполагаемая причина: не были пересозданы поды, как было сказано при включении network-policy.
 
-Пересоздал всё, включая сертификат... Сайт действительно **перестал работать** ^_^  TODO: разобраться как пересоздать только то что нужно, и что именно пересоздать >_<
+Пересоздал всё, включая сертификат... Сайт действительно **перестал работать** ^_^  TODO: разобраться как пересоздать только то что нужно, и что именно пересоздать >_<. Перечитал доки: похоже, я просто не дождался https://cloud.google.com/kubernetes-engine/docs/how-to/network-policy#enabling_network_policy_enforcement
+> Then, run the gcloud container clusters update command with the --enable-network-policy flag. This command causes your cluster's node pools to be recreated with network policy enabled
 
 ##### Задание
 
@@ -13486,3 +13500,555 @@ networkpolicy.networking.k8s.io/deny-db-traffic configured
 Сайт вновь заработал https://34.95.116.107/
 
 
+### Хранилище для базы
+
+Рассмотрим вопросы хранения данных. Основной _Stateful_ сервис в нашем приложении - это база данных MongoDB.
+
+В текущий момент она запускается в виде _Deployment_ и хранит данные в стаднартный Docker Volume-ах. Это имеет несколько проблем:
+- при удалении POD-а удаляется и Volume
+- потеря Nod’ы с mongo грозит потерей данных
+- запуск базы на другой ноде запускает новый экземпляр данных
+
+`mongo-deployment.yml`
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+    post-db: "true"
+    comment-db: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+        post-db: "true"
+        comment-db: "true"
+    spec:
+      containers:
+      - image: mongo:3.2
+        name: mongo
+        volumeMounts:  # Подключаем Volume
+        - name: mongo-persistent-storage
+          mountPath: /data/db
+      volumes:
+      - name: mongo-persistent-storage  # Объявляем Volume
+        emptyDir: {}
+```
+
+ #### Volume
+
+Сейчас используется тип Volume emptyDir. При создании пода с таким типом просто создается пустой docker volume.
+
+При остановке POD’a содержимое emtpyDir удалится навсегда. Хотя в общем случае падение POD’a не вызывает удаления Volume’a.
+
+Задание:
+1) создайте пост в приложении
+   - Создан
+2) удалите deployment для mongo
+   ```shell
+   kubectl delete -f mongo-deployment.yml -n dev
+   ```
+   ```log
+   deployment.apps "mongo" deleted
+   ```
+3) Создайте его заново
+   ```shell
+   kubectl apply -f mongo-deployment.yml -n dev 
+   ```
+   ```log
+   deployment.apps/mongo created
+   ```
+4) Пост пропал
+
+Вместо того, чтобы хранить данные локально на ноде, имеет смысл подключить удаленное хранилище. В нашем случае можем использовать Volume _gcePersistentDisk_, который будет складывать данные в хранилище GCE.
+
+Создадим диск в Google Cloud
+```shell
+gcloud compute disks create --size=25GB --zone=us-central1-a reddit-mongo-disk
+```
+```log
+WARNING: You have selected a disk size of under [200GB]. This may result in poor I/O performance. For more information, see: https://developers.google.com/compute/docs/disks#performance.
+Created [https://www.googleapis.com/compute/v1/projects/docker-257914/zones/us-central1-a/disks/reddit-mongo-disk].
+NAME               ZONE           SIZE_GB  TYPE         STATUS
+reddit-mongo-disk  us-central1-a  25       pd-standard  READY
+
+New disks are unformatted. You must format and mount a disk before it
+can be used. You can find instructions on how to do this at:
+
+https://cloud.google.com/compute/docs/disks/add-persistent-disk#formatting
+```
+
+Добавим новый Volume POD-у базы.
+
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+    post-db: "true"
+    comment-db: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+        post-db: "true"
+        comment-db: "true"
+    spec:
+      containers:
+      - image: mongo:3.2
+        name: mongo
+        volumeMounts:
+        - name: mongo-gce-pd-storage
+          mountPath: /data/db
+      volumes:
+      - name: mongo-persistent-storage
+        emptyDir: {}
+        volumes:
+      - name: mongo-gce-pd-storage
+        gcePersistentDisk:
+          pdName: reddit-mongo-disk
+          fsType: ext4
+```
+
+Монтируем выделенный диск к POD’у mongo
+![](kubernetes/img/scheme-volume.png)
+
+```shell
+kubectl apply -f mongo-deployment.yml -n dev
+```
+```log
+deployment.apps/mongo configured
+```
+
+Дождитесь, пересоздания Pod'а (занимает до 10 минут). Зайдем в приложение и добавим пост - сделано
+
+Удалим deployment
+```shell
+kubectl delete deploy mongo -n dev
+```
+```log
+deployment.extensions "mongo" deleted
+```
+
+Снова создадим деплой mongo. 
+```shell
+kubectl apply -f mongo-deployment.yml -n dev
+```
+```log
+deployment.apps/mongo created
+```
+
+Наш пост все еще на месте. [Здесь](https://console.cloud.google.com/compute/disks?supportedpurview=project&project=<project_id>&angularJsUrl=%2Fprojectselector%2Fcompute%2Fdisks%3Fsupportedpurview%3Dproject%26project%3D%26folder%3D%26organizationId%3D&authuser=1) можно посмотреть на созданный диск и увидеть какой машиной он используется
+
+#### PersistentVolume
+
+Используемый механизм Volume-ов можно сделать удобнее. Мы можем использовать не целый выделенный диск для каждого пода, а целый ресурс хранилища, общий для всего кластера.
+
+Тогда при запуске Stateful-задач в кластере, мы сможем запросить хранилище в виде такого же ресурса, как CPU или оперативная память.
+
+Для этого будем использовать механизм **PersistentVolume**.
+
+Создадим описание PersistentVolume
+`mongo-volume.yml`
+```yaml
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: reddit-mongo-disk
+spec:
+  capacity:
+    storage: 25Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  gcePersistentDisk:
+    fsType: "ext4" 
+    pdName: "reddit-mongo-disk"
+```
+
+Добавим PersistentVolume в кластер
+```shell
+kubectl apply -f mongo-volume.yml -n dev
+```
+```log
+persistentvolume/reddit-mongo-disk created
+```
+Мы создали PersistentVolume в виде диска в GCP.
+![](kubernetes/img/scheme-persistentvolume.png)
+
+
+#### PersistentVolumeClaim
+
+Мы создали ресурс дискового хранилища, распространенный на весь кластер, в виде PersistentVolume.
+
+Чтобы выделить приложению часть такого ресурса - нужно создать запрос на выдачу - **PersistentVolumeClaim**. _Claim_ - это именно запрос, а не само хранилище.
+
+С помощью запроса можно выделить место как из конкретного **PersistentVolume** (тогда параметры _accessModes_ и _StorageClass_ должны соответствовать, а места должно хватать), так и просто создать отдельный **PersistentVolume** под конкретный запрос.
+
+Создадим описание **PersistentVolumeClaim** (PVC)
+`mongo-claim.yml`
+```yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mongo-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 15Gi
+```
+
+Добавим **PersistentVolumeClaim** в кластер
+```shell
+kubectl apply -f mongo-claim.yml -n dev
+```
+```log
+persistentvolumeclaim/mongo-pvc created
+```
+
+
+#### PersistentVolume
+
+Мы выделили место в PV по запросу для нашей базы. Одновременно использовать один PV можно только по **одному** Claim’у
+![](kubernetes/img/scheme-persistentvolume-one.png)
+
+
+#### PersistentVolumeClaim
+
+Если Claim не найдет по заданным параметрам PV внутри кластера, либо тот будет занят другим Claim’ом то он сам создаст нужный ему PV воспользовавшись стандартным StorageClass.
+
+```shell
+kubectl describe storageclass standard -n dev
+```
+```log
+Name:                  standard
+IsDefaultClass:        Yes
+Annotations:           storageclass.kubernetes.io/is-default-class=true
+Provisioner:           kubernetes.io/gce-pd
+Parameters:            type=pd-standard
+AllowVolumeExpansion:  True
+MountOptions:          <none>
+ReclaimPolicy:         Delete
+VolumeBindingMode:     Immediate
+Events:                <none>
+```
+
+В нашем случае это обычный медленный Google Cloud Persistent Drive
+![](kubernetes/img/scheme-persistentvolumeclaim.png)
+
+
+#### Подключим PVC к нашим Pod'ам
+
+`mongo-deployment.yml`
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+    post-db: "true"
+    comment-db: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+        post-db: "true"
+        comment-db: "true"
+    spec:
+      containers:
+        - image: mongo:3.2
+          name: mongo
+          volumeMounts:
+            - name: mongo-gce-pd-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-gce-pd-storage
+          persistentVolumeClaim:
+            claimName: mongo-pvc
+```
+
+Обновим описание нашего Deployment’а
+```shell
+kubectl apply -f mongo-deployment.yml -n dev
+```
+```log
+deployment.apps/mongo configured
+```
+
+Монтируем выделенное по PVC хранилище к POD’у mongo
+![](kubernetes/img/scheme-persistentvolume-mount.png)
+
+#### Динамическое выделение Volume'ов
+
+Создав PersistentVolume мы отделили объект "хранилища" от наших Service'ов и Pod'ов. Теперь мы можем его при необходимости переиспользовать.
+
+Но нам гораздо интереснее создавать хранилища при необходимости и в автоматическом режиме. В этом нам помогут **StorageClass**’ы. Они описывают где (какой провайдер) и какие хранилища создаются.
+
+В нашем случае создадим StorageClass **Fast** так, чтобы монтировались SSD-диски для работы нашего хранилища.
+
+#### StorageClass
+
+Создадим описание StorageClass’а
+`storage-fast.yml`
+```yaml
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1beta1
+metadata:
+  name: fast  # Имя StorageClass'а
+provisioner: kubernetes.io/gce-pd  # Провайдер хранилища
+parameters:
+  type: pd-ssd  # Тип предоставляемого хранилища
+```
+
+Добавим StorageClass в кластер
+```shell
+kubectl apply -f storage-fast.yml -n dev
+```
+```log
+storageclass.storage.k8s.io/fast created
+```
+```shell
+kubectl get storageclasses
+```
+```log
+NAME                 PROVISIONER            AGE
+fast                 kubernetes.io/gce-pd   57s
+standard (default)   kubernetes.io/gce-pd   26h
+```
+При указании неймспейса, результат тот же. это подтверждает что StoregeClass не неймспейсится.
+
+```shell
+kubectl describe storageclasses fast
+```
+```log
+Name:            fast
+IsDefaultClass:  No
+Annotations:     kubectl.kubernetes.io/last-applied-configuration={"apiVersion":"storage.k8s.io/v1beta1","kind":"StorageClass","metadata":{"annotations":{},"name":"fast"},"parameters":{"type":"pd-ssd"},"provisioner":"kubernetes.io/gce-pd"}
+
+Provisioner:           kubernetes.io/gce-pd
+Parameters:            type=pd-ssd
+AllowVolumeExpansion:  <unset>
+MountOptions:          <none>
+ReclaimPolicy:         Delete
+VolumeBindingMode:     Immediate
+Events:                <none>
+```
+
+#### PVC + StorageClass
+
+Создадим описание PersistentVolumeClaim 
+`mongo-claim-dynamic.yml`
+```yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mongo-pvc-dynamic
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast  # Вместо ссылки на созданный диск, теперь мы ссылаемся на StorageClass
+  resources:
+    requests:
+      storage: 10Gi
+```
+
+Добавим StorageClass в кластер
+```shell
+kubectl apply -f mongo-claim-dynamic.yml -n dev
+```
+```log
+persistentvolumeclaim/mongo-pvc-dynamic created
+```
+```shell
+kubectl get persistentvolumeclaims -n dev
+```
+Неймспейс имеет значение
+```log
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+mongo-pvc           Bound    pvc-f6e26f0c-37bb-4885-9f12-eaa4b85e14a1   15Gi       RWO            standard       37m
+mongo-pvc-dynamic   Bound    pvc-97eaaa5c-fbce-40ee-ae6f-d6cf0a38ded4   10Gi       RWO            fast           27s
+```
+
+```shell
+kubectl describe persistentvolumeclaims mongo-pvc-dynamic -n dev
+```
+```log
+Name:          mongo-pvc-dynamic
+Namespace:     dev
+StorageClass:  fast
+Status:        Bound
+Volume:        pvc-97eaaa5c-fbce-40ee-ae6f-d6cf0a38ded4
+Labels:        <none>
+Annotations:   kubectl.kubernetes.io/last-applied-configuration:
+                 {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{},"name":"mongo-pvc-dynamic","namespace":"dev"},"spec":{"acce...
+               pv.kubernetes.io/bind-completed: yes
+               pv.kubernetes.io/bound-by-controller: yes
+               volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/gce-pd
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      10Gi
+Access Modes:  RWO
+VolumeMode:    Filesystem
+Mounted By:    <none>
+Events:
+  Type    Reason                 Age   From                         Message
+  ----    ------                 ----  ----                         -------
+  Normal  ProvisioningSucceeded  86s   persistentvolume-controller  Successfully provisioned volume pvc-97eaaa5c-fbce-40ee-ae6f-d6cf0a38ded4 using kubernetes.io/gce-pd
+```
+
+#### Подключение динамического PVC
+
+Подключим PVC к нашим Pod'ам
+`mongo-deployment.yml`
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+    post-db: "true"
+    comment-db: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+        post-db: "true"
+        comment-db: "true"
+    spec:
+      containers:
+        - image: mongo:3.2
+          name: mongo
+          volumeMounts:
+            - name: mongo-gce-pd-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-gce-pd-storage
+          persistentVolumeClaim:
+            claimName: mongo-pvc-dynamic
+```
+
+Обновим описание нашего Deployment'а
+```shell
+kubectl apply -f mongo-deployment.yml -n dev
+```
+```log
+deployment.apps/mongo configured
+```
+```shell
+kubectl describe deployment mongo -n dev
+```
+```log
+Name:                   mongo
+Namespace:              dev
+CreationTimestamp:      Sat, 04 Jan 2020 23:33:44 +0300
+Labels:                 app=reddit
+                        comment-db=true
+                        component=mongo
+                        post-db=true
+Annotations:            deployment.kubernetes.io/revision: 3
+                        kubectl.kubernetes.io/last-applied-configuration:
+                          {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"reddit","comment-db":"true","component":"mongo",...
+Selector:               app=reddit,component=mongo
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=reddit
+           comment-db=true
+           component=mongo
+           post-db=true
+  Containers:
+   mongo:
+    Image:        mongo:3.2
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:
+      /data/db from mongo-gce-pd-storage (rw)
+  Volumes:
+   mongo-gce-pd-storage:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  mongo-pvc-dynamic
+    ReadOnly:   false
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   mongo-7fd95647d9 (1/1 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  57m    deployment-controller  Scaled up replica set mongo-7644fd57 to 1
+  Normal  ScalingReplicaSet  42m    deployment-controller  Scaled up replica set mongo-675d5df69 to 1
+  Normal  ScalingReplicaSet  42m    deployment-controller  Scaled down replica set mongo-7644fd57 to 0
+  Normal  ScalingReplicaSet  3m9s   deployment-controller  Scaled up replica set mongo-7fd95647d9 to 1
+  Normal  ScalingReplicaSet  2m49s  deployment-controller  Scaled down replica set mongo-675d5df69 to 0
+```
+
+Давайте посмотрит какие в итоге у нас получились PersistentVolume'ы
+```shell
+kubectl get persistentvolume -n dev
+```
+```log
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                   STORAGECLASS   REASON   AGE
+pvc-97eaaa5c-fbce-40ee-ae6f-d6cf0a38ded4   10Gi       RWO            Delete           Bound       dev/mongo-pvc-dynamic   fast                    15m
+pvc-f6e26f0c-37bb-4885-9f12-eaa4b85e14a1   15Gi       RWO            Delete           Bound       dev/mongo-pvc           standard                52m
+reddit-mongo-disk                          25Gi       RWO            Retain           Available                                                   55m
+```
+
+На созданные Kubernetes'ом диски можно посмотреть в [web console](https://console.cloud.google.com/projectselector/compute/disks?supportedpurview=project&project=&folder=&organizationId=)
+![](kubernetes/img/scheme-dynamic-pvc.png)
