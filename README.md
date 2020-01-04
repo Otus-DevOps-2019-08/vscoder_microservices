@@ -342,6 +342,11 @@ vscoder microservices repository
       - [StorageClass](#storageclass)
       - [PVC + StorageClass](#pvc--storageclass)
       - [Подключение динамического PVC](#%d0%9f%d0%be%d0%b4%d0%ba%d0%bb%d1%8e%d1%87%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b4%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b3%d0%be-pvc)
+    - [Как запустить](#%d0%9a%d0%b0%d0%ba-%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d1%82%d1%8c)
+- [Создаём ресурсы](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d1%91%d0%bc-%d1%80%d0%b5%d1%81%d1%83%d1%80%d1%81%d1%8b)
+- [Получаем ip ingress](#%d0%9f%d0%be%d0%bb%d1%83%d1%87%d0%b0%d0%b5%d0%bc-ip-ingress)
+- [Генерируем сертификат для https](#%d0%93%d0%b5%d0%bd%d0%b5%d1%80%d0%b8%d1%80%d1%83%d0%b5%d0%bc-%d1%81%d0%b5%d1%80%d1%82%d0%b8%d1%84%d0%b8%d0%ba%d0%b0%d1%82-%d0%b4%d0%bb%d1%8f-https)
+- [Загружаем сертификат](#%d0%97%d0%b0%d0%b3%d1%80%d1%83%d0%b6%d0%b0%d0%b5%d0%bc-%d1%81%d0%b5%d1%80%d1%82%d0%b8%d1%84%d0%b8%d0%ba%d0%b0%d1%82)
 
 # Makefile
 
@@ -14052,3 +14057,35 @@ reddit-mongo-disk                          25Gi       RWO            Retain     
 
 На созданные Kubernetes'ом диски можно посмотреть в [web console](https://console.cloud.google.com/projectselector/compute/disks?supportedpurview=project&project=&folder=&organizationId=)
 ![](kubernetes/img/scheme-dynamic-pvc.png)
+
+Кластер удалён
+```shell
+cd ./kubernetes/terraform
+make destroy
+```
+
+Но, возможно, необходимо ещё удалить диск. Нужно проверить и удалить через консоль.
+
+Добавляем созданные сертификаты `kubernetes/reddit/secrets/tls.*`
+
+### Как запустить
+
+```shell
+# Создаём кластер
+cd ./kubernetes/terraform
+make apply
+cd -
+# Получаем доступ и настраиваем контекст kubectl
+```shell
+gcloud container clusters get-credentials reddit-public --zone us-central1-a --project docker-257914
+# Создаём ресурсы
+cd ./kubernetes/reddit
+kubectl apply -f dev-namespace.yml
+kubectl apply -f ./
+# Получаем ip ingress
+INGRESS_IP=$(kubectl get ingresses ui -n dev -o json | jq '.status.loadBalancer.ingress[0].ip' | xargs)
+# Генерируем сертификат для https
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=${INGRESS_IP}"
+# Загружаем сертификат
+kubectl apply -k ./secret -n dev
+```
