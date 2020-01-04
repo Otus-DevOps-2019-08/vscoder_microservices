@@ -323,7 +323,8 @@ vscoder microservices repository
   - [writing new private key to 'tls.key'](#writing-new-private-key-to-tlskey-1)
 - [Data](#data)
   - [yaml](#yaml-5)
-      - [Задание со * Secret в виде Kubernetes-манифеста](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--secret-%d0%b2-%d0%b2%d0%b8%d0%b4%d0%b5-kubernetes-%d0%bc%d0%b0%d0%bd%d0%b8%d1%84%d0%b5%d1%81%d1%82%d0%b0)
+  - [yaml](#yaml-6)
+- [Data](#data-1)
 
 # Makefile
 
@@ -13171,6 +13172,130 @@ https://35.244.235.133
 
 Опишите создаваемый объект Secret в виде Kubernetes-манифеста.
 
+##### Анализ
+
 https://kubernetes.io/docs/concepts/configuration/secret/
 
-TODO!
+Типы секретов https://github.com/kubernetes/kubernetes/blob/release-1.15/pkg/apis/core/types.go#L4458
+
+Тип `SecretTypeTLS SecretType = "kubernetes.io/tls"` https://github.com/kubernetes/kubernetes/blob/release-1.15/pkg/apis/core/types.go#L4530
+```go
+	// Required fields:
+	// - Secret.Data["tls.key"] - TLS private key.
+	//   Secret.Data["tls.crt"] - TLS certificate.
+	// TODO: Consider supporting different formats, specifying CA/destinationCA.
+	SecretTypeTLS SecretType = "kubernetes.io/tls"
+
+	// TLSCertKey is the key for tls certificates in a TLS secret.
+	TLSCertKey = "tls.crt"
+	// TLSPrivateKeyKey is the key for the private key field in a TLS secret.
+	TLSPrivateKeyKey = "tls.key"
+```
+
+Пример секрета, который мы должны применить
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ui-ingress
+type: kubernetes.io/tls
+data:
+  tls.crt: base64-encoded-content-of_tls.crt
+  tls.key: base64-encoded-content-of_tls.key
+```
+
+Ещё в тему: на основе уже созданных файлов секрет можно создать с помощью генератора https://kubernetes.io/docs/concepts/configuration/secret/#creating-a-secret-from-generator
+
+##### Реализация
+
+Файлы `tls.crt` и `tld.key` перемещены в `kubernetes/reddit/secrets`
+
+**ВАЖНО!** файлы `kubernetes/reddit/secrets/tls.crt` и `kubernetes/reddit/secrets/tls.key` на данном этапе в репозиторий не добавлены, так как кластер ещё функционирует.
+
+Создан файл `kubernetes/reddit/secrets/kustomization.yaml` со следующим содержимым
+```yaml
+---
+secretGenerator:
+  - name: ui-ingress-yaml
+    type: kubernetes.io/tls
+    files:
+      - tls.crt
+      - tls.key
+generatorOptions:
+  disableNameSuffixHash: true
+```
+
+Удалён существующий секрет `ui-ingress`
+```shell
+kubectl delete secrets ui-ingress -n dev
+```
+```log
+secret "ui-ingress" deleted
+```
+
+В `kubernetes/reddit/ui-ingress.yml` имя секрета изменено на `secretName: ui-ingress-yaml`
+
+> **Примечание**: флаг `-k` позволяет работать с `<kustomization_directory>`.
+> 
+> Например посмотреть что получится после применения
+> ```shell
+> kubectl kustomize <kustomization_directory>
+> ```
+> 
+> И применить
+> ```shell
+> kubectl apply -k <kustomization_directory>
+> ```
+
+Создан секрет из `./kubernetes/reddit/secrets/`
+```shell
+kubectl apply -k ./secrets -n dev       
+```
+```log
+secret/ui-ingress-yaml created
+```
+
+Применяем
+```shell
+kubectl apply -f ./ -n dev            
+```
+```log
+deployment.apps/comment unchanged
+service/comment-db unchanged
+service/comment unchanged
+namespace/dev unchanged
+deployment.apps/mongo unchanged
+service/mongodb unchanged
+deployment.apps/post unchanged
+service/post-db unchanged
+service/post unchanged
+deployment.apps/ui unchanged
+ingress.extensions/ui configured
+service/ui unchanged
+```
+
+Проверяем: 
+```shell
+kubectl get secrets -n dev
+```
+```log
+NAME                  TYPE                                  DATA   AGE
+default-token-s7bj4   kubernetes.io/service-account-token   3      18h
+ui-ingress-yaml       kubernetes.io/tls                     2      100s
+```
+```shell
+kubectl describe secrets ui-ingress-yaml -n dev
+```
+```log
+Name:         ui-ingress-yaml
+Namespace:    dev
+Labels:       <none>
+Annotations:  
+Type:         kubernetes.io/tls
+
+Data
+====
+tls.crt:  1123 bytes
+tls.key:  1704 bytes
+```
+Сайт https://35.244.235.133/ открывается.

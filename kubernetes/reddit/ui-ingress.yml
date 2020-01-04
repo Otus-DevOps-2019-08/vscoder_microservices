@@ -7,7 +7,7 @@ metadata:
     kubernetes.io/ingress.allow-http: "false"
 spec:
   tls:
-    - secretName: ui-ingress
+    - secretName: ui-ingress-yaml
   backend:
     serviceName: ui
     servicePort: 9292
