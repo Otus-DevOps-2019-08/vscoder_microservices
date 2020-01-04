@@ -329,6 +329,8 @@ vscoder microservices repository
       - [Задание со * Secret в виде Kubernetes-манифеста](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--secret-%d0%b2-%d0%b2%d0%b8%d0%b4%d0%b5-kubernetes-%d0%bc%d0%b0%d0%bd%d0%b8%d1%84%d0%b5%d1%81%d1%82%d0%b0)
         - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-5)
         - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-8)
+      - [Network Policy](#network-policy)
+        - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-4)
 
 # Makefile
 
@@ -13303,3 +13305,184 @@ tls.crt:  1123 bytes
 tls.key:  1704 bytes
 ```
 Сайт https://35.244.235.133/ открывается.
+
+
+#### Network Policy
+
+В прошлых проектах мы договорились о том, что хотелось бы разнести сервисы базы данных и сервис фронтенда по разным сетям, сделав их недоступными друг для друга. И приняли следующую схему сервисов.
+
+В Kubernetes у нас так сделать не получится с помощью отдельных сетей, так как все POD-ы могут достучаться друг до друга по-умолчанию.
+
+Мы будем использовать **NetworkPolicy** - инструмент для декларативного описания потоков трафика. Отметим, что не все сетевые плагины поддерживают политики сети.
+В частности, у GKE эта функция пока в Beta-тесте и для её работы отдельно будет включен сетевой плагин **Calico** (вместо **Kubenet**).
+
+Давайте ее протеструем.
+
+Наша задача - ограничить трафик, поступающий на _mongodb_ отовсюду, кроме сервисов _post_ и _comment_.
+
+Найдите имя кластера
+```shell
+gcloud beta container clusters list
+```
+```log
+NAME           LOCATION       MASTER_VERSION  MASTER_IP       MACHINE_TYPE   NODE_VERSION   NUM_NODES  STATUS
+reddit-public  us-central1-a  1.15.4-gke.22   35.226.129.186  n1-standard-1  1.15.4-gke.22  2          RUNNING
+```
+
+Включим network-policy для GKE.
+```shell
+gcloud beta container clusters update reddit-public --zone=us-central1-a --update-addons=NetworkPolicy=ENABLED
+```
+```log
+Updating reddit-public...done.                                                                                                                                      
+Updated [https://container.googleapis.com/v1beta1/projects/<project_id>/zones/us-central1-a/clusters/reddit-public].
+To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-central1-a/reddit-public?project=<project_id>
+```
+```shell
+gcloud beta container clusters update reddit-public --zone=us-central1-a  --enable-network-policy
+```
+```log
+Enabling/Disabling Network Policy causes a rolling update of all 
+cluster nodes, similar to performing a cluster upgrade.  This 
+operation is long-running and will block other operations on the 
+cluster (including delete) until it has run to completion.
+
+Do you want to continue (Y/n)?  y
+
+Updating reddit-public...done.                                                                                                                                      
+Updated [https://container.googleapis.com/v1beta1/projects/<project_id>/zones/us-central1-a/clusters/reddit-public].
+To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-central1-a/reddit-public?project=<project_id>
+```
+
+Дождитесь, пока кластер обновится Вам может быть предложено добавить beta-функционал в gcloud - нажмите yes.
+
+Создадим манифест `kubernetes/reddit/mongo-network-policy.yml`
+```yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-db-traffic
+  labels:
+    app: reddit
+spec:
+  podSelector:  # Выбираем объекты
+    matchLabels:
+      app: reddit
+      component: mongo
+  policyTypes:  # Блок запрещающих направлений
+    - Ingress
+  ingress:  # Блок разрешающих правил
+    - from:
+        - podSelector:
+            matchLabels:
+              app: reddit
+              component: comment
+```
+
+Выбираем объекты политики (pod’ы с mongodb)
+```yaml
+podSelector:
+  matchLabels:
+    app: reddit
+    component: mongo
+```
+
+Запрещаем все входящие подключения. Исходящие разрешены
+```yaml
+policyTypes:
+  - Ingress
+```
+
+Разрешаем все входящие подключения от POD-ов с label-ами comment.
+```yaml
+ingress:
+  - from:
+      - podSelector:
+          matchLabels:
+            app: reddit
+            component: comment.
+```
+
+Применяем политику
+```shell
+kubectl apply -f mongo-network-policy.yml -n dev
+```
+```log
+networkpolicy.networking.k8s.io/deny-db-traffic created
+```
+
+Смотрим
+```shell
+kubectl get networkpolicies -n dev
+```
+```log
+NAME              POD-SELECTOR                 AGE
+deny-db-traffic   app=reddit,component=mongo   2m43s
+```
+```shell
+kubectl describe networkpolicies deny-db-traffic -n dev
+```
+```log
+Name:         deny-db-traffic
+Namespace:    dev
+Created on:   2020-01-04 19:08:37 +0300 MSK
+Labels:       app=reddit
+Annotations:  kubectl.kubernetes.io/last-applied-configuration:
+                {"apiVersion":"networking.k8s.io/v1","kind":"NetworkPolicy","metadata":{"annotations":{},"labels":{"app":"reddit"},"name":"deny-db-traffic...
+Spec:
+  PodSelector:     app=reddit,component=mongo
+  Allowing ingress traffic:
+    To Port: <any> (traffic allowed to all ports)
+    From:
+      PodSelector: app=reddit,component=comment
+  Not affecting egress traffic
+  Policy Types: Ingress
+```
+
+Post-сервис не может достучаться до базы, говорили они. А у меня всё работает О_о... то есть при открытии сайта он работает. Предполагаемая причина: не были пересозданы поды, как было сказано при включении network-policy.
+
+Пересоздал всё, включая сертификат... Сайт действительно **перестал работать** ^_^  TODO: разобраться как пересоздать только то что нужно, и что именно пересоздать >_<
+
+##### Задание
+
+Обновите `mongo-network-policy.yml` так, чтобы post-сервис дошел до базы данных.
+```yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-db-traffic
+  labels:
+    app: reddit
+spec:
+  podSelector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: reddit
+              component: comment
+    - from:
+        - podSelector:
+            matchLabels:
+              app: reddit
+              component: post
+```
+
+Применяем
+```shell
+kubectl apply -f mongo-network-policy.yml -n dev
+```
+```log
+networkpolicy.networking.k8s.io/deny-db-traffic configured
+```
+
+Сайт вновь заработал https://34.95.116.107/
+
+
