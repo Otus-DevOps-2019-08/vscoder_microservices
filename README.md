@@ -344,10 +344,6 @@ vscoder microservices repository
       - [Подключение динамического PVC](#%d0%9f%d0%be%d0%b4%d0%ba%d0%bb%d1%8e%d1%87%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b4%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b3%d0%be-pvc)
     - [Как запустить](#%d0%9a%d0%b0%d0%ba-%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d1%82%d1%8c)
       - [Руками](#%d0%a0%d1%83%d0%ba%d0%b0%d0%bc%d0%b8)
-- [Создаём ресурсы](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d1%91%d0%bc-%d1%80%d0%b5%d1%81%d1%83%d1%80%d1%81%d1%8b)
-- [Генерируем сертификат для https](#%d0%93%d0%b5%d0%bd%d0%b5%d1%80%d0%b8%d1%80%d1%83%d0%b5%d0%bc-%d1%81%d0%b5%d1%80%d1%82%d0%b8%d1%84%d0%b8%d0%ba%d0%b0%d1%82-%d0%b4%d0%bb%d1%8f-https)
-- [Загружаем сертификат](#%d0%97%d0%b0%d0%b3%d1%80%d1%83%d0%b6%d0%b0%d0%b5%d0%bc-%d1%81%d0%b5%d1%80%d1%82%d0%b8%d1%84%d0%b8%d0%ba%d0%b0%d1%82)
-- [Получаем ip ingress](#%d0%9f%d0%be%d0%bb%d1%83%d1%87%d0%b0%d0%b5%d0%bc-ip-ingress)
       - [./kubernetes/Makefile](#kubernetesmakefile)
         - [Variables](#variables)
         - [Targets](#targets-1)
@@ -14082,7 +14078,6 @@ cd ./kubernetes/terraform
 make apply
 cd -
 # Получаем доступ и настраиваем контекст kubectl
-```shell
 gcloud container clusters get-credentials reddit-public --zone us-central1-a --project docker-257914
 # Создаём ресурсы
 cd ./kubernetes/reddit
