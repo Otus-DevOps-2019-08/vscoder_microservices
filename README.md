@@ -343,10 +343,14 @@ vscoder microservices repository
       - [PVC + StorageClass](#pvc--storageclass)
       - [Подключение динамического PVC](#%d0%9f%d0%be%d0%b4%d0%ba%d0%bb%d1%8e%d1%87%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b4%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b3%d0%be-pvc)
     - [Как запустить](#%d0%9a%d0%b0%d0%ba-%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d1%82%d1%8c)
+      - [Руками](#%d0%a0%d1%83%d0%ba%d0%b0%d0%bc%d0%b8)
 - [Создаём ресурсы](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d1%91%d0%bc-%d1%80%d0%b5%d1%81%d1%83%d1%80%d1%81%d1%8b)
-- [Получаем ip ingress](#%d0%9f%d0%be%d0%bb%d1%83%d1%87%d0%b0%d0%b5%d0%bc-ip-ingress)
 - [Генерируем сертификат для https](#%d0%93%d0%b5%d0%bd%d0%b5%d1%80%d0%b8%d1%80%d1%83%d0%b5%d0%bc-%d1%81%d0%b5%d1%80%d1%82%d0%b8%d1%84%d0%b8%d0%ba%d0%b0%d1%82-%d0%b4%d0%bb%d1%8f-https)
 - [Загружаем сертификат](#%d0%97%d0%b0%d0%b3%d1%80%d1%83%d0%b6%d0%b0%d0%b5%d0%bc-%d1%81%d0%b5%d1%80%d1%82%d0%b8%d1%84%d0%b8%d0%ba%d0%b0%d1%82)
+- [Получаем ip ingress](#%d0%9f%d0%be%d0%bb%d1%83%d1%87%d0%b0%d0%b5%d0%bc-ip-ingress)
+      - [./kubernetes/Makefile](#kubernetesmakefile)
+        - [Variables](#variables)
+        - [Targets](#targets-1)
 
 # Makefile
 
@@ -14070,6 +14074,8 @@ make destroy
 
 ### Как запустить
 
+#### Руками
+
 ```shell
 # Создаём кластер
 cd ./kubernetes/terraform
@@ -14082,10 +14088,41 @@ gcloud container clusters get-credentials reddit-public --zone us-central1-a --p
 cd ./kubernetes/reddit
 kubectl apply -f dev-namespace.yml
 kubectl apply -f ./
+# Генерируем сертификат для https
+cd ./secrets
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=reddit"
+# Загружаем сертификат
+kubectl apply -k ./ -n dev
 # Получаем ip ingress
 INGRESS_IP=$(kubectl get ingresses ui -n dev -o json | jq '.status.loadBalancer.ingress[0].ip' | xargs)
-# Генерируем сертификат для https
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=${INGRESS_IP}"
-# Загружаем сертификат
-kubectl apply -k ./secret -n dev
+echo https://${INGRESS_IP}
 ```
+
+
+#### ./kubernetes/Makefile
+
+##### Variables
+
+| variable     | default       | description                |
+| ------------ | ------------- | -------------------------- |
+| PROJECT_ID   | docker-257914 | gcp project_id             |
+| ZONE         | us-central1-a | gcp zone                   |
+| CLUSTER_NAME | reddit-public | gke cluster name           |
+| NS           | dev           | namespace to deploy app to |
+
+##### Targets
+
+| target                 | description                                                           |
+| ---------------------- | --------------------------------------------------------------------- |
+| create_cluster         | create GKE cluster via terraform                                      |
+| configure_kubectl      | get credentials and configure `kubectl` to manage created GKE cluster |
+| apply_namespaces       | create all namespaces                                                 |
+| apply_reddit           | deploy app to `$(NS)`                                                 |
+| get_https_link         | получить `https://${INGRESS_IP}`                                      |
+| gen_cert               | Сгенерировать сертификат для https                                    |
+| upload_cert            | загрузить сертификать в GKE                                           |
+| infra                  | create_cluster configure_kubectl                                      |
+| deploy                 | apply_namespaces apply_reddit                                         |
+| cert                   | gen_cert upload_cert                                                  |
+| all: infra deploy cert |
+
