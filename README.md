@@ -15108,3 +15108,474 @@ tree .
     │   └── service.yaml
     └── values.yaml
 ```
+
+Мы создали Chart’ы для каждой компоненты нашего приложения. Каждый из них можно запустить по-отдельности командой
+```shell
+helm install <chart-path> --name <release-name>
+```
+
+Но они будут запускаться в разных релизах, и не будут видеть друг друга. С помощью механизма управления зависимостями создадим
+единый Chart `reddit`, который объединит наши компоненты.
+![](kubernetes/img/helm-scheme-reddit.png)
+
+1. Создайте `reddit/Chart.yaml`
+```yaml
+---
+name: reddit
+version: 0.1.0
+description: OTUS sample reddit application
+maintainers:
+  - name: Aleksey Koloskov
+    email: vsyscoder@gmail.com
+```
+> Заполните параметры name и email своими данными (оки)
+2. Создайте пустой `reddit/values.yaml`
+
+В директории Chart'а reddit создадим файл `reddit/requirements.yaml`
+```yaml
+---
+dependencies:
+  - name: ui
+    version: "1.0.0"
+    repository: "file://../ui"
+
+  - name: post
+    version: "1.0.0"
+    repository: "file://../post"
+
+  - name: comment
+    version: "1.0.0"
+    repository: "file://../comment"
+...
+```
+
+> Имя и версия должны совпадать с содержанием `ui/Chart.yml`
+> Путь указывается относительно расположения самого `requirements.yaml`
+
+Нужно загрузить зависимости (когда Chart’ не упакован в tgz архив)
+```shell
+helm dep update
+```
+```log
+Hang tight while we grab the latest from your chart repositories...
+...Unable to get an update from the "local" chart repository (http://127.0.0.1:8879/charts):
+        Get http://127.0.0.1:8879/charts/index.yaml: dial tcp 127.0.0.1:8879: connect: connection refused
+...Successfully got an update from the "stable" chart repository
+Update Complete.
+Saving 3 charts
+Deleting outdated charts
+```
+
+Появится файл `requirements.lock` с фиксацией зависимостей. Будет создана директория charts с зависимостями в виде архивов.
+
+Структура стала следующей:
+```shell
+tree reddit 
+```
+```log
+reddit
+├── charts
+│   ├── comment-1.0.0.tgz
+│   ├── post-1.0.0.tgz
+│   └── ui-1.0.0.tgz
+├── Chart.yaml
+├── requirements.lock
+├── requirements.yaml
+└── values.yaml
+
+1 directory, 7 files
+```
+
+Chart для базы данных не будем создавать вручную. Возьмем готовый.
+
+Найдем Chart в общедоступном репозитории
+```shell
+helm search mongo
+```
+```log
+NAME                                    CHART VERSION   APP VERSION     DESCRIPTION                                                 
+stable/mongodb                          7.6.3           4.0.14          NoSQL document-oriented database that stores JSON-like do...
+stable/mongodb-replicaset               3.11.2          3.6             NoSQL document-oriented database that stores JSON-like do...
+stable/prometheus-mongodb-exporter      2.4.0           v0.10.0         A Prometheus exporter for MongoDB metrics                   
+stable/unifi                            0.5.2           5.11.50         Ubiquiti Network's Unifi Controller
+```
+
+Добавим в `reddit/requirements.yml`
+```yaml
+---
+dependencies:
+  - name: ui
+    version: 1.0.0
+    repository: "file://../ui"
+
+  - name: post
+    version: 1.0.0
+    repository: "file://../post"
+
+  - name: comment
+    version: 1.0.0
+    repository: "file://../comment"
+
+  - name: mongodb
+    version: 7.2.8
+    repository: https://kubernetes-charts.storage.googleapis.com
+...
+```
+
+Выгрузим зависимости
+```shell
+helm dep update
+```
+```log
+Hang tight while we grab the latest from your chart repositories...
+...Unable to get an update from the "local" chart repository (http://127.0.0.1:8879/charts):
+        Get http://127.0.0.1:8879/charts/index.yaml: dial tcp 127.0.0.1:8879: connect: connection refused
+...Successfully got an update from the "stable" chart repository
+Update Complete.
+Saving 4 charts
+Downloading mongodb from repo https://kubernetes-charts.storage.googleapis.com
+Deleting outdated charts
+```
+```shell
+tree reddit
+```
+```log
+reddit
+├── charts
+│   ├── comment-1.0.0.tgz
+│   ├── mongodb-7.2.8.tgz
+│   ├── post-1.0.0.tgz
+│   └── ui-1.0.0.tgz
+├── Chart.yaml
+├── requirements.lock
+├── requirements.yaml
+└── values.yaml
+
+1 directory, 8 files
+```
+
+Установим наше приложение:
+```shell
+helm install reddit --name reddit-test
+```
+```log
+Error: YAML parse error on reddit/charts/post/templates/deployment.yaml: error converting YAML to JSON: yaml: line 32: did not find expected '-' indicator
+```
+Пофиксим `post/templates/deployment.yaml`
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "post.fullname" . }}
+  labels:
+    app: reddit
+    component: post
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: post
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      name: post
+      labels:
+        app: reddit
+        component: post
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        name: post
+        ports:
+        - containerPort: {{ .Values.service.internalPort }}
+          name: post
+          protocol: TCP
+        env:
+        - name: POST_DATABASE_HOST
+          value: {{ .Values.databaseHost | default (printf "%s-mongodb" .Release.Name) }}
+```
+```shell
+helm dep update
+```
+```log
+Hang tight while we grab the latest from your chart repositories...
+...Unable to get an update from the "local" chart repository (http://127.0.0.1:8879/charts):
+        Get http://127.0.0.1:8879/charts/index.yaml: dial tcp 127.0.0.1:8879: connect: connection refused
+...Successfully got an update from the "stable" chart repository
+Update Complete.
+Saving 4 charts
+Downloading mongodb from repo https://kubernetes-charts.storage.googleapis.com
+Deleting outdated charts
+```
+```shell
+helm install reddit --name reddit-test
+```
+```log
+NAME:   reddit-test
+LAST DEPLOYED: Wed Jan  8 15:47:48 2020
+NAMESPACE: default
+STATUS: DEPLOYED
+
+RESOURCES:
+==> v1/Deployment
+NAME                 AGE
+reddit-test-comment  1s
+reddit-test-post     1s
+reddit-test-ui       1s
+
+==> v1/PersistentVolumeClaim
+NAME                 AGE
+reddit-test-mongodb  1s
+
+==> v1/Pod(related)
+NAME                                  AGE
+reddit-test-comment-5cf7784c46-mhrm5  1s
+reddit-test-mongodb-bd574dbb8-ltkdh   1s
+reddit-test-post-66b4846455-csb59     1s
+reddit-test-ui-9d7d5c8c-cfdtm         1s
+reddit-test-ui-9d7d5c8c-ls6x5         1s
+reddit-test-ui-9d7d5c8c-qgz97         1s
+
+==> v1/Secret
+NAME                 AGE
+reddit-test-mongodb  1s
+
+==> v1/Service
+NAME                 AGE
+reddit-test-comment  1s
+reddit-test-mongodb  1s
+reddit-test-post     1s
+reddit-test-ui       1s
+
+==> v1beta1/Deployment
+NAME                 AGE
+reddit-test-mongodb  1s
+
+==> v1beta1/Ingress
+NAME            AGE
+reddit-test-ui  1s
+```
+
+
+Найдите адрес ingress’а с помощью kubectl
+```shell
+kubectl get ingress
+```
+```log
+NAME             HOSTS   ADDRESS          PORTS   AGE
+reddit-test-ui   *       34.107.198.236   80      38s
+test-ui-1-ui     *       34.107.213.1     80      27h
+test-ui-2-ui     *       34.95.116.107    80      27h
+test-ui-3-ui     *       35.244.235.133   80      27h
+```
+```shell
+kubectl describe ingresses reddit-test-ui
+```
+```log
+Name:             reddit-test-ui
+Namespace:        default
+Address:          34.107.198.236
+Default backend:  default-http-backend:80 (10.4.0.2:8080)
+Rules:
+  Host  Path  Backends
+  ----  ----  --------
+  *     
+        /   reddit-test-ui:9292 (<none>)
+Annotations:
+  ingress.kubernetes.io/backends:         {"k8s-be-30484--bb36bed10e2d33ef":"Unknown","k8s-be-31427--bb36bed10e2d33ef":"HEALTHY"}
+  ingress.kubernetes.io/forwarding-rule:  k8s-fw-default-reddit-test-ui--bb36bed10e2d33ef
+  ingress.kubernetes.io/target-proxy:     k8s-tp-default-reddit-test-ui--bb36bed10e2d33ef
+  ingress.kubernetes.io/url-map:          k8s-um-default-reddit-test-ui--bb36bed10e2d33ef
+  kubernetes.io/ingress.class:            gce
+Events:
+  Type    Reason  Age   From                     Message
+  ----    ------  ----  ----                     -------
+  Normal  ADD     90s   loadbalancer-controller  default/reddit-test-ui
+  Normal  CREATE  52s   loadbalancer-controller  ip: 34.107.198.236
+```
+
+Подождать пока ingress обработается и ... открылось)
+> Can't show blog posts, some problems with the post service. Refresh?
+
+Есть проблема с тем, что UI-сервис не знает как правильно ходить в post и comment сервисы. Ведь их имена теперь динамические и зависят от имен чартов
+
+В `Dockerfile` UI-сервиса уже заданы переменные окружения. Надо, чтобы они указывали на нужные бекенды
+```dockerfile
+ENV POST_SERVICE_HOST post
+ENV POST_SERVICE_PORT 5000
+ENV COMMENT_SERVICE_HOST comment
+ENV COMMENT_SERVICE_PORT 9292
+```
+
+Добавим в `ui/deployments.yaml`
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "ui.fullname" . }}
+  labels:
+    app: reddit
+    component: ui
+    release: {{ .Release.Name }}
+spec:
+  replicas: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: reddit
+      component: ui
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      name: ui
+      labels:
+        app: reddit
+        component: ui
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        name: ui
+        ports:
+        - containerPort: {{ .Values.service.internalPort }}
+          name: ui
+        env:
+        - name: POST_SERVICE_HOST
+          value: {{  .Values.postHost | default (printf "%s-post" .Release.Name) }}
+        - name: POST_SERVICE_PORT
+          value: {{  .Values.postPort | default "5000" | quote }}
+        - name: COMMENT_SERVICE_HOST
+          value: {{  .Values.commentHost | default (printf "%s-comment" .Release.Name) }}
+        - name: COMMENT_SERVICE_PORT
+          value: {{  .Values.commentPort | default "9292" | quote }}
+        - name: ENV
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+...
+```
+
+> `{{ .Values.commentPort | default "9292" | quote }}` ❗ обратите внимание на функцию добавления кавычек. Для чисел и булевых значений это важно!
+
+Добавим в `ui/values.yaml`
+```yaml
+---
+service:
+  internalPort: 9292
+  externalPort: 9292
+
+image:
+  repository: vscoder/ui
+  tag: latest
+
+ingress:
+  class: nginx
+
+postHost:
+postPort:
+commentHost:
+commentPort:
+```
+
+Можете даже закоментировать эти параметры или оставить пустыми. Главное, чтобы они были в конфигурации Chart’а **в качестве документации**
+
+Вы можете задавать теперь переменные для зависимостей прямо в `values.yaml` самого Chart’а reddit. Они перезаписывают значения переменных из зависимых чартов
+
+`reddit/values.yaml`
+```yaml
+---
+comment:
+  image:
+    repository: vscoder/comment
+    tag: latest
+  service:
+    externalPort: 9292
+
+post:
+  image:
+    repository: vscoder/post
+    tag: latest
+  service:
+    externalPort: 5000
+
+ui:
+  image:
+    repository: vscoder/ui
+    tag: latest
+  service:
+    externalPort: 9292
+```
+> Ссылаемся на переменные чартов из зависимостей
+
+После обновления UI - нужно обновить зависимости чарта reddit.
+```shell
+helm dep update ./reddit
+```
+```log
+Hang tight while we grab the latest from your chart repositories...
+...Unable to get an update from the "local" chart repository (http://127.0.0.1:8879/charts):
+        Get http://127.0.0.1:8879/charts/index.yaml: dial tcp 127.0.0.1:8879: connect: connection refused
+...Successfully got an update from the "stable" chart repository
+Update Complete.
+Saving 4 charts
+Downloading mongodb from repo https://kubernetes-charts.storage.googleapis.com
+Deleting outdated charts
+```
+
+Обновите релиз, установленный в k8s
+```shell
+helm upgrade <release-name> ./reddit
+```
+```log
+Release "reddit-test" has been upgraded.
+LAST DEPLOYED: Wed Jan  8 17:10:55 2020
+NAMESPACE: default
+STATUS: DEPLOYED
+
+RESOURCES:
+==> v1/Deployment
+NAME                 AGE
+reddit-test-comment  83m
+reddit-test-post     83m
+reddit-test-ui       83m
+
+==> v1/PersistentVolumeClaim
+NAME                 AGE
+reddit-test-mongodb  83m
+
+==> v1/Pod(related)
+NAME                                  AGE
+reddit-test-comment-5cf7784c46-mhrm5  83m
+reddit-test-mongodb-bd574dbb8-ltkdh   83m
+reddit-test-post-66b4846455-csb59     83m
+reddit-test-ui-9d7d5c8c-cfdtm         83m
+reddit-test-ui-9d7d5c8c-ls6x5         83m
+reddit-test-ui-9d7d5c8c-qgz97         83m
+
+==> v1/Secret
+NAME                 AGE
+reddit-test-mongodb  83m
+
+==> v1/Service
+NAME                 AGE
+reddit-test-comment  83m
+reddit-test-mongodb  83m
+reddit-test-post     83m
+reddit-test-ui       83m
+
+==> v1beta1/Deployment
+NAME                 AGE
+reddit-test-mongodb  83m
+
+==> v1beta1/Ingress
+NAME            AGE
+reddit-test-ui  83m
+```
+
+

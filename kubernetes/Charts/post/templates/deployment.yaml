@@ -30,5 +30,5 @@ spec:
           name: post
           protocol: TCP
         env:
-            - name: POST_DATABASE_HOST
-            value: {{ .Values.databaseHost | default (printf "%s-mongodb" .Release.Name) }}
+        - name: POST_DATABASE_HOST
+          value: {{ .Values.databaseHost | default (printf "%s-mongodb" .Release.Name) }}
