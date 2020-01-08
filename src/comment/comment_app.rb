@@ -17,7 +17,7 @@ VERSION ||= File.read('VERSION').strip
 BUILD_INFO = File.readlines('build_info.txt')
 
 configure do
-  Mongo::Logger.logger.level = Logger::WARN
+  Mongo::Logger.logger.level = Logger::DEBUG
   db = Mongo::Client.new(DB_URL, database: COMMENT_DATABASE,
                                  heartbeat_frequency: 2)
   set :mongo_db, db[:comments]
