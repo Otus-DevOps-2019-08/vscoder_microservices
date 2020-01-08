@@ -358,6 +358,7 @@ vscoder microservices repository
         - [Helpers](#helpers)
         - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-5)
       - [Управление зависимостями](#%d0%a3%d0%bf%d1%80%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b7%d0%b0%d0%b2%d0%b8%d1%81%d0%b8%d0%bc%d0%be%d1%81%d1%82%d1%8f%d0%bc%d0%b8)
+      - [helm2 tiller plugin](#helm2-tiller-plugin)
 
 # Makefile
 
@@ -15579,3 +15580,185 @@ reddit-test-ui  83m
 ```
 
 
+#### helm2 tiller plugin
+
+До этого мы деплоили с помощью tiller'а с правами cluster-admin, что **небезопасно**. Есть концепция создания tiller'а в каждом namespace'е и наделение его лишь необходимыми правами. Чтобы не создавать каждый раз namespace и tiller в нем руками, используем [tiller plugin](https://github.com/rimusz/helm-tiller)([описание](https://rimusz.net/tillerless-helm))
+
+1. Удалим уже имеющийся tiller из кластера ([статья](https://stackoverflow.com/questions/47583821/how-to-delete-tiller-from-kubernetes-cluster/47583918));
+```shell
+helm reset
+```
+```log
+Error: there are still 4 deployed releases (Tip: use --force to remove Tiller. Releases will not be deleted.)
+```
+```shell
+helm reset --force
+```
+```log
+Tiller (the Helm server-side component) has been uninstalled from your Kubernetes Cluster.
+```
+
+2. Выполним установку плагина и сам деплой в новый namespace `reddit-ns`:
+```shell
+helm init --client-only
+```
+```log
+$HELM_HOME has been configured at /home/vscoder/.helm.
+Not installing Tiller due to 'client-only' flag having been set
+```
+```shell
+helm plugin install https://github.com/rimusz/helm-tiller
+```
+```log
+Installed plugin: tiller
+```
+```shell
+cd kubernetes/Charts
+helm tiller run -- helm upgrade --install --wait --namespace=reddit-ns reddit reddit/
+```
+```log
+Installed Helm version v2.16.1
+Installed Tiller version v2.16.1
+Helm and Tiller are the same version!
+Starting Tiller...
+Tiller namespace: kube-system
+Running: helm upgrade --install --wait --namespace=reddit-ns reddit reddit/
+
+Release "reddit" does not exist. Installing it now.
+NAME:   reddit
+LAST DEPLOYED: Wed Jan  8 19:48:26 2020
+NAMESPACE: reddit-ns
+STATUS: DEPLOYED
+
+RESOURCES:
+==> v1/Deployment
+NAME            AGE
+reddit-comment  20s
+reddit-post     20s
+reddit-ui       20s
+
+==> v1/PersistentVolumeClaim
+NAME            AGE
+reddit-mongodb  21s
+
+==> v1/Pod(related)
+NAME                             AGE
+reddit-comment-5c9999f4d4-8nn5t  20s
+reddit-mongodb-6fd8c46f6b-ztrfw  20s
+reddit-post-5df6798d67-h7ntz     20s
+reddit-ui-9b5b66dc4-btq6b        20s
+reddit-ui-9b5b66dc4-mtzsr        20s
+reddit-ui-9b5b66dc4-z4slk        20s
+
+==> v1/Secret
+NAME            AGE
+reddit-mongodb  21s
+
+==> v1/Service
+NAME            AGE
+reddit-comment  21s
+reddit-mongodb  20s
+reddit-post     21s
+reddit-ui       21s
+
+==> v1beta1/Deployment
+NAME            AGE
+reddit-mongodb  20s
+
+==> v1beta1/Ingress
+NAME       AGE
+reddit-ui  20s
+
+
+Stopping Tiller...
+```
+
+3. Проверим, что все успешно, получив айпи от `kubectl get ingress -n reddit-ns` и пройдя по нему. Нет адреса О_о
+
+Причина: `kubectl get ingress -n reddit-ns`
+```log
+Warning  Sync    7m1s (x23 over 43m)  loadbalancer-controller  Error during sync: error running backend syncing routine: googleapi: Error 403: QUOTA_EXCEEDED - Quota 'BACKEND_SERVICES' exceeded.  Limit: 5.0 globally.
+```
+
+Похоже, нужно было удалить релизы из старого хельма перед удалением тиллера... Теперь прибётся ручками.
+```shell
+kubectl delete ingress test-ui-3-ui
+kubectl delete ingress test-ui-2-ui
+kubectl delete ingress test-ui-1-ui
+```
+
+TODO: не забыть почистить остальные сущности
+
+Повторно смотрим ip
+```shell
+kubectl get ingress -n reddit-ns
+```
+```log
+NAME        HOSTS   ADDRESS          PORTS   AGE
+reddit-ui   *       34.107.225.231   80      83m
+```
+```log
+Can't show blog posts, some problems with the post service. Refresh?
+```
+
+А должно бы работать... Диагностика
+```shell
+kubectl -n reddit-ns logs reddit-ui-9b5b66dc4-d45sd
+```
+```log
+E, [2020-01-08T18:59:33.443574 #1] ERROR -- : service=ui | event=show_all_posts | request_id=554047ae-f986-4d0a-a63f-abf5d81f8e09 | message='Failed to read from Post service. Reason: getaddrinfo: Try again' | params: "{}"
+```
+```shell
+kubectl -n reddit-ns describe deployments reddit-ui
+```
+```log
+Name:               reddit-ui
+Namespace:          reddit-ns
+CreationTimestamp:  Wed, 08 Jan 2020 19:48:29 +0300
+Labels:             app=reddit
+                    component=ui
+                    release=reddit
+Annotations:        deployment.kubernetes.io/revision: 1
+Selector:           app=reddit,component=ui,release=reddit
+Replicas:           3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:       Recreate
+MinReadySeconds:    0
+Pod Template:
+  Labels:  app=reddit
+           component=ui
+           release=reddit
+  Containers:
+   ui:
+    Image:      vscoder/ui:latest
+    Port:       9292/TCP
+    Host Port:  0/TCP
+    Environment:
+      POST_SERVICE_HOST:     reddit-post
+      POST_SERVICE_PORT:     5000
+      COMMENT_SERVICE_HOST:  reddit-comment
+      COMMENT_SERVICE_PORT:  9292
+      ENV:                    (v1:metadata.namespace)
+    Mounts:                  <none>
+  Volumes:                   <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Progressing    True    NewReplicaSetAvailable
+  Available      True    MinimumReplicasAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   reddit-ui-9b5b66dc4 (3/3 replicas created)
+Events:          <none>
+```
+
+Спустя минут 20 список постов (точнее отсутствие постов) отображается корректно. Но при попытке создать пост http://34.107.225.231/new ошибка
+```log
+default backend - 404
+```
+
+TODO: Fix it tomorrow
+
+а пока дроп инфры
+```shell
+cd ./kubernetes/terraform
+make destroy
+```
