@@ -309,6 +309,44 @@ vscoder microservices repository
     - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-3)
     - [GKE Dashboard](#gke-dashboard)
     - [Задание со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--1)
+  - [HomeWork 21: Kubernetes. Networks ,Storages](#homework-21-kubernetes-networks-storages)
+    - [План](#%d0%9f%d0%bb%d0%b0%d0%bd-4)
+    - [Сетевое взаимодействие](#%d0%a1%d0%b5%d1%82%d0%b5%d0%b2%d0%be%d0%b5-%d0%b2%d0%b7%d0%b0%d0%b8%d0%bc%d0%be%d0%b4%d0%b5%d0%b9%d1%81%d1%82%d0%b2%d0%b8%d0%b5)
+      - [Service](#service)
+      - [Kube-dns](#kube-dns)
+      - [Service](#service-1)
+      - [kube-dns](#kube-dns)
+        - [А в рамках кластера?](#%d0%90-%d0%b2-%d1%80%d0%b0%d0%bc%d0%ba%d0%b0%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%82%d0%b5%d1%80%d0%b0)
+      - [kubenet](#kubenet)
+        - [А в рамках кластера?](#%d0%90-%d0%b2-%d1%80%d0%b0%d0%bc%d0%ba%d0%b0%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%82%d0%b5%d1%80%d0%b0-1)
+      - [nodePort](#nodeport)
+      - [LoadBalancer](#loadbalancer)
+      - [Ingress](#ingress)
+        - [Ingress Conroller](#ingress-conroller)
+        - [Ingress](#ingress-1)
+      - [Secret](#secret)
+        - [TLS Termination](#tls-termination)
+      - [Задание со * Secret в виде Kubernetes-манифеста](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--secret-%d0%b2-%d0%b2%d0%b8%d0%b4%d0%b5-kubernetes-%d0%bc%d0%b0%d0%bd%d0%b8%d1%84%d0%b5%d1%81%d1%82%d0%b0)
+        - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-5)
+        - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-8)
+      - [Network Policy](#network-policy)
+        - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-4)
+    - [Хранилище для базы](#%d0%a5%d1%80%d0%b0%d0%bd%d0%b8%d0%bb%d0%b8%d1%89%d0%b5-%d0%b4%d0%bb%d1%8f-%d0%b1%d0%b0%d0%b7%d1%8b)
+      - [Volume](#volume)
+      - [PersistentVolume](#persistentvolume)
+      - [PersistentVolumeClaim](#persistentvolumeclaim)
+      - [PersistentVolume](#persistentvolume-1)
+      - [PersistentVolumeClaim](#persistentvolumeclaim-1)
+      - [Подключим PVC к нашим Pod'ам](#%d0%9f%d0%be%d0%b4%d0%ba%d0%bb%d1%8e%d1%87%d0%b8%d0%bc-pvc-%d0%ba-%d0%bd%d0%b0%d1%88%d0%b8%d0%bc-pod%d0%b0%d0%bc)
+      - [Динамическое выделение Volume'ов](#%d0%94%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b5-%d0%b2%d1%8b%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-volume%d0%be%d0%b2)
+      - [StorageClass](#storageclass)
+      - [PVC + StorageClass](#pvc--storageclass)
+      - [Подключение динамического PVC](#%d0%9f%d0%be%d0%b4%d0%ba%d0%bb%d1%8e%d1%87%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b4%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b3%d0%be-pvc)
+    - [Как запустить](#%d0%9a%d0%b0%d0%ba-%d0%b7%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d1%82%d1%8c)
+      - [Руками](#%d0%a0%d1%83%d0%ba%d0%b0%d0%bc%d0%b8)
+      - [./kubernetes/Makefile](#kubernetesmakefile)
+        - [Variables](#variables)
+        - [Targets](#targets-1)
 
 # Makefile
 
@@ -11816,3 +11854,2270 @@ NodePort:                 <unset>  31572/TCP
 
 Приложение открывается
 ![reddit-gke.png](kubernetes/img/reddit-gke.png)
+
+
+## HomeWork 21: Kubernetes. Networks ,Storages
+
+### План
+
+- Ingress Controller
+- Ingress
+- Secret
+- TLS
+- LoadBalancer Service
+- Network Policies
+- PersistentVolumes
+- PersistentVolumeClaims
+
+
+### Сетевое взаимодействие
+
+В предыдущей работе нам уже довелось настраивать сетевое взаимодействие с приложением в Kubernetes с помощью **Service** - абстракции, определяющей конечные узлы доступа (Endpoint’ы) и способ коммуникации с ними (nodePort, LoadBalancer, ClusterIP). Разберем чуть подробнее что в реальности нам это дает.
+
+**Service** - определяет **конечные узлы доступа** (Endpoint’ы):
+- селекторные сервисы (k8s сам находит POD-ы по label’ам)
+- безселекторные сервисы (мы вручную описываем конкретные endpoint’ы)
+
+и **способ коммуникации** с ними (тип (type) сервиса):
+- ClusterIP - дойти до сервиса можно только изнутри кластера
+- nodePort - клиент снаружи кластера приходит на опубликованный порт
+- LoadBalancer - клиент приходит на облачный (aws elb, Google gclb) ресурс балансировки
+- ExternalName - внешний ресурс по отношению к кластеру
+
+
+#### Service
+
+Вспомним, как выглядели Service’ы:
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: post
+  labels:
+    app: reddit
+    component: post
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    app: reddit
+    component: post
+```
+Это селекторный сервис типа **ClusetrIP** (тип не указан, т.к. этот тип по-умолчанию).
+
+**ClusterIP** - это виртуальный (в реальности нет интерфейса, pod’а или машины с таким адресом) IP-адрес из диапазона адресов для работы внутри, скрывающий за собой IP-адреса реальных POD-ов. Сервису **любого типа** (кроме ExternalName) назначается этот IP-адрес. 
+
+```shell
+kubectl get services -n dev
+```
+```log
+NAME         TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)          AGE
+comment      ClusterIP   10.4.11.91    <none>        9292/TCP         37s
+comment-db   ClusterIP   10.4.1.197    <none>        27017/TCP        37s
+mongodb      ClusterIP   10.4.8.107    <none>        27017/TCP        36s
+post         ClusterIP   10.4.14.164   <none>        5000/TCP         34s
+post-db      ClusterIP   10.4.2.83     <none>        27017/TCP        35s
+ui           NodePort    10.4.14.189   <none>        9292:31596/TCP   33s
+```
+
+Схема взаимодействия
+![Схема взаимодействия Service](kubernetes/img/scheme-service.png)
+
+
+#### Kube-dns
+
+Отметим, что **Service** - это лишь абстракция и описание того, как получить доступ к сервису. Но опирается она на реальные механизмы и объекты: DNS-сервер, балансировщики, iptables.
+
+Для того, чтобы дойти до сервиса, нам нужно узнать его адрес по имени. Kubernetes не имеет своего собственного DNSсервера для разрешения имен. Поэтому используется плагин **kube-dns** (это тоже Pod).
+
+Его задачи:
+- ходить в API Kubernetes’a и отслеживать Service-объекты
+- заносить DNS-записи о Service’ах в собственную базу
+- предоставлять DNS-сервис для разрешения имен в IP-адреса (как внутренних, так и внешних)
+
+Схема приобретает следующий вид
+![Схема взаимодействия kube-dns](kubernetes/img/scheme-kube-dns.png)
+
+Можете убедиться, что при отключенном **kube-dns** сервисе связность между компонентами reddit-app пропадет и он перестанет работать.
+
+1. Проскейлим в 0 сервис, который следит, чтобы dns-kube подов всегда хватало
+   ```shell
+   kubectl scale deployment --replicas 0 -n kube-system kube-dns-autoscaler
+   ```
+   ```log
+   deployment.extensions/kube-dns-autoscaler scaled
+   ```
+2. Проскейлим в 0 сам kube-dns
+   ```shell
+   kubectl scale deployment --replicas 0 -n kube-system kube-dns
+   ```
+   ```log
+   deployment.extensions/kube-dns scaled
+   ```
+3. Попробуйте достучатсья по имени до любого сервиса. Например
+   ```shell
+   kubectl exec -ti -n dev post-f669799bf-dw6d9 ping comment
+   ```
+   ```log
+   ping: bad address 'comment'
+   command terminated with exit code 1
+   ```
+4. Вернем kube-dns-autoscale в исходную
+   ```shell
+   kubectl scale deployment --replicas 1 -n kube-system kube-dns-autoscaler
+   ```
+   ```log
+   deployment.extensions/kube-dns-autoscaler scaled
+   ```
+5. Проверьте, что приложение заработало (в браузере).
+   Да, работает.
+
+
+#### Service
+
+Как уже говорилось, **ClusterIP** - виртуальный и не принадлежит ни одной реальной физической сущности. Его чтением и дальнейшими действиями с пакетами, принадлежащими ему, занимается в нашем случае **iptables**, который настраивается утилитой **kube-proxy** (забирающей инфу с API-сервера).
+
+Сам kube-proxy, можно настроить на прием трафика, но это устаревшее поведение и **не рекомендуется** его применять.
+
+На любой из нод кластера можете посмотреть эти правила IPTABLES (это не задание).
+
+Я просто сохраню это здесь...
+
+<details><summary>На память =))</summary>
+<p>
+
+```shell
+sudo iptables -vnL
+```
+```log
+Chain INPUT (policy DROP 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+53438  361M cali-INPUT  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Cz_u1IQiXIMmKD4c */
+  814 47087 KUBE-SERVICES  all  --  *      *       0.0.0.0/0            0.0.0.0/0            ctstate NEW /* kubernetes service portals */
+  814 47087 KUBE-EXTERNAL-SERVICES  all  --  *      *       0.0.0.0/0            0.0.0.0/0            ctstate NEW /* kubernetes externally-visible service portals */
+65799  652M KUBE-FIREWALL  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+65880  675M ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            state RELATED,ESTABLISHED
+  698 41880 ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0           
+    1    68 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0           
+    7   404 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:22
+  163  6880 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0           
+    4   243 ACCEPT     udp  --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     sctp --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+ 208K   56M cali-FORWARD  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:wUHhoiAYhphO9Mso */
+    0     0 KUBE-FORWARD  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* kubernetes forwarding rules */
+    0     0 KUBE-SERVICES  all  --  *      *       0.0.0.0/0            0.0.0.0/0            ctstate NEW /* kubernetes service portals */
+    0     0 DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 DOCKER-ISOLATION-STAGE-1  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     all  --  *      docker0  0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+    0     0 DOCKER     all  --  *      docker0  0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     all  --  docker0 !docker0  0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     all  --  docker0 docker0  0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     udp  --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0           
+    0     0 ACCEPT     sctp --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain OUTPUT (policy DROP 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+46607   51M cali-OUTPUT  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:tVnHkvAo15HuiPy0 */
+ 7676  463K KUBE-SERVICES  all  --  *      *       0.0.0.0/0            0.0.0.0/0            ctstate NEW /* kubernetes service portals */
+65017   53M KUBE-FIREWALL  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+66006   53M ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            state NEW,RELATED,ESTABLISHED
+    0     0 ACCEPT     all  --  *      lo      0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain DOCKER-ISOLATION-STAGE-1 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DOCKER-ISOLATION-STAGE-2  all  --  docker0 !docker0  0.0.0.0/0            0.0.0.0/0           
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER-ISOLATION-STAGE-2 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DROP       all  --  *      docker0  0.0.0.0/0            0.0.0.0/0           
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain DOCKER-USER (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain KUBE-EXTERNAL-SERVICES (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain KUBE-FIREWALL (2 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* kubernetes firewall for dropping marked packets */ mark match 0x8000/0x8000
+
+Chain KUBE-FORWARD (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            ctstate INVALID
+    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* kubernetes forwarding rules */ mark match 0x4000/0x4000
+    0     0 ACCEPT     all  --  *      *       10.4.0.0/20          0.0.0.0/0            /* kubernetes forwarding conntrack pod source rule */ ctstate RELATED,ESTABLISHED
+    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            10.4.0.0/20          /* kubernetes forwarding conntrack pod destination rule */ ctstate RELATED,ESTABLISHED
+
+Chain KUBE-SERVICES (3 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-FORWARD (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 208K   56M MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:vjrMJCRpqwy5oRoX */ MARK and 0xfff1ffff
+ 208K   56M cali-from-hep-forward  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:A_sPAO0mcxbT9mOV */ mark match 0x0/0x10000
+ 169K   29M cali-from-wl-dispatch  all  --  cali+  *       0.0.0.0/0            0.0.0.0/0            /* cali:8ZoYfO5HKXWbB3pk */
+50081   28M cali-to-wl-dispatch  all  --  *      cali+   0.0.0.0/0            0.0.0.0/0            /* cali:jdEuaPBe14V2hutn */
+14867 1010K cali-to-hep-forward  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:12bc6HljsMKsmfr- */
+14867 1010K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:MH9kMp5aNICL-Olv */ /* Policy explicitly accepted packet. */ mark match 0x10000/0x10000
+
+Chain cali-INPUT (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 5314  864K cali-wl-to-host  all  --  cali+  *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:FewJpBykm9iJ-YNH */
+    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:hder3ARWznqqv8Va */ mark match 0x10000/0x10000
+48124  360M MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:xgOu2uJft6H9oDGF */ MARK and 0xfff0ffff
+48124  360M cali-from-host-endpoint  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:_-d-qojMfHM6NwBo */
+    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:LqmE76MP94lZTGhA */ /* Host endpoint policy accepted packet. */ mark match 0x10000/0x10000
+
+Chain cali-OUTPUT (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Mq1_rAdXXH3YkrzW */ mark match 0x10000/0x10000
+ 6470 7016K RETURN     all  --  *      cali+   0.0.0.0/0            0.0.0.0/0            /* cali:69FkRTJDvD5Vu6Vl */
+40137   44M MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Fskumj4SGQtDV6GC */ MARK and 0xfff0ffff
+40137   44M cali-to-host-endpoint  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:8rXMdo5sNesjJxGc */
+    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Ja-pnrHi-PrNKxgd */ /* Host endpoint policy accepted packet. */ mark match 0x10000/0x10000
+
+Chain cali-failsafe-in (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:wWFQM43tJU7wwnFZ */ multiport dports 22
+    0     0 ACCEPT     udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:LwNV--R8MjeUYacw */ multiport dports 68
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:QOO5NUOqOSS1_Iw0 */ multiport dports 179
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:cwZWoBSwVeIAZmVN */ multiport dports 2379
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:7FbNXT91kugE_upR */ multiport dports 2380
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ywE9WYUBEpve70WT */ multiport dports 6666
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:l-WQSVBf_lygPR0J */ multiport dports 6667
+
+Chain cali-failsafe-out (0 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:82hjfji-wChFhAqL */ multiport dports 53
+    0     0 ACCEPT     udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:TNM3RfEjbNr72hgH */ multiport dports 67
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ycxKitIl4u3dK0HR */ multiport dports 179
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:hxjEWyxdkXXkdvut */ multiport dports 2379
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:cA_GLtruuvG88KiO */ multiport dports 2380
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Sb1hkLYFMrKS6r01 */ multiport dports 6666
+    0     0 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:UwLSebGONJUG4yG- */ multiport dports 6667
+
+Chain cali-from-hep-forward (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-from-host-endpoint (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-from-wl-dispatch (2 references)
+ pkts bytes target     prot opt in     out     source               destination         
+26847   10M cali-from-wl-dispatch-0  all  --  cali0+ *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:eBnVcASLTvMFg9XV */
+22141 1898K cali-fw-cali1c39897f10f  all  --  cali1c39897f10f *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:YwGqMCK1MmmSv6Le */
+20956 1805K cali-fw-cali22841037ef8  all  --  cali22841037ef8 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:JFYgBz0ZNFTssa-f */
+19319 1674K cali-fw-cali363f791ae66  all  --  cali363f791ae66 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:ajMSJf0l60P0Gtp5 */
+ 6803  732K cali-from-wl-dispatch-4  all  --  cali4+ *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:a6kOIPK0SZHufacD */
+ 6706  592K cali-fw-cali923f86f51da  all  --  cali923f86f51da *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:3u_wj81qX_vEk3Q- */
+ 1823  253K cali-fw-caliaf6bd9e3dd6  all  --  caliaf6bd9e3dd6 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:eAeOnHbk1kpin4em */
+ 8768 1015K cali-from-wl-dispatch-b  all  --  calib+ *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:tzMfaZdywQYSvoo2 */
+ 5884 2792K cali-from-wl-dispatch-c  all  --  calic+ *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:3MJs-_opMia0f4Rm */
+ 6246  743K cali-from-wl-dispatch-d  all  --  calid+ *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:Tl1PKTnmPw9uzJkx */
+39727 6345K cali-fw-calie2cee35dbce  all  --  calie2cee35dbce *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:QSJVZTBpAsx1zvNp */
+  967 70682 cali-from-wl-dispatch-f  all  --  calif+ *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:NcnkXfjTNRTtWF2U */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:2kcJkvBUN9sENHd4 */ /* Unknown interface */
+
+Chain cali-from-wl-dispatch-0 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 1139  109K cali-fw-cali001f6121953  all  --  cali001f6121953 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:jBZAU2VaZGUh77Xm */
+ 7527  665K cali-fw-cali02bcd13d7d7  all  --  cali02bcd13d7d7 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:HOqxFqWLr-ZO36Xi */
+12084 6413K cali-fw-cali0e254ef053c  all  --  cali0e254ef053c *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:DGFf8o_63lIC1otM */
+ 3253  330K cali-fw-cali0e4c83da0c2  all  --  cali0e4c83da0c2 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:68YMcLF3QFfEPeDd */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:H6oxmvQm7jzkmVvz */ /* Unknown interface */
+
+Chain cali-from-wl-dispatch-4 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 3548  402K cali-fw-cali487296ebfc4  all  --  cali487296ebfc4 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:ys2-Uaw6Jsde6svB */
+ 3255  330K cali-fw-cali4bbcf1021d6  all  --  cali4bbcf1021d6 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:v9yFglWgSTCDBg9D */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:OgoZoDSsTNY81Q81 */ /* Unknown interface */
+
+Chain cali-from-wl-dispatch-b (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 8535  997K cali-fw-calib56d958096f  all  --  calib56d958096f *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:ONtrypv994sUb1ed */
+  233 17576 cali-fw-calibafc89b76e6  all  --  calibafc89b76e6 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:VkGOpe9vy9gvtIQj */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:riCKkh0gDzA7JgZC */ /* Unknown interface */
+
+Chain cali-from-wl-dispatch-c (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 3334  372K cali-fw-calic0784236d5f  all  --  calic0784236d5f *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:A7lfuX6Uyl3hmrIr */
+ 3266 2674K cali-fw-calicf8b0d0baf2  all  --  calicf8b0d0baf2 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:mFmTsLZB2xSiPZVH */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:_uFal064WAFqpoLc */ /* Unknown interface */
+
+Chain cali-from-wl-dispatch-d (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  627  388K cali-fw-calid7820f5c789  all  --  calid7820f5c789 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:FiKz92o2owXLNkgB */
+ 6183  546K cali-fw-calid9ba32f8b18  all  --  calid9ba32f8b18 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:H_jyYB-0cHpir3EP */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:whN6qOf6uJ_l5Vsf */ /* Unknown interface */
+
+Chain cali-from-wl-dispatch-f (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  557 57701 cali-fw-calif320a18605b  all  --  calif320a18605b *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:m9FbNszH5xdcZ_mp */
+  983 71983 cali-fw-calif9eb280ec40  all  --  calif9eb280ec40 *       0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:7F05c3vUzG6GgKUi */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ta-GyXjBcPdloCT5 */ /* Unknown interface */
+
+Chain cali-fw-cali001f6121953 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 1139  109K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Px3fyfs-OWCy61Fl */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Y9DW__V6n_-VSzBo */ ctstate INVALID
+    0     0 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:qTP6GkhwIj7jqfz1 */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:TdxzA6P0wnrzwjhf */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:_ZJ4AcbqEy-Pb4-K */ /* Drop IPinIP encapped packets originating in pods */
+    0     0 cali-pro-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:vgCKwslxqisvRpnH */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:NUbo3vj4Nla9dWQS */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-_hNSGmJYNT8uLIzxesP  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:bGQfPPstg74m3Ut4 */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:JNkN9_LyoIusLt8s */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:03KT1t2H33gpjqWj */ /* Drop if no profiles matched */
+
+Chain cali-fw-cali02bcd13d7d7 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 6032  562K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:-ubTqYvbNLHMpUL2 */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Po2AtsMlhCakv67L */ ctstate INVALID
+ 1495  104K MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:WbUkeqZd1jfS-AXN */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Tv9OVyHpF-BLc9C7 */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:1VBYHKj5xiai5T9k */ /* Drop IPinIP encapped packets originating in pods */
+ 1495  104K cali-pro-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:JO19z2-iPX9eCo2- */
+ 1495  104K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:7flArWKMyjuwNBst */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:-K6eVH-i5lhI1Cg9 */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:I-tr78bwhFGKSNKG */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:iL90AUvCPJaYbBnh */ /* Drop if no profiles matched */
+
+Chain cali-fw-cali0e254ef053c (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+14858 9257K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:rB1B8PH9cT32R9Fx */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:gyCHJdHrKX7weSSe */ ctstate INVALID
+   70  6535 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:cjP76otkjm7KCkmN */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:BizL9CdUPwTN6COy */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:qYTXtdBd7DKNX3M9 */ /* Drop IPinIP encapped packets originating in pods */
+   70  6535 cali-pro-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:AQWbI54CY1Gz9abM */
+   70  6535 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:GvPfDHhRzgM3HkdX */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-_lk3uafp1xALKGJtCJN  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:MThb8FJGWiQxTm3V */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:9rcGbODIUvLrP96p */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:7MOsCXvGUVrul2ck */ /* Drop if no profiles matched */
+
+Chain cali-fw-cali0e4c83da0c2 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 2717  298K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:T7njsLRsI4-DKevm */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:l6xmXEYRtIuefGnN */ ctstate INVALID
+  536 32160 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:BztoOpiIwM8cScN2 */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:b1uXclaSNDmxNC72 */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:BYWqaPtLwiXmvFtj */ /* Drop IPinIP encapped packets originating in pods */
+  536 32160 cali-pro-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:gOnaMLdf5DSZR4LT */
+  536 32160 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:_YCv79TVIvJtFs8Y */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ydGmoBx9icARsgNy */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:31eTAImBf743KdIs */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:FrXrIk51ablmxrCs */ /* Drop if no profiles matched */
+
+Chain cali-fw-cali1c39897f10f (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+19191 1697K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:zKLbgosYtLwC2ZdP */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:jlp45WaMWuFK2eOq */ ctstate INVALID
+ 2950  201K MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:uSX5XitJSgV4ueIi */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:nY5hfNZo1C1eT-GG */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:y6VEH15_knOZLezT */ /* Drop IPinIP encapped packets originating in pods */
+ 2950  201K cali-pro-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:pF1qhzzPrwVHmBBj */
+ 2950  201K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:NSLCmAP_Wd9Hwxzy */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Vs_vNuPH0vMWur6t */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:I_4Y8zytOI2joqzj */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:5ONqSgwqeyep5ypF */ /* Drop if no profiles matched */
+
+Chain cali-fw-cali22841037ef8 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+18086 1610K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:41aWNLYH-fr3kjHy */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Wctx9C3OtM1a8SOp */ ctstate INVALID
+ 2870  195K MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:dq0eD_ntajlHtCbB */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:RKP6LBVa5C4CSxJf */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:eN1-pKoGffZViHTa */ /* Drop IPinIP encapped packets originating in pods */
+ 2870  195K cali-pro-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:gibx0MyqxYcXwj3B */
+ 2870  195K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:y71_PBR7EFqifgKI */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:jSTDx39U7eVulnYJ */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:MSnJV624_KG6Ds5t */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:HjAsM9kgaU11n64P */ /* Drop if no profiles matched */
+
+Chain cali-fw-cali363f791ae66 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+16526 1486K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:LHhoddF8XNyPBnxV */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:UT1rYd8HTaHEWhE5 */ ctstate INVALID
+ 2793  188K MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:_rBRj325qL2ktGMF */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:JC4wmVlaQRf3X20d */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:EIhzpNWMX7LJ4eds */ /* Drop IPinIP encapped packets originating in pods */
+ 2793  188K cali-pro-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:HpaeIzE3DbE8WYFN */
+ 2793  188K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:BG90qH-6fixMEM8V */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:OHKRBS4ENbGqNHIg */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:0t4jEFIoDPywD3p0 */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:86kR-N5VOVKaRtjv */ /* Drop if no profiles matched */
+
+Chain cali-fw-cali487296ebfc4 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 4197  480K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:gEomKhQ3MxACCjxD */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:jSXbW6Akfeh6taeu */ ctstate INVALID
+    4   240 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:fSjrSFg1pYo4ofVd */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:hOVwrJLfIoFyKtTW */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:6xQcOY2whnhC3CrT */ /* Drop IPinIP encapped packets originating in pods */
+    4   240 cali-pro-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:0cSkFwTcW20apNeN */
+    4   240 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:_LGkVSdp3S3cZEHe */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-_CVSZITRyIpEmH8AB6H  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:93p6RJ4LxCnXES0i */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:42HQ6FjjjcFfIvV_ */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:bINO6OKSK50vsyUT */ /* Drop if no profiles matched */
+
+Chain cali-fw-cali4bbcf1021d6 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 2719  298K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:39JfnVcYUQVU6M2D */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:VSQBf2jNy_pdamSL */ ctstate INVALID
+  536 32160 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:SvbuuYJ5nijxSj-u */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:lcFJ2tXIB1IXI9ag */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:bvjb4Amag9c_WDYW */ /* Drop IPinIP encapped packets originating in pods */
+  536 32160 cali-pro-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:C4cwgo9kCSls1_Wn */
+  536 32160 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:5AKZqRMWR1Kj1v20 */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:XZ5N-G1IduFhtfsq */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:JZNVKe1S1gH5OBOQ */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:iP9Z5Q9jWZIzwHVD */ /* Drop if no profiles matched */
+
+Chain cali-fw-cali923f86f51da (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 5396  502K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:NMxuRJguwazvTdX1 */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:NZjs4pI79aS18SNE */ ctstate INVALID
+ 1310 90660 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:pb0acG60DMo5Mk_8 */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ixg3-KMGe0QcA656 */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:LZbp8ZpehVjHnxIK */ /* Drop IPinIP encapped packets originating in pods */
+ 1310 90660 cali-pro-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:A729Chz1ggFR2gzU */
+ 1310 90660 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:hvgiu_o-7wPl2RxM */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:JWLmD0vBmtWDAXCL */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:fM5mzFRcA7ShLSHa */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:tbOX4-Bk9vyXuIos */ /* Drop if no profiles matched */
+
+Chain cali-fw-caliaf6bd9e3dd6 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 2131  304K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:QEC5Y5tdh7SQlSek */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:OoHvYq1ISCRhYy8a */ ctstate INVALID
+  131  7860 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:lKw6a5Hp74p5GUXQ */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:0jCi9I9CVRhL4WxR */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:k0cW0pLemgy7ZWPD */ /* Drop IPinIP encapped packets originating in pods */
+  131  7860 cali-pro-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:_nhCToLujHXu2ja9 */
+  131  7860 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:A1GrPtX_x1Mxp2qc */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-_eSTHMIkNVbw_XFlWMl  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:GWdWyI_kXYCx5ewf */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:YbhN2lG9DbdLTOUT */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:8xNbYCCdNNAdi1gM */ /* Drop if no profiles matched */
+
+Chain cali-fw-calib56d958096f (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 8525  996K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:lm4VrVp7tzwZxhnq */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:aQC_LrZ9ajLR_XGR */ ctstate INVALID
+   10   642 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:VbZ6bCbDPO9tI0Mm */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:u7YrkmvbEPfaBFM8 */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:bY_8sZ5EXr7z1vxh */ /* Drop IPinIP encapped packets originating in pods */
+   10   642 cali-pro-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:9dkDOvvwyJfKjbbN */
+   10   642 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:MtLrwxZJNdrijqrj */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-_cHTcjx4Xi7rghi4C9T  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:kPrOlU7IJXRfNiA8 */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:bJwnOUH3koeFcKsR */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:PUubp9Ycggsbm0b8 */ /* Drop if no profiles matched */
+
+Chain cali-fw-calibafc89b76e6 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  460 44287 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Y15SV3lmmqVQ_Dk2 */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:9wa-FwrMh_eHvPS1 */ ctstate INVALID
+    3   180 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:amBwWAgmKftdswzO */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:gneME_L-9d6GTwjM */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:r3X7Wrm9QxSXk__n */ /* Drop IPinIP encapped packets originating in pods */
+    3   180 cali-pro-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:sdGAahAIsWkc3PzE */
+    3   180 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:NSnHnCT5EJccX-WA */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-_hMH3axmCSxXO8wa164  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:r99fXV1Tt-UeOZiq */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:bvAiUO86QMR-0SSE */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Y8W0qqYS5-DXciYG */ /* Drop if no profiles matched */
+
+Chain cali-fw-calic0784236d5f (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 2790  339K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:z8DLU4WH0tK_pNeY */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:i0s0NyvePQrKIv-E */ ctstate INVALID
+  544 32640 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:dKIU3RTctpdWmZYN */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:eN8azJJSc57wBvCR */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Od2uQ5Rb2KLJw7I- */ /* Drop IPinIP encapped packets originating in pods */
+  544 32640 cali-pro-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:M2fr7iRMY5cVDVNk */
+  544 32640 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:MFlRYm4wwNusPDti */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:rpjXnOnnTbvuHvmD */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:grhTzA94GHI73n4J */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:kXtwi8eSlfrO_Y6p */ /* Drop if no profiles matched */
+
+Chain cali-fw-calicf8b0d0baf2 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 3612 2826K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:f-7GkEhlvJDQtejO */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:L918sIkgv6qRz9Cl */ ctstate INVALID
+   83  7142 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:9coQUxeVTvsF5zJ9 */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:nLJ5HIDE2Sb_veS4 */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:vf3v8IuXd1ZWl8rE */ /* Drop IPinIP encapped packets originating in pods */
+   83  7142 cali-pro-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:wSKh0jJek9J7Bk4r */
+   83  7142 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:WGpcERBUkZmJzmTC */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-_k7av1ffJ_LM_ftvh6m  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:pYeDldaKuF36Tvp4 */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:tVxzbDNzf4Xy91oC */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:s2pyVBi1sQBgR3mW */ /* Drop if no profiles matched */
+
+Chain cali-fw-calid7820f5c789 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 1102  830K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:5RzDg_BdLFSPRXXZ */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:unoqDgBvVmB0kpF- */ ctstate INVALID
+  111  9821 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:S2CVqDDuV5sHU-0Z */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ajaQcu1bCEthAXTb */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:kh5JEAcrSfhDXkkU */ /* Drop IPinIP encapped packets originating in pods */
+  111  9821 cali-pro-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:1wyxHdU8w9209pxf */
+  111  9821 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:JwTuAOpXVi0oIiTT */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-_hHPqAGO7Sc_GcoojC_  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:_PaL5Rs4B4WsNs37 */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:6DmxiAz9j64XMEAC */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:dzcVhIokWPTLDmgt */ /* Drop if no profiles matched */
+
+Chain cali-fw-calid9ba32f8b18 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 4982  463K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:1Wfqk5REeoO1niMi */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:UBy-4KrMfLeqdh8p */ ctstate INVALID
+ 1201 83160 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:dzaSerZ88KY7HHp7 */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:v4L2w0qp6Biy8suR */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:YPxpfd6BvbbfxIQV */ /* Drop IPinIP encapped packets originating in pods */
+ 1201 83160 cali-pro-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:uOOCL15jiqGK03HC */
+ 1201 83160 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ofSMeTJn2NOSHhQP */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:J4kHvDMKEuhOfCdu */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:9QgGWyDoVLJv4LUf */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:-SZ59Etli-iVOIkh */ /* Drop if no profiles matched */
+
+Chain cali-fw-calie2cee35dbce (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+40923 6518K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:eHqmBNceeqXjDgBJ */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:jVQzxLMleWPJr7Vv */ ctstate INVALID
+    0     0 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:gef21Qa-EE-gMXpY */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:YpLFY8QbFC8Cm8Ca */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:iFE54T_3kSllIYKa */ /* Drop IPinIP encapped packets originating in pods */
+    0     0 cali-pro-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:5f9ktfJM5j-38NPv */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:rMc4kzq4p3rf1Uhe */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:JyBXrNV0ZRZdL4cE */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:o-GUf7WZP3w0j4AO */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:KvY_z2WTESM_gKhT */ /* Drop if no profiles matched */
+
+Chain cali-fw-calif320a18605b (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  552 57401 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:pOY6B-wCoyR3sp4H */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:wtl_5iZ-J8O4PHgX */ ctstate INVALID
+    5   300 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:g4uUlVgOGuTW7FWF */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:0zxAsZyufLs_EExA */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:CqX5Faqu3KdO5Kzy */ /* Drop IPinIP encapped packets originating in pods */
+    5   300 cali-pro-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:0oj7zIfyw-4CTO3c */
+    5   300 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:39JVLitK7h-fvyek */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-_hMH3axmCSxXO8wa164  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:57McTa-EapLeGpOB */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:lIZsE2Y2v--rTWNf */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:GC6SJlT9oO7u1wzK */ /* Drop if no profiles matched */
+
+Chain cali-fw-calif9eb280ec40 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  982 71923 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:KTvIvHb1oVxTwCu6 */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:TiSk3GM-tvwvvTSN */ ctstate INVALID
+    1    60 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:XjnpbzKuGGa29fjK */ MARK and 0xfffeffff
+    0     0 DROP       udp  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:L0xIIWP1I5lHx9Z5 */ /* Drop VXLAN encapped packets originating in pods */ multiport dports 4789
+    0     0 DROP       4    --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:rcO03ViiLJHegU9b */ /* Drop IPinIP encapped packets originating in pods */
+    1    60 cali-pro-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:pZU8CRgfAZONXwpY */
+    1    60 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:cK7Jlfw8H4F0z9vP */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pro-_uWYVxQhEtQLr5GFz7e  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:fMy8-GzbQF6i_CZl */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:rqUBlCWl1xbMUi1N */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:vKE9F3mGYhY4hvhe */ /* Drop if no profiles matched */
+
+Chain cali-pri-_CVSZITRyIpEmH8AB6H (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pri-_cHTcjx4Xi7rghi4C9T (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pri-_eSTHMIkNVbw_XFlWMl (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pri-_hHPqAGO7Sc_GcoojC_ (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pri-_hMH3axmCSxXO8wa164 (2 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pri-_hNSGmJYNT8uLIzxesP (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pri-_k7av1ffJ_LM_ftvh6m (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pri-_lk3uafp1xALKGJtCJN (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pri-_uWYVxQhEtQLr5GFz7e (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pri-kns.dev (10 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 7957  477K MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Sb51wH5sSX-RNC8y */ MARK or 0x10000
+ 7957  477K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:-YIiZJ8tSinqvR8O */ mark match 0x10000/0x10000
+
+Chain cali-pri-kns.kube-system (10 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 3334  262K MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:zoH5gU6U55FKZxEo */ MARK or 0x10000
+ 3334  262K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:bcGRIJcyOS9dgBiB */ mark match 0x10000/0x10000
+
+Chain cali-pri-ksa.dev.default (10 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pro-_CVSZITRyIpEmH8AB6H (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pro-_cHTcjx4Xi7rghi4C9T (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pro-_eSTHMIkNVbw_XFlWMl (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pro-_hHPqAGO7Sc_GcoojC_ (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pro-_hMH3axmCSxXO8wa164 (2 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pro-_hNSGmJYNT8uLIzxesP (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pro-_k7av1ffJ_LM_ftvh6m (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pro-_lk3uafp1xALKGJtCJN (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pro-_uWYVxQhEtQLr5GFz7e (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-pro-kns.dev (10 references)
+ pkts bytes target     prot opt in     out     source               destination         
+14235  958K MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Rq36gCa4CVFnKg-l */ MARK or 0x10000
+14235  958K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:AfNHltey0pfPbADe */ mark match 0x10000/0x10000
+
+Chain cali-pro-kns.kube-system (10 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  631 51728 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:-50oJuMfLVO3LkBk */ MARK or 0x10000
+  631 51728 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ztVPKv1UYejNzm1g */ mark match 0x10000/0x10000
+
+Chain cali-pro-ksa.dev.default (10 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-to-hep-forward (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-to-host-endpoint (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain cali-to-wl-dispatch (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+21509 8343K cali-to-wl-dispatch-0  all  --  *      cali0+  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:dIkHjFD9PelLx7cm */
+  841 80466 cali-tw-cali1c39897f10f  all  --  *      cali1c39897f10f  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:mjMiCxqvQ25LXH36 */
+  869 83390 cali-tw-cali22841037ef8  all  --  *      cali22841037ef8  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:1Bksax_YlcxK4Dj9 */
+  835 79258 cali-tw-cali363f791ae66  all  --  *      cali363f791ae66  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:ZhJ8R0gw7oF0J41l */
+ 2414 3928K cali-to-wl-dispatch-4  all  --  *      cali4+  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:X0zDVeDiHVol_ezt */
+  770 71500 cali-tw-cali923f86f51da  all  --  *      cali923f86f51da  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:BJ9koW7kAXg5kG1E */
+ 1565 1098K cali-tw-caliaf6bd9e3dd6  all  --  *      caliaf6bd9e3dd6  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:JQxniRlVOSdPLAKt */
+ 5288 2446K cali-to-wl-dispatch-b  all  --  *      calib+  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:r9R8jA3zQl8F-ATq */
+ 2465 4128K cali-to-wl-dispatch-c  all  --  *      calic+  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:Bi0C9ib0kd-VLiB- */
+ 1061  669K cali-to-wl-dispatch-d  all  --  *      calid+  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:g5IMWbzehVXuxKC6 */
+ 6126  368K cali-tw-calie2cee35dbce  all  --  *      calie2cee35dbce  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:Ii2zTkQH1fTJnWg6 */
+ 1009 1332K cali-to-wl-dispatch-f  all  --  *      calif+  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:wVIiMK5-E4ZJQwnq */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:1Dqp_Do1wwHfEFs4 */ /* Unknown interface */
+
+Chain cali-to-wl-dispatch-0 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 1566  125K cali-tw-cali001f6121953  all  --  *      cali001f6121953  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:L1tauWEUAXNPBGud */
+  887 82420 cali-tw-cali02bcd13d7d7  all  --  *      cali02bcd13d7d7  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:_kvShSEx4iI7md2I */
+15619 5463K cali-tw-cali0e254ef053c  all  --  *      cali0e254ef053c  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:LU8juuhKmvKBL6xq */
+    0     0 cali-tw-cali0e4c83da0c2  all  --  *      cali0e4c83da0c2  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:qX1sFb5_0snBg_LH */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:EnaUkyIqcT8I6y80 */ /* Unknown interface */
+
+Chain cali-to-wl-dispatch-4 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 2409 3927K cali-tw-cali487296ebfc4  all  --  *      cali487296ebfc4  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:shCTscVbGhWnmndc */
+    5   244 cali-tw-cali4bbcf1021d6  all  --  *      cali4bbcf1021d6  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:E63OSiGMK9mVsXnw */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:j0rotOeqW3Dg1jT9 */ /* Unknown interface */
+
+Chain cali-to-wl-dispatch-b (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 5100 1853K cali-tw-calib56d958096f  all  --  *      calib56d958096f  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:fkTWALhSeeO0d6ve */
+  188  592K cali-tw-calibafc89b76e6  all  --  *      calibafc89b76e6  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:qY5_Jd1wlfYYaJEu */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:DYADondVgQ8oOjtl */ /* Unknown interface */
+
+Chain cali-to-wl-dispatch-c (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+   26  9544 cali-tw-calic0784236d5f  all  --  *      calic0784236d5f  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:meiz7ZtlnuUH8eyc */
+ 2882 5046K cali-tw-calicf8b0d0baf2  all  --  *      calicf8b0d0baf2  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:pZRl1frF-E8xGPzL */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:JfONqjZkYI3P8VG7 */ /* Unknown interface */
+
+Chain cali-to-wl-dispatch-d (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  705  752K cali-tw-calid7820f5c789  all  --  *      calid7820f5c789  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:6fZT2wr4CzRGj8hy */
+  698 64680 cali-tw-calid9ba32f8b18  all  --  *      calid9ba32f8b18  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:4PoQY_-rtITnzy8F */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:yH5yTRWx958TKkSp */ /* Unknown interface */
+
+Chain cali-to-wl-dispatch-f (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  474  824K cali-tw-calif320a18605b  all  --  *      calif320a18605b  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:ADLBor9HQznv3rXi */
+ 1086 1010K cali-tw-calif9eb280ec40  all  --  *      calif9eb280ec40  0.0.0.0/0            0.0.0.0/0           [goto]  /* cali:a_qGfoBTL27efSbE */
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:08sJ_1yK54nT-Ii7 */ /* Unknown interface */
+
+Chain cali-tw-cali001f6121953 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:RZ8y89bIXGAaVu3n */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:yb9GkCnGxP5V8fq6 */ ctstate INVALID
+ 1566  125K MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:PkYBXA-xdyTrhh6o */ MARK and 0xfffeffff
+ 1566  125K cali-pri-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:g3ftsvmAGqPFb1c- */
+ 1566  125K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:PkEBMOS5rlF-xjFN */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-_hNSGmJYNT8uLIzxesP  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:qp5zyjrJ1wvxyJKW */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:l54GqDlz6OkJnRBg */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:6uBWxadt_-y7adbv */ /* Drop if no profiles matched */
+
+Chain cali-tw-cali02bcd13d7d7 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  584 64240 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:kMMwzcbuv4QsOLZs */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:M7hgmAK2oQ0Zhs1J */ ctstate INVALID
+  303 18180 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:2MNmYedXuBEpbiYe */ MARK and 0xfffeffff
+  303 18180 cali-pri-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:PLEx7wMntF19VNmh */
+  303 18180 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:pum18TA75RGVBX6H */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:SMqy0kc9gDMHzVMg */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:qJwVPQb610zQoDpl */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:N9F3dPUehd8CniMv */ /* Drop if no profiles matched */
+
+Chain cali-tw-cali0e254ef053c (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+19056 8136K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:INW55mws5a3ktnRC */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:6zCJSK5njJNPup9Y */ ctstate INVALID
+    0     0 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:6pIEjy3gqKNbEocL */ MARK and 0xfffeffff
+    0     0 cali-pri-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:e3vy7zByLlvKdlQw */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:qV87q4WlJZSnlh3Z */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-_lk3uafp1xALKGJtCJN  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:IdqXOFRR9C5pMtvA */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ohy2k2tmZxNwJUw1 */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:QyCd03UBnbbpgUuH */ /* Drop if no profiles matched */
+
+Chain cali-tw-cali0e4c83da0c2 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:oGDZGxFgpEBjtAls */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ZVhiuE6FO2wKr8jQ */ ctstate INVALID
+    0     0 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ghOygebGi_bag3Dv */ MARK and 0xfffeffff
+    0     0 cali-pri-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:B1xWPyLCKm5jzzh- */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:G-7beqJWAjlLHDcW */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:NIpacA_HFIGXEn_j */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:6oAlV1pLmoGsQkSy */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:lCNESbG1tmSFmGuB */ /* Drop if no profiles matched */
+
+Chain cali-tw-cali1c39897f10f (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  577 64626 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:JSbTs6bIVCZeSm3T */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:KMPWGFyBLgqoft3v */ ctstate INVALID
+  264 15840 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:FuKeTG_bXIqLJ2DS */ MARK and 0xfffeffff
+  264 15840 cali-pri-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:WET33tYDarDVkAwf */
+  264 15840 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:JUmOzF0jPZwGP1GZ */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:uszJvCywL8XaKV79 */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:2APRNY9bEeSTKIoQ */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:QIqa9o4h54jcNBqQ */ /* Drop if no profiles matched */
+
+Chain cali-tw-cali22841037ef8 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  600 67250 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ldy7EOaGbhH6L8uc */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:2ZE2HalSH0nfDoI4 */ ctstate INVALID
+  269 16140 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:EQALvTIp8Yg7oqzl */ MARK and 0xfffeffff
+  269 16140 cali-pri-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:DL6RDiBpZOl5CbLN */
+  269 16140 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:BXSaaAGJdYwC1P5H */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:6hi70q7nzhqlc2xs */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:gp5HrvaoutbRSKnx */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:zU2EnCYFAEeywkJj */ /* Drop if no profiles matched */
+
+Chain cali-tw-cali363f791ae66 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  561 62818 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ojkLA4yzC9y5mn75 */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:jMoGNStHfVJIFZM8 */ ctstate INVALID
+  274 16440 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:XFQRdC-m-3hDVMHY */ MARK and 0xfffeffff
+  274 16440 cali-pri-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:7vtleWdL2nI3YHu4 */
+  274 16440 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:41qbsyI_viLwe4sy */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Vo6m5RIPfJJZbvDW */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:t_sry0_BmNHJ2SEV */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:dF5phH_MKPvL5p_k */ /* Drop if no profiles matched */
+
+Chain cali-tw-cali487296ebfc4 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 2762 4475K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:cp9YYLRQz7fnVPZa */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:XtRnH-KLaqcc4Qpn */ ctstate INVALID
+    0     0 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:D0tXTK7f0QBSL3qs */ MARK and 0xfffeffff
+    0     0 cali-pri-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:sl8nRs0Zy8awWFCl */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:KwLz45WGan3dF40u */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-_CVSZITRyIpEmH8AB6H  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:dkiEzZaU3YtDoDRy */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:XEXr9WiUpfN8DmEE */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:SY8ii-0S3LEJ4M-S */ /* Drop if no profiles matched */
+
+Chain cali-tw-cali4bbcf1021d6 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    4   184 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:GnDrZT_nMthXVc7Z */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:nGIO6VYMuhE3f2Bl */ ctstate INVALID
+    1    60 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:GDlYgij0L48vIyIC */ MARK and 0xfffeffff
+    1    60 cali-pri-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:-W77jXsUcZMNrsqh */
+    1    60 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:_nPsJShkybZcIeZZ */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Lfa-GxVRMWYLPa26 */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:dtGC8o9y9Ifb6zhh */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:yBkWt4MD_sbrNNVI */ /* Drop if no profiles matched */
+
+Chain cali-tw-cali923f86f51da (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  506 55660 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Q_UW4cx0aweMEE1_ */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Vip4gWubCSGLNu9b */ ctstate INVALID
+  264 15840 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Yoc5AWQ0znVl-Q9g */ MARK and 0xfffeffff
+  264 15840 cali-pri-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:voBva_wW61yoUmOX */
+  264 15840 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:qWXMATqSLaJHwdhh */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:PavDCu6mIatppAld */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:uSO2ej-N6JRkLzC6 */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:E87ICzXmcasjPfsh */ /* Drop if no profiles matched */
+
+Chain cali-tw-caliaf6bd9e3dd6 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 1987 1355K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:fpyoVBDWeGUPeSuD */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:UnBp_zs45ig_yanI */ ctstate INVALID
+    0     0 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:2e5-JyX7P2a_ng0J */ MARK and 0xfffeffff
+    0     0 cali-pri-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:I-HmNr-F4H7VYHTP */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:KJvtGyAjRXjD-1yg */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-_eSTHMIkNVbw_XFlWMl  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:aYBUbA7ArQEjP39j */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:eQIdkJIn_-wUX5Xa */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:hx_ePJfKQKki1qkQ */ /* Drop if no profiles matched */
+
+Chain cali-tw-calib56d958096f (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 3651 1742K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:TD4RUjCGAQI_a9qX */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:FospUN_owKpXeWjy */ ctstate INVALID
+ 1449  111K MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:8qdrvxYpXLhT4-DE */ MARK and 0xfffeffff
+ 1449  111K cali-pri-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:SDFohewdjcq8gv9X */
+ 1449  111K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ZoDZDba1xJn3oHqU */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-_cHTcjx4Xi7rghi4C9T  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:lHdWQycRzxXBCHmy */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:h4GBVRMcvATs9TsQ */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:L0xUrVY9Vhdzlgqw */ /* Drop if no profiles matched */
+
+Chain cali-tw-calibafc89b76e6 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  407  781K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:OVBtdaZk7hXigtmI */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ojqlfc1ltalIiVAz */ ctstate INVALID
+    0     0 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:1IXIN0mET2eqoGgc */ MARK and 0xfffeffff
+    0     0 cali-pri-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:hEEkZ4UzfoO0yg8i */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:3oeHdgiPoMXpcvBk */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-_hMH3axmCSxXO8wa164  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Gi1IOWEWyQJcnypy */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:lI2CLKWKJPNIjcA2 */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:cpy57rSYDsdynWsy */ /* Drop if no profiles matched */
+
+Chain cali-tw-calic0784236d5f (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+   24  9424 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:5P8AbQaM9iijluwH */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:DkyW8PnO7137TDCS */ ctstate INVALID
+    2   120 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:l3L_oG__YemkOhH4 */ MARK and 0xfffeffff
+    2   120 cali-pri-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:57ybLIAQ5u5cSDYL */
+    2   120 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:M0aVrEkCxdAXi5RI */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ULZpaaC2FSTBCIlT */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:C-9fJN27M96N3VL8 */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:cGVYWqUNZViCdywJ */ /* Drop if no profiles matched */
+
+Chain cali-tw-calicf8b0d0baf2 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 3253 5490K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:xZ26f3Ixq_L0in8c */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:_OJOuvK7DiRe0fYv */ ctstate INVALID
+    0     0 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:-5fEcIVVWG2ZWfyq */ MARK and 0xfffeffff
+    0     0 cali-pri-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Zrc6DVGyCxmhgnay */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:lGi1ZRFs1a_aMUdI */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-_k7av1ffJ_LM_ftvh6m  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:4yttEsBIhfsy6Z4o */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:mIlIlrPdP_Xf5ilJ */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:bssrbsWtpHXzcxL2 */ /* Drop if no profiles matched */
+
+Chain cali-tw-calid7820f5c789 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 1227 1416K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:v7E3GvxW64tCJPk- */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:rZh0FF8p-uNQgL0s */ ctstate INVALID
+    0     0 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Dllz-7SEpLwB5Hwz */ MARK and 0xfffeffff
+    0     0 cali-pri-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Jb-1C-K1rKexYpI2 */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:kDBLAdbJdBjeRo19 */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-_hHPqAGO7Sc_GcoojC_  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:prioov3kP1MwKhsy */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:PLZNiRmdfjUzlwEp */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:r1mw6VNOAT0uMek5 */ /* Drop if no profiles matched */
+
+Chain cali-tw-calid9ba32f8b18 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  456 50160 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:UxcCoeDJPSgyIotN */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:0NcOH1lKBV1y6wju */ ctstate INVALID
+  242 14520 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:kv25sVl5I-X00svN */ MARK and 0xfffeffff
+  242 14520 cali-pri-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:s8-FRiaDBb9EjaOV */
+  242 14520 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:S5C6r4r5lJbIo21w */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:T6Dc-YR3z4gow-uH */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:8k8kMu2lkpmbizdR */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:v5xvz8qIZqVQ3DQe */ /* Drop if no profiles matched */
+
+Chain cali-tw-calie2cee35dbce (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:UzLAG6BamDggjJ1N */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:R-tSbr_PLg5XXhWm */ ctstate INVALID
+ 6338  380K MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:OSrW88-mT2gChaMX */ MARK and 0xfffeffff
+ 6338  380K cali-pri-kns.dev  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:6_hUlZOWSi7GcH1h */
+ 6338  380K RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:8yg3V7OYRNyV9ndX */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-ksa.dev.default  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:yfKSPYBIwHrzdCG4 */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:QWw7RdU8TCMuSrBZ */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:06RMSNOkKJALe__2 */ /* Drop if no profiles matched */
+
+Chain cali-tw-calif320a18605b (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+  474  824K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:YgyD-CnqRaH6r_7s */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:I3lybd5EXq7nFVaB */ ctstate INVALID
+    0     0 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:I5e_DgK_cJrEfF6J */ MARK and 0xfffeffff
+    0     0 cali-pri-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:ArYxT_36TVgwxFNG */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:kJVoBxD5iJYvJ7No */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-_hMH3axmCSxXO8wa164  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:4khFhfSay0qf58zq */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:18dEGH8L8ALAjndo */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:zFA05GRsNaek0mqJ */ /* Drop if no profiles matched */
+
+Chain cali-tw-calif9eb280ec40 (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 1086 1010K ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:0ZsmajcyNXCzY9QR */ ctstate RELATED,ESTABLISHED
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:cPhD0yL6X_H-hZ8a */ ctstate INVALID
+    0     0 MARK       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:NjpBj8NZ0UEgt91q */ MARK and 0xfffeffff
+    0     0 cali-pri-kns.kube-system  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:o4Misn9tsIoEo7sj */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:3Yg2OiaJdWPWbPr1 */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 cali-pri-_uWYVxQhEtQLr5GFz7e  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:c9w6tIH2ijxItrAl */
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Lpfxp5gll-2AcGys */ /* Return if profile accepted */ mark match 0x10000/0x10000
+    0     0 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:x2_QM3AYjz-tnCGx */ /* Drop if no profiles matched */
+
+Chain cali-wl-to-host (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+ 5314  864K cali-from-wl-dispatch  all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:Ee9Sbo10IpVujdIY */
+    2   120 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            /* cali:nSZbcOoG1xPONxb8 */ /* Configured DefaultEndpointToHostAction */
+```
+</p>
+</details>
+
+
+#### kube-dns
+
+Схема приобретает следующий вид
+![scheme-kube-dns-kube-proxy.png](kubernetes/img/scheme-kube-dns-kube-proxy.png)
+
+##### А в рамках кластера?
+
+На самом деле, независимо от того, на одной ноде находятся поды или на разных - трафик проходит через цепочку, изображенную на предыдущем слайде.
+
+Kubernetes не имеет в комплекте механизма организации overlayсетей (как у Docker Swarm). Он лишь предоставляет интерфейс для этого. Для создания Overlay-сетей используются отдельные аддоны: Weave, Calico, Flannel, ... . В Google Kontainer Engine (GKE) используется собственный плагин **kubenet** (он - часть kubelet).
+
+Он работает **только** вместе с платформой **GCP** и, по-сути занимается тем, что настраивает google-сети для передачи трафика Kubernetes. Поэтому в конфигурации Docker сейчас вы не увидите никаких Overlay-сетей.
+
+#### kubenet
+
+Схема приобретает следующий вид
+![scheme-kubenet.png](kubernetes/img/scheme-kubenet.png)
+
+##### А в рамках кластера?
+
+Посмотреть правила, согласно которым трафик отправляется на ноды можно здесь: https://console.cloud.google.com/networking/routes/
+
+#### nodePort
+
+Service с типом **NodePort** - похож на сервис типа **ClusterIP**, только к нему прибавляется прослушивание портов нод (всех нод) для доступа к сервисам **снаружи**.  При этом ClusterIP также назначается этому сервису для доступа к нему изнутри кластера.
+
+**kube-proxy** прослушивается либо заданный порт (`nodePort: 32092`), либо порт из диапазона **30000-32670**.
+
+Дальше _IPTables_ решает, на какой Pod попадет трафик.
+
+Сервис UI мы уже публиковали наружу с помощью **NodePort**
+
+`ui-service.yml`
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  labels:
+    app: reddit
+    component: ui
+spec:
+  type: NodePort
+  ports:
+  - port: 9292
+    nodePort: 32092
+    protocol: TCP
+    targetPort: 9292
+  selector:
+    app: reddit
+    component: ui
+```
+
+Схема приобретает следующий вид
+![scheme-nodeport.png](kubernetes/img/scheme-nodeport.png)
+
+
+#### LoadBalancer
+
+Тип **NodePort** хоть и предоставляет доступ к сервису снаружи, но открывать все порты наружу или искать IP-адреса наших нод (которые вообще динамические) не очень удобно.
+
+Тип **LoadBalancer** позволяет нам использовать внешний облачный балансировщик нагрузки как единую точку входа в наши сервисы, а не полагаться на IPTables и не открывать наружу весь кластер.
+
+Схема приобретает следующий вид
+![scheme-loadbalancer.png](kubernetes/img/scheme-loadbalancer.png)
+
+Настроим соответствующим образом Service UI
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  labels:
+    app: reddit
+    component: ui
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80  # Порт, который будет открыт на балансировщике
+      nodePort: 32092  # Также на ноде будет открыт порт, но нам он не нужен и его можно даже убрать
+      protocol: TCP
+      targetPort: 9292  # Порт POD-а
+  selector:
+    app: reddit
+    component: ui
+```
+
+Настроим соответствующим образом Service UI
+```shell
+kubectl apply -f ui-service.yml -n dev
+```
+
+Посмотрим что там
+```shell
+kubectl get service -n dev --selector component=ui
+```
+```log
+NAME   TYPE           CLUSTER-IP   EXTERNAL-IP    PORT(S)        AGE
+ui     LoadBalancer   10.4.7.57    34.67.99.206   80:32092/TCP   2m39s
+```
+
+Проверим в браузере: http://34.67.99.206:80
+
+Все компоненты приложения работают.
+
+Будет создано правило для балансировки: _Network services_ -> _Load balancing_
+![screenshot-loadbalancer.png](kubernetes/img/screenshot-loadbalancer.png)
+
+Балансировка с помощью Service типа LoadBalancing имеет ряд недостатков:
+- нельзя управлять с помощью http URI (L7-балансировка)
+- используются **только** облачные балансировщики (AWS, GCP)
+- нет гибких правил работы с трафиком
+
+#### Ingress
+
+Для более удобного управления входящим снаружи трафиком и решения недостатков LoadBalancer можно использовать другой объект Kubernetes - **Ingress**.
+
+**Ingress** – это набор правил внутри кластера Kubernetes, предназначенных для того, чтобы входящие подключения могли достичь сервисов (Services)
+
+Сами по себе Ingress’ы это просто правила. Для их применения нужен **Ingress Controller**.
+
+##### Ingress Conroller
+
+Для работы Ingress-ов необходим **Ingress Controller**. В отличие остальных контроллеров k8s - он не стартует вместе с кластером.
+
+**Ingress Controller** - это скорее плагин (а значит и отдельный POD), который состоит из 2-х функциональных частей: 
+- Приложение, которое отслеживает через k8s API новые объекты Ingress и обновляет конфигурацию балансировщика
+- Балансировщик (Nginx, haproxy, traefik,…), который и занимается управлением сетевым трафиком
+
+##### Ingress
+
+Основные задачи, решаемые с помощью Ingress’ов:
+- Организация единой точки входа в приложения снаружи
+- Обеспечение балансировки трафика
+- Терминация SSL 
+- Виртуальный хостинг на основе имен и т.д
+
+Посколько у нас web-приложение, нам вполне было бы логично использовать L7-балансировщик вместо Service LoadBalancer.
+
+Google в GKE уже предоставляет возможность использовать их собственные решения балансирощик в качестве Ingress controller-ов.
+
+Перейдите в настройки кластера в [веб-консоли gcloud](https://console.cloud.google.com/kubernetes)
+
+Убедитесь, что встроенный Ingress включен. Если нет - включите
+
+Создадим Ingress для сервиса UI
+`ui-ingress.yml`
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ui
+spec:
+  backend:
+    serviceName: ui
+    servicePort: 80
+```
+Это **Singe Service Ingress** - значит, что весь ingress контроллер будет просто балансировать нагрузку на Node-ы для одного сервиса (очень похоже на Service LoadBalancer)
+
+Применим конфиг
+```shell
+kubectl apply -f ui-ingress.yml -n dev
+```
+```log
+ingress.extensions/ui created
+```
+
+Зайдем в [консоль GCP](https://console.cloud.google.com/net-services/loadbalancing/loadBalancers/list) и увидим уже несколько правил
+![screenshot-loadbalancers.png](kubernetes/img/screenshot-loadbalancers.png)
+
+Нас интересует 1-е
+![screenshot-loadbalancer-ingress.png](kubernetes/img/screenshot-loadbalancer-ingress.png)
+
+Видим NodePort опубликованного сервиса. Т.е. для работы с Ingress в GCP нам нужен минимум Service с типом **NodePort** (он уже есть)
+
+Посмотрим в сам кластер:
+```shell
+kubectl get ingress -n dev
+```
+```log
+NAME   HOSTS   ADDRESS         PORTS   AGE
+ui     *       34.95.116.107   80      5m52s
+```
+
+Схема приобретает следующий вид
+![scheme-ingress.png](kubernetes/img/scheme-ingress.png)
+
+В текущей схеме есть несколько недостатков:
+- у нас 2 балансировщика для 1 сервиса
+- Мы не умеем управлять трафиком на уровне HTTP
+
+Один балансировщик можно спокойно убрать. Обновим сервис для UI
+`kubernetes/reddit/ui-service.yml`
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ui
+  labels:
+    app: reddit
+    component: ui
+spec:
+  type: NodePort
+  ports:
+    - port: 9292
+      protocol: TCP
+      targetPort: 9292
+  selector:
+    app: reddit
+    component: ui
+```
+
+Применим
+```shell
+kubectl apply -f ui-service.yml -n dev
+```
+```log
+service/ui configured
+```
+
+Заставим работать Ingress Controller как классический веб
+`kubernetes/reddit/ui-ingress.yml`
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ui
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: ui
+              servicePort: 9292
+```
+```shell
+kubectl apply -f ui-ingress.yml -n dev
+```
+```log
+ingress.extensions/ui configured
+```
+```shell
+kubectl get ingress -n dev
+```
+```log
+NAME   HOSTS   ADDRESS         PORTS   AGE
+ui     *       34.95.116.107   80      14m
+```
+
+При попытке открыть http://34.95.116.107:80 ошибка 502
+```log
+Error: Server Error
+The server encountered a temporary error and could not complete your request.
+Please try again in 30 seconds.
+```
+
+Подождём... Проверил через 10 минут - всё работает.
+
+#### Secret
+
+Теперь давайте защитим наш сервис с помощью TLS. Для начала вспомним Ingress IP
+```shell
+kubectl get ingress -n dev 
+```
+```log
+NAME   HOSTS   ADDRESS         PORTS   AGE
+ui     *       34.95.116.107   80      31m
+```
+
+Далее подготовим сертификат используя IP как CN
+```shell
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=34.95.116.107"
+```
+```log
+Can't load /home/myusername/.rnd into RNG
+139682105135552:error:2406F079:random number generator:RAND_load_file:Cannot open file:../crypto/rand/randfile.c:88:Filename=/home/myusername/.rnd
+Generating a RSA private key
+.......................................+++++
+........+++++
+writing new private key to 'tls.key'
+-----
+```
+Ошибки какие-то ^_^ но ключ создан))
+
+Гугление ошибки привело к [следующему решению](https://github.com/openssl/openssl/issues/7754#issuecomment-541307674), а именно
+> I had the same issue as you on Ubuntu 18.04.x. Removing (or commenting out) `RANDFILE = $ENV::HOME/.rnd` from `/etc/ssl/openssl.cnf` worked for me.
+
+Попробуем пересоздать сертификат
+```shell
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=34.95.116.107"
+```
+```log
+Generating a RSA private key
+.........................................................................+++++
+................................................................................................................................................................................................................................................................+++++
+writing new private key to 'tls.key'
+-----
+```
+На этот раз без ошибок. Продолжаем
+
+И загрузит сертификат в кластер kubernetes
+```shell
+kubectl create secret tls ui-ingress --key tls.key --cert tls.crt -n dev
+```
+```log
+secret/ui-ingress created
+```
+
+Проверить можно командой
+```shell
+kubectl describe secret ui-ingress -n dev
+```
+```log
+Name:         ui-ingress
+Namespace:    dev
+Labels:       <none>
+Annotations:  <none>
+
+Type:  kubernetes.io/tls
+
+Data
+====
+tls.crt:  1123 bytes
+tls.key:  1704 bytes
+```
+
+##### TLS Termination
+
+Теперь настроим Ingress на прием только HTTPS траффика
+`kubernetes/reddit/ui-ingress.yml`
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ui
+  annotations:
+    kubernetes.io/ingress.allow-http: "false"
+spec:
+  tls:
+    - secretName: ui-ingress
+  backend:
+    serviceName: ui
+    servicePort: 9292
+```
+```shell
+kubectl apply -f ui-ingress.yml -n dev
+```
+```log
+ingress.extensions/ui configured
+```
+
+Зайдем на страницу [web console](https://console.cloud.google.com/net-services/loadbalancing/loadBalancers/list) и увидим в описании нашего балансировщика только один протокол HTTPS (пока ещё нет)
+
+Иногда протокол HTTP может не удалиться у существующего Ingress правила, тогда нужно его вручную удалить и пересоздать
+```shell
+kubectl delete ingress ui -n dev
+```
+```log
+ingress.extensions "ui" deleted
+```
+```shell
+kubectl apply -f ui-ingress.yml -n dev
+```
+```log
+ingress.extensions/ui created
+```
+В веб-консоли теперь указан только https
+
+```shell
+kubectl get ingress -n dev 
+```
+```log
+NAME   HOSTS   ADDRESS          PORTS     AGE
+ui     *       35.244.235.133   80, 443   4m3s
+```
+
+Заходим на страницу нашего приложения по https, подтверждаем исключение безопасности (у нас сертификат самоподписанный) и видим что все работает
+
+https://35.244.235.133
+![screenshot-reddit-https.png](kubernetes/img/screenshot-reddit-https.png)
+
+Правила Ingress могут долго применяться, если не получилось зайти с первой попытки - подождите и попробуйте еще раз
+
+#### Задание со \* Secret в виде Kubernetes-манифеста
+
+Опишите создаваемый объект Secret в виде Kubernetes-манифеста.
+
+##### Анализ
+
+https://kubernetes.io/docs/concepts/configuration/secret/
+
+Типы секретов https://github.com/kubernetes/kubernetes/blob/release-1.15/pkg/apis/core/types.go#L4458
+
+Тип `SecretTypeTLS SecretType = "kubernetes.io/tls"` https://github.com/kubernetes/kubernetes/blob/release-1.15/pkg/apis/core/types.go#L4530
+```go
+	// Required fields:
+	// - Secret.Data["tls.key"] - TLS private key.
+	//   Secret.Data["tls.crt"] - TLS certificate.
+	// TODO: Consider supporting different formats, specifying CA/destinationCA.
+	SecretTypeTLS SecretType = "kubernetes.io/tls"
+
+	// TLSCertKey is the key for tls certificates in a TLS secret.
+	TLSCertKey = "tls.crt"
+	// TLSPrivateKeyKey is the key for the private key field in a TLS secret.
+	TLSPrivateKeyKey = "tls.key"
+```
+
+Пример секрета, который мы должны применить
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ui-ingress
+type: kubernetes.io/tls
+data:
+  tls.crt: base64-encoded-content-of_tls.crt
+  tls.key: base64-encoded-content-of_tls.key
+```
+
+Ещё в тему: на основе уже созданных файлов секрет можно создать с помощью генератора https://kubernetes.io/docs/concepts/configuration/secret/#creating-a-secret-from-generator
+
+##### Реализация
+
+Файлы `tls.crt` и `tld.key` перемещены в `kubernetes/reddit/secrets`
+
+**ВАЖНО!** файлы `kubernetes/reddit/secrets/tls.crt` и `kubernetes/reddit/secrets/tls.key` на данном этапе в репозиторий не добавлены, так как кластер ещё функционирует.
+
+Создан файл `kubernetes/reddit/secrets/kustomization.yaml` со следующим содержимым
+```yaml
+---
+secretGenerator:
+  - name: ui-ingress-yaml
+    type: kubernetes.io/tls
+    files:
+      - tls.crt
+      - tls.key
+generatorOptions:
+  disableNameSuffixHash: true
+```
+
+Удалён существующий секрет `ui-ingress`
+```shell
+kubectl delete secrets ui-ingress -n dev
+```
+```log
+secret "ui-ingress" deleted
+```
+
+В `kubernetes/reddit/ui-ingress.yml` имя секрета изменено на `secretName: ui-ingress-yaml`
+
+> **Примечание**: флаг `-k` позволяет работать с `<kustomization_directory>`.
+> 
+> Например посмотреть что получится после применения
+> ```shell
+> kubectl kustomize <kustomization_directory>
+> ```
+> 
+> И применить
+> ```shell
+> kubectl apply -k <kustomization_directory>
+> ```
+
+Создан секрет из `./kubernetes/reddit/secrets/`
+```shell
+kubectl apply -k ./secrets -n dev       
+```
+```log
+secret/ui-ingress-yaml created
+```
+
+Применяем
+```shell
+kubectl apply -f ./ -n dev            
+```
+```log
+deployment.apps/comment unchanged
+service/comment-db unchanged
+service/comment unchanged
+namespace/dev unchanged
+deployment.apps/mongo unchanged
+service/mongodb unchanged
+deployment.apps/post unchanged
+service/post-db unchanged
+service/post unchanged
+deployment.apps/ui unchanged
+ingress.extensions/ui configured
+service/ui unchanged
+```
+
+Проверяем: 
+```shell
+kubectl get secrets -n dev
+```
+```log
+NAME                  TYPE                                  DATA   AGE
+default-token-s7bj4   kubernetes.io/service-account-token   3      18h
+ui-ingress-yaml       kubernetes.io/tls                     2      100s
+```
+```shell
+kubectl describe secrets ui-ingress-yaml -n dev
+```
+```log
+Name:         ui-ingress-yaml
+Namespace:    dev
+Labels:       <none>
+Annotations:  
+Type:         kubernetes.io/tls
+
+Data
+====
+tls.crt:  1123 bytes
+tls.key:  1704 bytes
+```
+Сайт https://35.244.235.133/ открывается.
+
+
+#### Network Policy
+
+https://cloud.google.com/kubernetes-engine/docs/how-to/network-policy
+
+В прошлых проектах мы договорились о том, что хотелось бы разнести сервисы базы данных и сервис фронтенда по разным сетям, сделав их недоступными друг для друга. И приняли следующую схему сервисов.
+
+В Kubernetes у нас так сделать не получится с помощью отдельных сетей, так как все POD-ы могут достучаться друг до друга по-умолчанию.
+
+Мы будем использовать **NetworkPolicy** - инструмент для декларативного описания потоков трафика. Отметим, что не все сетевые плагины поддерживают политики сети.
+В частности, у GKE эта функция пока в Beta-тесте и для её работы отдельно будет включен сетевой плагин **Calico** (вместо **Kubenet**).
+
+Давайте ее протеструем.
+
+Наша задача - ограничить трафик, поступающий на _mongodb_ отовсюду, кроме сервисов _post_ и _comment_.
+
+Найдите имя кластера
+```shell
+gcloud beta container clusters list
+```
+```log
+NAME           LOCATION       MASTER_VERSION  MASTER_IP       MACHINE_TYPE   NODE_VERSION   NUM_NODES  STATUS
+reddit-public  us-central1-a  1.15.4-gke.22   35.226.129.186  n1-standard-1  1.15.4-gke.22  2          RUNNING
+```
+
+Включим network-policy для GKE.
+```shell
+gcloud beta container clusters update reddit-public --zone=us-central1-a --update-addons=NetworkPolicy=ENABLED
+```
+```log
+Updating reddit-public...done.                                                                                                                                      
+Updated [https://container.googleapis.com/v1beta1/projects/<project_id>/zones/us-central1-a/clusters/reddit-public].
+To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-central1-a/reddit-public?project=<project_id>
+```
+```shell
+gcloud beta container clusters update reddit-public --zone=us-central1-a  --enable-network-policy
+```
+```log
+Enabling/Disabling Network Policy causes a rolling update of all 
+cluster nodes, similar to performing a cluster upgrade.  This 
+operation is long-running and will block other operations on the 
+cluster (including delete) until it has run to completion.
+
+Do you want to continue (Y/n)?  y
+
+Updating reddit-public...done.                                                                                                                                      
+Updated [https://container.googleapis.com/v1beta1/projects/<project_id>/zones/us-central1-a/clusters/reddit-public].
+To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-central1-a/reddit-public?project=<project_id>
+```
+
+Дождитесь, пока кластер обновится Вам может быть предложено добавить beta-функционал в gcloud - нажмите yes.
+
+Создадим манифест `kubernetes/reddit/mongo-network-policy.yml`
+```yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-db-traffic
+  labels:
+    app: reddit
+spec:
+  podSelector:  # Выбираем объекты
+    matchLabels:
+      app: reddit
+      component: mongo
+  policyTypes:  # Блок запрещающих направлений
+    - Ingress
+  ingress:  # Блок разрешающих правил
+    - from:
+        - podSelector:
+            matchLabels:
+              app: reddit
+              component: comment
+```
+
+Выбираем объекты политики (pod’ы с mongodb)
+```yaml
+podSelector:
+  matchLabels:
+    app: reddit
+    component: mongo
+```
+
+Запрещаем все входящие подключения. Исходящие разрешены
+```yaml
+policyTypes:
+  - Ingress
+```
+
+Разрешаем все входящие подключения от POD-ов с label-ами comment.
+```yaml
+ingress:
+  - from:
+      - podSelector:
+          matchLabels:
+            app: reddit
+            component: comment.
+```
+
+Применяем политику
+```shell
+kubectl apply -f mongo-network-policy.yml -n dev
+```
+```log
+networkpolicy.networking.k8s.io/deny-db-traffic created
+```
+
+Смотрим
+```shell
+kubectl get networkpolicies -n dev
+```
+```log
+NAME              POD-SELECTOR                 AGE
+deny-db-traffic   app=reddit,component=mongo   2m43s
+```
+```shell
+kubectl describe networkpolicies deny-db-traffic -n dev
+```
+```log
+Name:         deny-db-traffic
+Namespace:    dev
+Created on:   2020-01-04 19:08:37 +0300 MSK
+Labels:       app=reddit
+Annotations:  kubectl.kubernetes.io/last-applied-configuration:
+                {"apiVersion":"networking.k8s.io/v1","kind":"NetworkPolicy","metadata":{"annotations":{},"labels":{"app":"reddit"},"name":"deny-db-traffic...
+Spec:
+  PodSelector:     app=reddit,component=mongo
+  Allowing ingress traffic:
+    To Port: <any> (traffic allowed to all ports)
+    From:
+      PodSelector: app=reddit,component=comment
+  Not affecting egress traffic
+  Policy Types: Ingress
+```
+
+Post-сервис не может достучаться до базы, говорили они. А у меня всё работает О_о... то есть при открытии сайта он работает. Предполагаемая причина: не были пересозданы поды, как было сказано при включении network-policy.
+
+Пересоздал всё, включая сертификат... Сайт действительно **перестал работать** ^_^  TODO: разобраться как пересоздать только то что нужно, и что именно пересоздать >_<. Перечитал доки: похоже, я просто не дождался https://cloud.google.com/kubernetes-engine/docs/how-to/network-policy#enabling_network_policy_enforcement
+> Then, run the gcloud container clusters update command with the --enable-network-policy flag. This command causes your cluster's node pools to be recreated with network policy enabled
+
+##### Задание
+
+Обновите `mongo-network-policy.yml` так, чтобы post-сервис дошел до базы данных.
+```yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-db-traffic
+  labels:
+    app: reddit
+spec:
+  podSelector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: reddit
+              component: comment
+    - from:
+        - podSelector:
+            matchLabels:
+              app: reddit
+              component: post
+```
+
+Применяем
+```shell
+kubectl apply -f mongo-network-policy.yml -n dev
+```
+```log
+networkpolicy.networking.k8s.io/deny-db-traffic configured
+```
+
+Сайт вновь заработал https://34.95.116.107/
+
+
+### Хранилище для базы
+
+Рассмотрим вопросы хранения данных. Основной _Stateful_ сервис в нашем приложении - это база данных MongoDB.
+
+В текущий момент она запускается в виде _Deployment_ и хранит данные в стаднартный Docker Volume-ах. Это имеет несколько проблем:
+- при удалении POD-а удаляется и Volume
+- потеря Nod’ы с mongo грозит потерей данных
+- запуск базы на другой ноде запускает новый экземпляр данных
+
+`mongo-deployment.yml`
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+    post-db: "true"
+    comment-db: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+        post-db: "true"
+        comment-db: "true"
+    spec:
+      containers:
+      - image: mongo:3.2
+        name: mongo
+        volumeMounts:  # Подключаем Volume
+        - name: mongo-persistent-storage
+          mountPath: /data/db
+      volumes:
+      - name: mongo-persistent-storage  # Объявляем Volume
+        emptyDir: {}
+```
+
+ #### Volume
+
+Сейчас используется тип Volume emptyDir. При создании пода с таким типом просто создается пустой docker volume.
+
+При остановке POD’a содержимое emtpyDir удалится навсегда. Хотя в общем случае падение POD’a не вызывает удаления Volume’a.
+
+Задание:
+1) создайте пост в приложении
+   - Создан
+2) удалите deployment для mongo
+   ```shell
+   kubectl delete -f mongo-deployment.yml -n dev
+   ```
+   ```log
+   deployment.apps "mongo" deleted
+   ```
+3) Создайте его заново
+   ```shell
+   kubectl apply -f mongo-deployment.yml -n dev 
+   ```
+   ```log
+   deployment.apps/mongo created
+   ```
+4) Пост пропал
+
+Вместо того, чтобы хранить данные локально на ноде, имеет смысл подключить удаленное хранилище. В нашем случае можем использовать Volume _gcePersistentDisk_, который будет складывать данные в хранилище GCE.
+
+Создадим диск в Google Cloud
+```shell
+gcloud compute disks create --size=25GB --zone=us-central1-a reddit-mongo-disk
+```
+```log
+WARNING: You have selected a disk size of under [200GB]. This may result in poor I/O performance. For more information, see: https://developers.google.com/compute/docs/disks#performance.
+Created [https://www.googleapis.com/compute/v1/projects/docker-257914/zones/us-central1-a/disks/reddit-mongo-disk].
+NAME               ZONE           SIZE_GB  TYPE         STATUS
+reddit-mongo-disk  us-central1-a  25       pd-standard  READY
+
+New disks are unformatted. You must format and mount a disk before it
+can be used. You can find instructions on how to do this at:
+
+https://cloud.google.com/compute/docs/disks/add-persistent-disk#formatting
+```
+
+Добавим новый Volume POD-у базы.
+
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+    post-db: "true"
+    comment-db: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+        post-db: "true"
+        comment-db: "true"
+    spec:
+      containers:
+      - image: mongo:3.2
+        name: mongo
+        volumeMounts:
+        - name: mongo-gce-pd-storage
+          mountPath: /data/db
+      volumes:
+      - name: mongo-persistent-storage
+        emptyDir: {}
+        volumes:
+      - name: mongo-gce-pd-storage
+        gcePersistentDisk:
+          pdName: reddit-mongo-disk
+          fsType: ext4
+```
+
+Монтируем выделенный диск к POD’у mongo
+![](kubernetes/img/scheme-volume.png)
+
+```shell
+kubectl apply -f mongo-deployment.yml -n dev
+```
+```log
+deployment.apps/mongo configured
+```
+
+Дождитесь, пересоздания Pod'а (занимает до 10 минут). Зайдем в приложение и добавим пост - сделано
+
+Удалим deployment
+```shell
+kubectl delete deploy mongo -n dev
+```
+```log
+deployment.extensions "mongo" deleted
+```
+
+Снова создадим деплой mongo. 
+```shell
+kubectl apply -f mongo-deployment.yml -n dev
+```
+```log
+deployment.apps/mongo created
+```
+
+Наш пост все еще на месте. [Здесь](https://console.cloud.google.com/compute/disks?supportedpurview=project&project=<project_id>&angularJsUrl=%2Fprojectselector%2Fcompute%2Fdisks%3Fsupportedpurview%3Dproject%26project%3D%26folder%3D%26organizationId%3D&authuser=1) можно посмотреть на созданный диск и увидеть какой машиной он используется
+
+#### PersistentVolume
+
+Используемый механизм Volume-ов можно сделать удобнее. Мы можем использовать не целый выделенный диск для каждого пода, а целый ресурс хранилища, общий для всего кластера.
+
+Тогда при запуске Stateful-задач в кластере, мы сможем запросить хранилище в виде такого же ресурса, как CPU или оперативная память.
+
+Для этого будем использовать механизм **PersistentVolume**.
+
+Создадим описание PersistentVolume
+`mongo-volume.yml`
+```yaml
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: reddit-mongo-disk
+spec:
+  capacity:
+    storage: 25Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  gcePersistentDisk:
+    fsType: "ext4" 
+    pdName: "reddit-mongo-disk"
+```
+
+Добавим PersistentVolume в кластер
+```shell
+kubectl apply -f mongo-volume.yml -n dev
+```
+```log
+persistentvolume/reddit-mongo-disk created
+```
+Мы создали PersistentVolume в виде диска в GCP.
+![](kubernetes/img/scheme-persistentvolume.png)
+
+
+#### PersistentVolumeClaim
+
+Мы создали ресурс дискового хранилища, распространенный на весь кластер, в виде PersistentVolume.
+
+Чтобы выделить приложению часть такого ресурса - нужно создать запрос на выдачу - **PersistentVolumeClaim**. _Claim_ - это именно запрос, а не само хранилище.
+
+С помощью запроса можно выделить место как из конкретного **PersistentVolume** (тогда параметры _accessModes_ и _StorageClass_ должны соответствовать, а места должно хватать), так и просто создать отдельный **PersistentVolume** под конкретный запрос.
+
+Создадим описание **PersistentVolumeClaim** (PVC)
+`mongo-claim.yml`
+```yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mongo-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 15Gi
+```
+
+Добавим **PersistentVolumeClaim** в кластер
+```shell
+kubectl apply -f mongo-claim.yml -n dev
+```
+```log
+persistentvolumeclaim/mongo-pvc created
+```
+
+
+#### PersistentVolume
+
+Мы выделили место в PV по запросу для нашей базы. Одновременно использовать один PV можно только по **одному** Claim’у
+![](kubernetes/img/scheme-persistentvolume-one.png)
+
+
+#### PersistentVolumeClaim
+
+Если Claim не найдет по заданным параметрам PV внутри кластера, либо тот будет занят другим Claim’ом то он сам создаст нужный ему PV воспользовавшись стандартным StorageClass.
+
+```shell
+kubectl describe storageclass standard -n dev
+```
+```log
+Name:                  standard
+IsDefaultClass:        Yes
+Annotations:           storageclass.kubernetes.io/is-default-class=true
+Provisioner:           kubernetes.io/gce-pd
+Parameters:            type=pd-standard
+AllowVolumeExpansion:  True
+MountOptions:          <none>
+ReclaimPolicy:         Delete
+VolumeBindingMode:     Immediate
+Events:                <none>
+```
+
+В нашем случае это обычный медленный Google Cloud Persistent Drive
+![](kubernetes/img/scheme-persistentvolumeclaim.png)
+
+
+#### Подключим PVC к нашим Pod'ам
+
+`mongo-deployment.yml`
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+    post-db: "true"
+    comment-db: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+        post-db: "true"
+        comment-db: "true"
+    spec:
+      containers:
+        - image: mongo:3.2
+          name: mongo
+          volumeMounts:
+            - name: mongo-gce-pd-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-gce-pd-storage
+          persistentVolumeClaim:
+            claimName: mongo-pvc
+```
+
+Обновим описание нашего Deployment’а
+```shell
+kubectl apply -f mongo-deployment.yml -n dev
+```
+```log
+deployment.apps/mongo configured
+```
+
+Монтируем выделенное по PVC хранилище к POD’у mongo
+![](kubernetes/img/scheme-persistentvolume-mount.png)
+
+#### Динамическое выделение Volume'ов
+
+Создав PersistentVolume мы отделили объект "хранилища" от наших Service'ов и Pod'ов. Теперь мы можем его при необходимости переиспользовать.
+
+Но нам гораздо интереснее создавать хранилища при необходимости и в автоматическом режиме. В этом нам помогут **StorageClass**’ы. Они описывают где (какой провайдер) и какие хранилища создаются.
+
+В нашем случае создадим StorageClass **Fast** так, чтобы монтировались SSD-диски для работы нашего хранилища.
+
+#### StorageClass
+
+Создадим описание StorageClass’а
+`storage-fast.yml`
+```yaml
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1beta1
+metadata:
+  name: fast  # Имя StorageClass'а
+provisioner: kubernetes.io/gce-pd  # Провайдер хранилища
+parameters:
+  type: pd-ssd  # Тип предоставляемого хранилища
+```
+
+Добавим StorageClass в кластер
+```shell
+kubectl apply -f storage-fast.yml -n dev
+```
+```log
+storageclass.storage.k8s.io/fast created
+```
+```shell
+kubectl get storageclasses
+```
+```log
+NAME                 PROVISIONER            AGE
+fast                 kubernetes.io/gce-pd   57s
+standard (default)   kubernetes.io/gce-pd   26h
+```
+При указании неймспейса, результат тот же. это подтверждает что StoregeClass не неймспейсится.
+
+```shell
+kubectl describe storageclasses fast
+```
+```log
+Name:            fast
+IsDefaultClass:  No
+Annotations:     kubectl.kubernetes.io/last-applied-configuration={"apiVersion":"storage.k8s.io/v1beta1","kind":"StorageClass","metadata":{"annotations":{},"name":"fast"},"parameters":{"type":"pd-ssd"},"provisioner":"kubernetes.io/gce-pd"}
+
+Provisioner:           kubernetes.io/gce-pd
+Parameters:            type=pd-ssd
+AllowVolumeExpansion:  <unset>
+MountOptions:          <none>
+ReclaimPolicy:         Delete
+VolumeBindingMode:     Immediate
+Events:                <none>
+```
+
+#### PVC + StorageClass
+
+Создадим описание PersistentVolumeClaim 
+`mongo-claim-dynamic.yml`
+```yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: mongo-pvc-dynamic
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast  # Вместо ссылки на созданный диск, теперь мы ссылаемся на StorageClass
+  resources:
+    requests:
+      storage: 10Gi
+```
+
+Добавим StorageClass в кластер
+```shell
+kubectl apply -f mongo-claim-dynamic.yml -n dev
+```
+```log
+persistentvolumeclaim/mongo-pvc-dynamic created
+```
+```shell
+kubectl get persistentvolumeclaims -n dev
+```
+Неймспейс имеет значение
+```log
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+mongo-pvc           Bound    pvc-f6e26f0c-37bb-4885-9f12-eaa4b85e14a1   15Gi       RWO            standard       37m
+mongo-pvc-dynamic   Bound    pvc-97eaaa5c-fbce-40ee-ae6f-d6cf0a38ded4   10Gi       RWO            fast           27s
+```
+
+```shell
+kubectl describe persistentvolumeclaims mongo-pvc-dynamic -n dev
+```
+```log
+Name:          mongo-pvc-dynamic
+Namespace:     dev
+StorageClass:  fast
+Status:        Bound
+Volume:        pvc-97eaaa5c-fbce-40ee-ae6f-d6cf0a38ded4
+Labels:        <none>
+Annotations:   kubectl.kubernetes.io/last-applied-configuration:
+                 {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{},"name":"mongo-pvc-dynamic","namespace":"dev"},"spec":{"acce...
+               pv.kubernetes.io/bind-completed: yes
+               pv.kubernetes.io/bound-by-controller: yes
+               volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/gce-pd
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      10Gi
+Access Modes:  RWO
+VolumeMode:    Filesystem
+Mounted By:    <none>
+Events:
+  Type    Reason                 Age   From                         Message
+  ----    ------                 ----  ----                         -------
+  Normal  ProvisioningSucceeded  86s   persistentvolume-controller  Successfully provisioned volume pvc-97eaaa5c-fbce-40ee-ae6f-d6cf0a38ded4 using kubernetes.io/gce-pd
+```
+
+#### Подключение динамического PVC
+
+Подключим PVC к нашим Pod'ам
+`mongo-deployment.yml`
+```yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  labels:
+    app: reddit
+    component: mongo
+    post-db: "true"
+    comment-db: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: reddit
+        component: mongo
+        post-db: "true"
+        comment-db: "true"
+    spec:
+      containers:
+        - image: mongo:3.2
+          name: mongo
+          volumeMounts:
+            - name: mongo-gce-pd-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-gce-pd-storage
+          persistentVolumeClaim:
+            claimName: mongo-pvc-dynamic
+```
+
+Обновим описание нашего Deployment'а
+```shell
+kubectl apply -f mongo-deployment.yml -n dev
+```
+```log
+deployment.apps/mongo configured
+```
+```shell
+kubectl describe deployment mongo -n dev
+```
+```log
+Name:                   mongo
+Namespace:              dev
+CreationTimestamp:      Sat, 04 Jan 2020 23:33:44 +0300
+Labels:                 app=reddit
+                        comment-db=true
+                        component=mongo
+                        post-db=true
+Annotations:            deployment.kubernetes.io/revision: 3
+                        kubectl.kubernetes.io/last-applied-configuration:
+                          {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"reddit","comment-db":"true","component":"mongo",...
+Selector:               app=reddit,component=mongo
+Replicas:               1 desired | 1 updated | 1 total | 1 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=reddit
+           comment-db=true
+           component=mongo
+           post-db=true
+  Containers:
+   mongo:
+    Image:        mongo:3.2
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:
+      /data/db from mongo-gce-pd-storage (rw)
+  Volumes:
+   mongo-gce-pd-storage:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  mongo-pvc-dynamic
+    ReadOnly:   false
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   mongo-7fd95647d9 (1/1 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  57m    deployment-controller  Scaled up replica set mongo-7644fd57 to 1
+  Normal  ScalingReplicaSet  42m    deployment-controller  Scaled up replica set mongo-675d5df69 to 1
+  Normal  ScalingReplicaSet  42m    deployment-controller  Scaled down replica set mongo-7644fd57 to 0
+  Normal  ScalingReplicaSet  3m9s   deployment-controller  Scaled up replica set mongo-7fd95647d9 to 1
+  Normal  ScalingReplicaSet  2m49s  deployment-controller  Scaled down replica set mongo-675d5df69 to 0
+```
+
+Давайте посмотрит какие в итоге у нас получились PersistentVolume'ы
+```shell
+kubectl get persistentvolume -n dev
+```
+```log
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM                   STORAGECLASS   REASON   AGE
+pvc-97eaaa5c-fbce-40ee-ae6f-d6cf0a38ded4   10Gi       RWO            Delete           Bound       dev/mongo-pvc-dynamic   fast                    15m
+pvc-f6e26f0c-37bb-4885-9f12-eaa4b85e14a1   15Gi       RWO            Delete           Bound       dev/mongo-pvc           standard                52m
+reddit-mongo-disk                          25Gi       RWO            Retain           Available                                                   55m
+```
+
+На созданные Kubernetes'ом диски можно посмотреть в [web console](https://console.cloud.google.com/projectselector/compute/disks?supportedpurview=project&project=&folder=&organizationId=)
+![](kubernetes/img/scheme-dynamic-pvc.png)
+
+Кластер удалён
+```shell
+cd ./kubernetes/terraform
+make destroy
+```
+
+Но, возможно, необходимо ещё удалить диск. Нужно проверить и удалить через консоль.
+
+Добавляем созданные сертификаты `kubernetes/reddit/secrets/tls.*`
+
+### Как запустить
+
+#### Руками
+
+```shell
+# Создаём кластер
+cd ./kubernetes/terraform
+make apply
+cd -
+# Получаем доступ и настраиваем контекст kubectl
+gcloud container clusters get-credentials reddit-public --zone us-central1-a --project docker-257914
+# Создаём ресурсы
+cd ./kubernetes/reddit
+kubectl apply -f dev-namespace.yml
+kubectl apply -f ./
+# Генерируем сертификат для https
+cd ./secrets
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=reddit"
+# Загружаем сертификат
+kubectl apply -k ./ -n dev
+# Получаем ip ingress
+INGRESS_IP=$(kubectl get ingresses ui -n dev -o json | jq '.status.loadBalancer.ingress[0].ip' | xargs)
+echo https://${INGRESS_IP}
+```
+
+
+#### ./kubernetes/Makefile
+
+##### Variables
+
+| variable     | default       | description                |
+| ------------ | ------------- | -------------------------- |
+| PROJECT_ID   | docker-257914 | gcp project_id             |
+| ZONE         | us-central1-a | gcp zone                   |
+| CLUSTER_NAME | reddit-public | gke cluster name           |
+| NS           | dev           | namespace to deploy app to |
+
+##### Targets
+
+| target                 | description                                                           |
+| ---------------------- | --------------------------------------------------------------------- |
+| create_cluster         | create GKE cluster via terraform                                      |
+| configure_kubectl      | get credentials and configure `kubectl` to manage created GKE cluster |
+| apply_namespaces       | create all namespaces                                                 |
+| apply_reddit           | deploy app to `$(NS)`                                                 |
+| get_https_link         | получить `https://${INGRESS_IP}`                                      |
+| gen_cert               | Сгенерировать сертификат для https                                    |
+| upload_cert            | загрузить сертификать в GKE                                           |
+| infra                  | create_cluster configure_kubectl                                      |
+| deploy                 | apply_namespaces apply_reddit                                         |
+| cert                   | gen_cert upload_cert                                                  |
+| all: infra deploy cert |
+
