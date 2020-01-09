@@ -15762,3 +15762,471 @@ TODO: Fix it tomorrow
 cd ./kubernetes/terraform
 make destroy
 ```
+
+Инфра снова поднята. Запускаемся.
+```shell
+cd ./kubernetes/terraform
+make apply
+gcloud container clusters get-credentials reddit-public --zone us-central1-a --project docker-257914
+cd -
+make install_helm HELM_VERSION=2.16.1
+helm init --client-only
+helm plugin install https://github.com/rimusz/helm-tiller
+cd kubernetes/Charts
+helm tiller run -- helm upgrade --install --wait --namespace=reddit-ns reddit reddit/
+```
+
+```shell
+kubectl get ingresses -n reddit-ns 
+```
+```log
+NAME        HOSTS   ADDRESS        PORTS   AGE
+reddit-ui   *       34.107.213.1   80      6m56s
+```
+При переходе на http://34.107.213.1 та же ошибка. И при попытке создать пост http://34.107.213.1/new тоже.
+
+В `./ui/templates/ingress.yaml` исправил `path:`
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "ui.fullname" . }}
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /*  # ранее был просто /
+        backend:
+          serviceName: {{ template "ui.fullname" . }}
+          servicePort: {{ .Values.service.externalPort }}
+...
+```
+
+Теперь появилась возможность создать пост, но список постов так и не отображается
+> Can't show blog posts, some problems with the post service. Refresh?
+
+Возможно лаг ингресса у гугла, или некорректно передаются адреса сервисов `post` и `comment` сервису `ui`. Пока подождём.
+
+Подождали. Не помогло))
+
+Псмотрим логи
+```shell
+kubectl logs reddit-ui-9b5b66dc4-6jc8j -n reddit-ns
+```
+```log
+E, [2020-01-09T16:52:57.764164 #1] ERROR -- : service=ui | event=show_all_posts | request_id=afdd1428-8294-4e7c-a076-03c5d2118bf5 | message='Failed to read from Post service. Reason: 776: unexpected token at 'Internal Server Error'' | params: "{}"
+I, [2020-01-09T16:52:57.783509 #1]  INFO -- : service=ui | event=request | path=/ | request_id=afdd1428-8294-4e7c-a076-03c5d2118bf5 | remote_addr=10.3.0.3 | method= GET | response_status=200
+E, [2020-01-09T16:53:31.584705 #1] ERROR -- : service=ui | event=show_all_posts | request_id=9254f99d-8044-4d2e-bb96-be1f120d6633 | message='Failed to read from Post service. Reason: 776: unexpected token at 'Internal Server Error'' | params: "{}"
+I, [2020-01-09T16:53:31.684601 #1]  INFO -- : service=ui | event=request | path=/ | request_id=9254f99d-8044-4d2e-bb96-be1f120d6633 | remote_addr=10.3.0.4 | method= GET | response_status=200
+E, [2020-01-09T16:53:33.100635 #1] ERROR -- : service=ui | event=show_all_posts | request_id=3ee616b9-f35f-4dcb-bf72-1f9ff996d765 | message='Failed to read from Post service. Reason: 776: unexpected token at 'Internal Server Error'' | params: "{}"
+I, [2020-01-09T16:53:33.150194 #1]  INFO -- : service=ui | event=request | path=/ | request_id=3ee616b9-f35f-4dcb-bf72-1f9ff996d765 | remote_addr=10.3.0.4 | method= GET | response_status=200
+```
+
+А вот и ошибочка в сервисе `post`
+```shell
+kubectl logs reddit-post-5df6798d67-mwz95 -n reddit-ns
+```
+```log
+{"addr": "10.4.0.15", "event": "request", "level": "info", "method": "GET", "path": "/posts?", "request_id": "e9b4b8e1-d1dc-4210-a56f-708b9ff4718b", "response_status": 500, "service": "post", "timestamp": "2020-01-09 17:00:58"}
+{"event": "find_all_posts", "level": "info", "message": "Successfully retrieved all posts from the database", "params": {}, "request_id": "c9af9652-cf53-486a-937d-94e1e3532dea", "service": "post", "timestamp": "2020-01-09 17:00:58"}
+{"event": "internal_error", "level": "error", "method": "GET", "path": "/posts?", "remote_addr": "10.4.1.5", "request_id": "c9af9652-cf53-486a-937d-94e1e3532dea", "service": "post", "timestamp": "2020-01-09 17:00:58", "traceback": "Traceback (most recent call last):\n  File \"/usr/local/lib/python3.6/site-packages/flask/app.py\", line 1612, in full_dispatch_request\n    rv = self.dispatch_request()\n  File \"/usr/local/lib/python3.6/site-packages/flask/app.py\", line 1598, in dispatch_request\n    return self.view_functions[rule.endpoint](**req.view_args)\n  File \"/app/post_app.py\", line 133, in posts\n    posts = find_posts()\n  File \"/usr/local/lib/python3.6/site-packages/py_zipkin/zipkin.py\", line 246, in decorated\n    return f(*args, **kwargs)\n  File \"/app/post_app.py\", line 120, in find_posts\n    return dumps(posts)\n  File \"/usr/local/lib/python3.6/site-packages/bson/json_util.py\", line 403, in dumps\n    return json.dumps(_json_convert(obj, json_options), *args, **kwargs)\n  File \"/usr/local/lib/python3.6/site-packages/bson/json_util.py\", line 444, in _json_convert\n    return list((_json_convert(v, json_options) for v in obj))\n  File \"/usr/local/lib/python3.6/site-packages/bson/json_util.py\", line 444, in <genexpr>\n    return list((_json_convert(v, json_options) for v in obj))\n  File \"/usr/local/lib/python3.6/site-packages/pymongo/cursor.py\", line 1132, in next\n    if len(self.__data) or self._refresh():\n  File \"/usr/local/lib/python3.6/site-packages/pymongo/cursor.py\", line 1055, in _refresh\n    self.__collation))\n  File \"/usr/local/lib/python3.6/site-packages/pymongo/cursor.py\", line 947, in __send_message\n    helpers._check_command_response(doc['data'][0])\n  File \"/usr/local/lib/python3.6/site-packages/pymongo/helpers.py\", line 210, in _check_command_response\n    raise OperationFailure(msg % errmsg, code, response)\npymongo.errors.OperationFailure: command find requires authentication\n"}
+```
+Если в кратце, то суть в
+```log
+pymongo.errors.OperationFailure: command find requires authentication
+```
+
+Гугление наводит на ту же мысль, что и попытка подумать: https://stackoverflow.com/questions/57443291/pymongo-errors-operationfailure-command-insert-requires-authentication
+
+А именно:
+> MongoDB instance you are using is set up with authentication
+
+Посмотрим что нам монга скажет
+```shell
+kubectl describe pod reddit-mongodb-6fd8c46f6b-w4gdr -n reddit-ns
+```
+```log
+Name:           reddit-mongodb-6fd8c46f6b-w4gdr
+Namespace:      reddit-ns
+Priority:       0
+Node:           gke-reddit-public-main-pool-43115a71-cksq/10.3.0.3
+Start Time:     Thu, 09 Jan 2020 18:44:45 +0300
+Labels:         app=mongodb
+                chart=mongodb-7.2.8
+                pod-template-hash=6fd8c46f6b
+                release=reddit
+Annotations:    cni.projectcalico.org/podIP: 10.4.0.16/32
+Status:         Running
+IP:             10.4.0.16
+IPs:            <none>
+Controlled By:  ReplicaSet/reddit-mongodb-6fd8c46f6b
+Containers:
+  reddit-mongodb:
+    Container ID:   docker://7433071b84dae22bb5d2d5c3e7d88940f5fef65e8ae8b798a85cb0286462f817
+    Image:          docker.io/bitnami/mongodb:4.0.12-debian-9-r22
+    Image ID:       docker-pullable://bitnami/mongodb@sha256:fca68e8a78207d8195e004ac09f34d7c23d406a609d2fbb0d4cc9c7855c6b5ec
+    Port:           27017/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Thu, 09 Jan 2020 18:45:16 +0300
+    Ready:          True
+    Restart Count:  0
+    Liveness:       exec [mongo --eval db.adminCommand('ping')] delay=30s timeout=5s period=10s #success=1 #failure=6
+    Readiness:      exec [mongo --eval db.adminCommand('ping')] delay=5s timeout=5s period=10s #success=1 #failure=6
+    Environment:
+      MONGODB_ROOT_PASSWORD:            <set to the key 'mongodb-root-password' in secret 'reddit-mongodb'>  Optional: false
+      MONGODB_SYSTEM_LOG_VERBOSITY:     0
+      MONGODB_DISABLE_SYSTEM_LOG:       no
+      MONGODB_ENABLE_IPV6:              no
+      MONGODB_ENABLE_DIRECTORY_PER_DB:  no
+    Mounts:
+      /bitnami/mongodb from data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-vqclp (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             True 
+  ContainersReady   True 
+  PodScheduled      True 
+Volumes:
+  data:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  reddit-mongodb
+    ReadOnly:   false
+  default-token-vqclp:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-vqclp
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:          <none>
+```
+Пароль просит задать.
+
+Описание чарта https://github.com/helm/charts/tree/master/stable/mongodb
+
+В рамках данной инсталляции, попробуем для начала авторизацию отключить.
+
+`kubernetes/Charts/reddit/values.yaml`
+```yaml
+---
+comment:
+  image:
+    repository: vscoder/comment
+    tag: latest
+  service:
+    externalPort: 9292
+
+post:
+  image:
+    repository: vscoder/post
+    tag: latest
+  service:
+    externalPort: 5000
+
+ui:
+  image:
+    repository: vscoder/ui
+    tag: latest
+  service:
+    externalPort: 9292
+
+mongodb:
+  usePassword: false  # Этот параметр добавили мы
+```
+
+```shell
+helm dependency build reddit/
+```
+```log
+Hang tight while we grab the latest from your chart repositories...
+...Unable to get an update from the "local" chart repository (http://127.0.0.1:8879/charts):
+        Get http://127.0.0.1:8879/charts/index.yaml: dial tcp 127.0.0.1:8879: connect: connection refused
+...Successfully got an update from the "stable" chart repository
+Update Complete.
+Saving 4 charts
+Downloading mongodb from repo https://kubernetes-charts.storage.googleapis.com
+Deleting outdated charts
+```
+```shell
+helm tiller run -- helm upgrade --install --wait --namespace=reddit-ns reddit reddit/
+```
+```log
+Installed Helm version v2.16.1
+Installed Tiller version v2.16.1
+Helm and Tiller are the same version!
+Starting Tiller...
+Tiller namespace: kube-system
+Running: helm upgrade --install --wait --namespace=reddit-ns reddit reddit/
+
+Release "reddit" has been upgraded.
+LAST DEPLOYED: Thu Jan  9 22:15:12 2020
+NAMESPACE: reddit-ns
+STATUS: DEPLOYED
+
+RESOURCES:
+==> v1/Deployment
+NAME            AGE
+reddit-comment  3h30m
+reddit-post     3h30m
+reddit-ui       3h30m
+
+==> v1/PersistentVolumeClaim
+NAME            AGE
+reddit-mongodb  3h30m
+
+==> v1/Pod(related)
+NAME                             AGE
+reddit-comment-5c9999f4d4-vfq9m  3h30m
+reddit-mongodb-68fd4989f7-r58lm  8s
+reddit-post-5df6798d67-mwz95     3h30m
+reddit-ui-9b5b66dc4-6jc8j        3h30m
+reddit-ui-9b5b66dc4-6mqbn        3h30m
+reddit-ui-9b5b66dc4-slv8p        3h30m
+
+==> v1/Service
+NAME            AGE
+reddit-comment  3h30m
+reddit-mongodb  3h30m
+reddit-post     3h30m
+reddit-ui       3h30m
+
+==> v1beta1/Deployment
+NAME            AGE
+reddit-mongodb  3h30m
+
+==> v1beta1/Ingress
+NAME       AGE
+reddit-ui  3h30m
+
+
+Stopping Tiller...
+```
+Рестартанул наш mongodb. Посмотрим на него
+```shell
+kubectl describe pod reddit-mongodb-68fd4989f7-r58lm  -n reddit-ns
+```
+```log
+Name:           reddit-mongodb-68fd4989f7-r58lm
+Namespace:      reddit-ns
+Priority:       0
+Node:           gke-reddit-public-main-pool-43115a71-xgm5/10.3.0.4
+Start Time:     Thu, 09 Jan 2020 22:15:16 +0300
+Labels:         app=mongodb
+                chart=mongodb-7.2.8
+                pod-template-hash=68fd4989f7
+                release=reddit
+Annotations:    cni.projectcalico.org/podIP: 10.4.1.7/32
+Status:         Running
+IP:             10.4.1.7
+IPs:            <none>
+Controlled By:  ReplicaSet/reddit-mongodb-68fd4989f7
+Containers:
+  reddit-mongodb:
+    Container ID:   docker://e4ebe7055d7715b129229dd43359f0565fff8314b913171c0dadb1ef59983a07
+    Image:          docker.io/bitnami/mongodb:4.0.12-debian-9-r22
+    Image ID:       docker-pullable://bitnami/mongodb@sha256:fca68e8a78207d8195e004ac09f34d7c23d406a609d2fbb0d4cc9c7855c6b5ec
+    Port:           27017/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Thu, 09 Jan 2020 22:16:15 +0300
+    Ready:          True
+    Restart Count:  0
+    Liveness:       exec [mongo --eval db.adminCommand('ping')] delay=30s timeout=5s period=10s #success=1 #failure=6
+    Readiness:      exec [mongo --eval db.adminCommand('ping')] delay=5s timeout=5s period=10s #success=1 #failure=6
+    Environment:
+      MONGODB_SYSTEM_LOG_VERBOSITY:     0
+      MONGODB_DISABLE_SYSTEM_LOG:       no
+      MONGODB_ENABLE_IPV6:              no
+      MONGODB_ENABLE_DIRECTORY_PER_DB:  no
+    Mounts:
+      /bitnami/mongodb from data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-vqclp (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             False 
+  ContainersReady   True 
+  PodScheduled      True 
+Volumes:
+  data:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  reddit-mongodb
+    ReadOnly:   false
+  default-token-vqclp:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-vqclp
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type     Reason                  Age    From                                                Message
+  ----     ------                  ----   ----                                                -------
+  Normal   Scheduled               4m43s  default-scheduler                                   Successfully assigned reddit-ns/reddit-mongodb-68fd4989f7-r58lm to gke-reddit-public-main-pool-43115a71-xgm5
+  Warning  FailedAttachVolume      4m43s  attachdetach-controller                             Multi-Attach error for volume "pvc-2d9d568d-1a82-4a65-b179-253570318b19" Volume is already used by pod(s) reddit-mongodb-6fd8c46f6b-w4gdr
+  Normal   SuccessfulAttachVolume  4m22s  attachdetach-controller                             AttachVolume.Attach succeeded for volume "pvc-2d9d568d-1a82-4a65-b179-253570318b19"
+  Normal   Pulling                 4m7s   kubelet, gke-reddit-public-main-pool-43115a71-xgm5  Pulling image "docker.io/bitnami/mongodb:4.0.12-debian-9-r22"
+  Normal   Pulled                  3m45s  kubelet, gke-reddit-public-main-pool-43115a71-xgm5  Successfully pulled image "docker.io/bitnami/mongodb:4.0.12-debian-9-r22"
+  Normal   Created                 3m45s  kubelet, gke-reddit-public-main-pool-43115a71-xgm5  Created container reddit-mongodb
+  Normal   Started                 3m44s  kubelet, gke-reddit-public-main-pool-43115a71-xgm5  Started container reddit-mongodb
+  Warning  Unhealthy               3m35s  kubelet, gke-reddit-public-main-pool-43115a71-xgm5  Readiness probe failed: MongoDB shell version v4.0.12
+connecting to: mongodb://127.0.0.1:27017/?gssapiServiceName=mongodb
+2020-01-09T19:16:24.149+0000 E QUERY    [js] Error: couldn't connect to server 127.0.0.1:27017, connection attempt failed: SocketException: Error connecting to 127.0.0.1:27017 :: caused by :: Connection refused :
+connect@src/mongo/shell/mongo.js:344:17
+@(connect):2:6
+exception: connect failed
+```
+Переменная окружения `MONGODB_ROOT_PASSWORD` остутствует, из чего можно сделать вывод, что изменения конфигурации успешно отработали. Но, в событиях видна ошибка... Предположительно связано с тем, что создавалось содержимое волюма монги при использовании пароля.
+
+Удалим волюм с целью пересоздания
+```shell
+kubectl delete persistentvolumes pvc-2d9d568d-1a82-4a65-b179-253570318b19
+```
+```log
+persistentvolume "pvc-2d9d568d-1a82-4a65-b179-253570318b19" deleted
+# И далее всё зависло...
+```
+
+Для чистоты эксперимента, пересоздам релиз
+
+Сначала удалим старый
+```shell
+helm tiller run -- helm delete --purge reddit
+```
+```log
+Installed Helm version v2.16.1
+Installed Tiller version v2.16.1
+Helm and Tiller are the same version!
+Starting Tiller...
+Tiller namespace: kube-system
+Running: helm delete reddit
+
+release "reddit" deleted
+Stopping Tiller...
+```
+
+Попробуем создать заново
+```shell
+helm tiller run -- helm upgrade --install --wait --namespace=reddit-ns reddit reddit/
+```
+```log
+Installed Helm version v2.16.1
+Installed Tiller version v2.16.1
+Helm and Tiller are the same version!
+Starting Tiller...
+Tiller namespace: kube-system
+Running: helm upgrade --install --wait --namespace=reddit-ns reddit reddit/
+
+UPGRADE FAILED
+Error: "reddit" has no deployed releases
+Error: UPGRADE FAILED: "reddit" has no deployed releases
+Stopping Tiller...
+Error: plugin "tiller" exited with error
+```
+
+Погуглив, находим https://github.com/helm/helm/issues/3208#issuecomment-348238689
+```shell
+helm tiller run -- helm list --all                                                   
+```
+```log
+Installed Helm version v2.16.1
+Installed Tiller version v2.16.1
+Helm and Tiller are the same version!
+Starting Tiller...
+Tiller namespace: kube-system
+Running: helm list --all
+
+NAME    REVISION        UPDATED                         STATUS  CHART           APP VERSION     NAMESPACE
+reddit  5               Thu Jan  9 22:15:12 2020        DELETED reddit-0.1.0                    reddit-ns
+Stopping Tiller...
+```
+Оказывается мы не совсем удалили релиз
+
+Удалим релиз совсем https://github.com/helm/helm/issues/3208#issuecomment-352241117
+```shell
+helm tiller run -- helm delete --purge reddit
+```
+```log
+Installed Helm version v2.16.1
+Installed Tiller version v2.16.1
+Helm and Tiller are the same version!
+Starting Tiller...
+Tiller namespace: kube-system
+Running: helm delete --purge reddit
+
+release "reddit" deleted
+Stopping Tiller...
+```
+
+И создадим заново
+```shell
+helm tiller run -- helm upgrade --install --wait --namespace=reddit-ns reddit reddit/
+```
+```log
+Installed Helm version v2.16.1
+Installed Tiller version v2.16.1
+Helm and Tiller are the same version!
+Starting Tiller...
+Tiller namespace: kube-system
+Running: helm upgrade --install --wait --namespace=reddit-ns reddit reddit/
+
+Release "reddit" does not exist. Installing it now.
+NAME:   reddit
+LAST DEPLOYED: Thu Jan  9 22:41:36 2020
+NAMESPACE: reddit-ns
+STATUS: DEPLOYED
+
+RESOURCES:
+==> v1/Deployment
+NAME            AGE
+reddit-comment  23s
+reddit-post     23s
+reddit-ui       23s
+
+==> v1/PersistentVolumeClaim
+NAME            AGE
+reddit-mongodb  24s
+
+==> v1/Pod(related)
+NAME                             AGE
+reddit-comment-5c9999f4d4-x2ctx  23s
+reddit-mongodb-68fd4989f7-qcsxj  23s
+reddit-post-5df6798d67-sxf2s     23s
+reddit-ui-9b5b66dc4-dhlms        23s
+reddit-ui-9b5b66dc4-lq5mt        23s
+reddit-ui-9b5b66dc4-rz9hk        23s
+
+==> v1/Service
+NAME            AGE
+reddit-comment  24s
+reddit-mongodb  23s
+reddit-post     24s
+reddit-ui       23s
+
+==> v1beta1/Deployment
+NAME            AGE
+reddit-mongodb  23s
+
+==> v1beta1/Ingress
+NAME       AGE
+reddit-ui  23s
+
+
+Stopping Tiller...
+```
+Теперь всё успешно.
+
+Дождёмся настройки ingress и проверим результат http://35.244.235.133/
+
+Да! Теперь **всё работает**!!!
+
+**TODO**: Реализовать авторизацию  в MongoDB **с использованием секрета**.
+
+А пока пора спать.
