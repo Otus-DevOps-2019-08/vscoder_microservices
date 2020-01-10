@@ -359,6 +359,7 @@ vscoder microservices repository
         - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-5)
       - [Управление зависимостями](#%d0%a3%d0%bf%d1%80%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b7%d0%b0%d0%b2%d0%b8%d1%81%d0%b8%d0%bc%d0%be%d1%81%d1%82%d1%8f%d0%bc%d0%b8)
       - [helm2 tiller plugin](#helm2-tiller-plugin)
+      - [Helm3](#helm3)
 
 # Makefile
 
@@ -16229,4 +16230,66 @@ Stopping Tiller...
 
 **TODO**: Реализовать авторизацию  в MongoDB **с использованием секрета**.
 
-А пока пора спать.
+
+#### Helm3
+
+Опробуем в бою новую мажорную версию helm:
+
+1. Опробуем в бою новую мажорную версию helm:
+2. Положим скаченный бинарник helm в директорую с бинарниками (`~/bin`) под именем helm3
+   ```shell
+   make install_helm 
+   wget https://get.helm.sh/helm-v3.0.2-linux-amd64.tar.gz -O /tmp/helm-3.0.2.tar.gz
+   --2020-01-10 23:42:48--  https://get.helm.sh/helm-v3.0.2-linux-amd64.tar.gz
+   Распознаётся get.helm.sh (get.helm.sh)… 152.199.21.175, 2606:2800:233:1cb7:261b:1f9c:2074:3c
+   Подключение к get.helm.sh (get.helm.sh)|152.199.21.175|:443... соединение установлено.
+   HTTP-запрос отправлен. Ожидание ответа… 200 OK
+   Длина: 12101232 (12M) [application/x-tar]
+   Сохранение в: «/tmp/helm-3.0.2.tar.gz»
+
+   /tmp/helm-3.0.2.tar. 100%[===================>]  11,54M  9,23MB/s    за 1,3s    
+
+   2020-01-10 23:42:51 (9,23 MB/s) - «/tmp/helm-3.0.2.tar.gz» сохранён [12101232/12101232]
+
+   cd /tmp/ && tar vxzf /tmp/helm-3.0.2.tar.gz
+   linux-amd64/
+   linux-amd64/README.md
+   linux-amd64/LICENSE
+   linux-amd64/helm
+   mv /tmp/linux-amd64/helm ~/bin/helm-3.0.2
+   chmod +x ~/bin/helm-3.0.2
+   ln -sf helm-3.0.2 ~/bin/helm
+   ~/bin/helm version && rm -rf /tmp/helm-3.0.2.tar.gz /tmp/linux-amd64
+   version.BuildInfo{Version:"v3.0.2", GitCommit:"19e47ee3283ae98139d98460de796c1be1e3975f", GitTreeState:"clean", GoVersion:"go1.13.5"} 
+   ```
+3. Создадим новый namespace `new-helm`:
+   ```shell
+   cd ./kubernetes && make configure_kubectl
+   kubectl create ns new-helm
+   ```
+   ```log
+   namespace/new-helm created
+   ```
+4. Деплоимся:
+   ```shell
+   ./kubernetes/Charts
+   helm3 dep update ./reddit
+   helm3 upgrade --install --namespace=new-helm --wait reddit-release reddit/
+   ```
+   ```log
+   Release "reddit-release" does not exist. Installing it now.
+   NAME: reddit-release
+   LAST DEPLOYED: Fri Jan 10 23:56:01 2020
+   NAMESPACE: new-helm
+   STATUS: deployed
+   REVISION: 1
+   TEST SUITE: None
+   ```
+5. Проверяем: `kubectl get ingress -n new-helm`
+   http://34.107.225.231
+
+**Всё работает!**
+
+> Для продолжения выполнения ДЗ точь-в-точь необходимо вернуть _clusterAdmin tiller_ сущность в наш кластер. С другой стороны, дальнейшее использование `helm3` / `helm2 tiller plugin` не возбраняется:)
+
+Будем использовать `helm3` ^_^
