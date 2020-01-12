@@ -23,6 +23,8 @@ resource "google_container_cluster" "cluster" {
   name        = var.name
   description = var.description
 
+  enable_legacy_abac = var.enable_legacy_abac
+
   project    = var.project
   location   = var.location
   network    = var.network

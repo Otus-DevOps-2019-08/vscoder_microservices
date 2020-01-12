@@ -13,11 +13,11 @@ vscoder microservices repository
     - [Подготовка проекта. Интеграции](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0-%d0%98%d0%bd%d1%82%d0%b5%d0%b3%d1%80%d0%b0%d1%86%d0%b8%d0%b8)
     - [Установка docker](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0-docker)
     - [Работа с docker](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-docker)
-    - [Задание со *: Отличия образа и контейнера](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bb%d0%b8%d1%87%d0%b8%d1%8f-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0-%d0%b8-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0)
+    - [Задание со \*: Отличия образа и контейнера](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bb%d0%b8%d1%87%d0%b8%d1%8f-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0-%d0%b8-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0)
     - [Больше docker-команд](#%d0%91%d0%be%d0%bb%d1%8c%d1%88%d0%b5-docker-%d0%ba%d0%be%d0%bc%d0%b0%d0%bd%d0%b4)
-      - [Docker kill &amp; stop](#docker-kill-amp-stop)
+      - [Docker kill & stop](#docker-kill--stop)
       - [docker system df](#docker-system-df)
-      - [Docker rm &amp; rmi](#docker-rm-amp-rmi)
+      - [Docker rm & rmi](#docker-rm--rmi)
     - [Docker контейнеры](#docker-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d1%8b)
       - [GCE](#gce)
       - [Docker machine](#docker-machine)
@@ -28,7 +28,7 @@ vscoder microservices repository
       - [Dockerfile](#dockerfile)
       - [Запуск контейнера](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0)
     - [Docker hub](#docker-hub)
-    - [Задание со *: IaC с использованием docker](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--iac-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-docker)
+    - [Задание со \*: IaC с использованием docker](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--iac-%d1%81-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-docker)
       - [Packer](#packer)
       - [Terraform](#terraform)
         - [Project-wide объекты](#project-wide-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d1%8b)
@@ -57,11 +57,11 @@ vscoder microservices repository
       - [Новая структура приложения](#%d0%9d%d0%be%d0%b2%d0%b0%d1%8f-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
       - [Сборка образов](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
       - [Запуск приложения](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
-    - [Задание со *: Переопределение сетевых алиасов](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9f%d0%b5%d1%80%d0%b5%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%82%d0%b5%d0%b2%d1%8b%d1%85-%d0%b0%d0%bb%d0%b8%d0%b0%d1%81%d0%be%d0%b2)
+    - [Задание со \*: Переопределение сетевых алиасов](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9f%d0%b5%d1%80%d0%b5%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d1%81%d0%b5%d1%82%d0%b5%d0%b2%d1%8b%d1%85-%d0%b0%d0%bb%d0%b8%d0%b0%d1%81%d0%be%d0%b2)
       - [Теория](#%d0%a2%d0%b5%d0%be%d1%80%d0%b8%d1%8f)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f)
     - [Образы](#%d0%9e%d0%b1%d1%80%d0%b0%d0%b7%d1%8b)
-    - [Задание со *: Уменьшаем размер образа](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%a3%d0%bc%d0%b5%d0%bd%d1%8c%d1%88%d0%b0%d0%b5%d0%bc-%d1%80%d0%b0%d0%b7%d0%bc%d0%b5%d1%80-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
+    - [Задание со \*: Уменьшаем размер образа](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%a3%d0%bc%d0%b5%d0%bd%d1%8c%d1%88%d0%b0%d0%b5%d0%bc-%d1%80%d0%b0%d0%b7%d0%bc%d0%b5%d1%80-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%b0)
       - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7)
       - [Сборка на основе alpine linux](#%d0%a1%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bd%d0%b0-%d0%be%d1%81%d0%bd%d0%be%d0%b2%d0%b5-alpine-linux)
         - [ui](#ui)
@@ -88,7 +88,7 @@ vscoder microservices repository
       - [docker-compose.yml](#docker-composeyml)
         - [Переменные окружения](#%d0%9f%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
         - [Имя проекта](#%d0%98%d0%bc%d1%8f-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0)
-    - [Задание со *: docker-compose.override.yml](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--docker-composeoverrideyml)
+    - [Задание со \*: docker-compose.override.yml](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--docker-composeoverrideyml)
       - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-2)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-1)
     - [Вне заданий](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9)
@@ -96,8 +96,8 @@ vscoder microservices repository
     - [Развёртывание gitlab](#%d0%a0%d0%b0%d0%b7%d0%b2%d1%91%d1%80%d1%82%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-gitlab)
       - [Подготовка хоста](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-%d1%85%d0%be%d1%81%d1%82%d0%b0)
         - [ansible](#ansible)
-        - [packer](#packer)
-        - [terraform](#terraform)
+        - [packer](#packer-1)
+        - [terraform](#terraform-1)
       - [Развёртывание gitlab](#%d0%a0%d0%b0%d0%b7%d0%b2%d1%91%d1%80%d1%82%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-gitlab-1)
       - [Первоначальная настройка](#%d0%9f%d0%b5%d1%80%d0%b2%d0%be%d0%bd%d0%b0%d1%87%d0%b0%d0%bb%d1%8c%d0%bd%d0%b0%d1%8f-%d0%bd%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0)
         - [Работа с репозиторием через ssh](#%d0%a0%d0%b0%d0%b1%d0%be%d1%82%d0%b0-%d1%81-%d1%80%d0%b5%d0%bf%d0%be%d0%b7%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%b5%d0%bc-%d1%87%d0%b5%d1%80%d0%b5%d0%b7-ssh)
@@ -110,7 +110,7 @@ vscoder microservices repository
       - [staging и production](#staging-%d0%b8-production)
       - [Динамические окружения](#%d0%94%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5-%d0%be%d0%ba%d1%80%d1%83%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f)
     - [Вне заданий: улучшалки](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9-%d1%83%d0%bb%d1%83%d1%87%d1%88%d0%b0%d0%bb%d0%ba%d0%b8)
-    - [Задание со *: Автоматизированная сборка приложения reddit](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-reddit)
+    - [Задание со \*: Автоматизированная сборка приложения reddit](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-reddit)
       - [План](#%d0%9f%d0%bb%d0%b0%d0%bd)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-2)
         - [Настройка terraform module instance](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-terraform-module-instance)
@@ -124,19 +124,19 @@ vscoder microservices repository
           - [Подготовлен docker-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%bb%d0%b5%d0%bd-docker-runner)
           - [Автоматизированная сборка образов](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%b0%d1%8f-%d1%81%d0%b1%d0%be%d1%80%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2)
         - [Загрузка образов в gitlab registry](#%d0%97%d0%b0%d0%b3%d1%80%d1%83%d0%b7%d0%ba%d0%b0-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d0%be%d0%b2-%d0%b2-gitlab-registry)
-    - [Задание со *: Деплой контейнера на созданный для ветки сервер](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0-%d0%bd%d0%b0-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d0%b9-%d0%b4%d0%bb%d1%8f-%d0%b2%d0%b5%d1%82%d0%ba%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b5%d1%80)
+    - [Задание со \*: Деплой контейнера на созданный для ветки сервер](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%b9%d0%bd%d0%b5%d1%80%d0%b0-%d0%bd%d0%b0-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d0%b9-%d0%b4%d0%bb%d1%8f-%d0%b2%d0%b5%d1%82%d0%ba%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b5%d1%80)
       - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-3)
-        - [Packer](#packer-1)
-        - [Terraform](#terraform-1)
-        - [Ansible](#ansible)
+        - [Packer](#packer-2)
+        - [Terraform](#terraform-2)
+        - [Ansible](#ansible-1)
           - [Поиск решения](#%d0%9f%d0%be%d0%b8%d1%81%d0%ba-%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d1%8f)
           - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-4)
           - [Подготовка gitlab-runner](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-gitlab-runner)
           - [Проверка](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0)
           - [Создание Environment](#%d0%a1%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-environment)
-    - [Задание со *: Автоматизированное создание и регистрация раннеров](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
+    - [Задание со \*: Автоматизированное создание и регистрация раннеров](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
       - [Проработка скейлинга раннеров](#%d0%9f%d1%80%d0%be%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%ba%d0%b0-%d1%81%d0%ba%d0%b5%d0%b9%d0%bb%d0%b8%d0%bd%d0%b3%d0%b0-%d1%80%d0%b0%d0%bd%d0%bd%d0%b5%d1%80%d0%be%d0%b2)
-    - [Задание со *: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
+    - [Задание со \*: Отправка уведомлений о работе pipeline в Slack](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%9e%d1%82%d0%bf%d1%80%d0%b0%d0%b2%d0%ba%d0%b0-%d1%83%d0%b2%d0%b5%d0%b4%d0%be%d0%bc%d0%bb%d0%b5%d0%bd%d0%b8%d0%b9-%d0%be-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d0%b5-pipeline-%d0%b2-slack)
     - [Прохождение тестов travis-ci](#%d0%9f%d1%80%d0%be%d1%85%d0%be%d0%b6%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d1%82%d0%b5%d1%81%d1%82%d0%be%d0%b2-travis-ci)
     - [Прочее](#%d0%9f%d1%80%d0%be%d1%87%d0%b5%d0%b5)
   - [HomeWork 16: Введение в мониторинг. Системы мониторинга.](#homework-16-%d0%92%d0%b2%d0%b5%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b2-%d0%bc%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d0%a1%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d1%8b-%d0%bc%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3%d0%b0)
@@ -174,7 +174,7 @@ vscoder microservices repository
     - [Завершение работы](#%d0%97%d0%b0%d0%b2%d0%b5%d1%80%d1%88%d0%b5%d0%bd%d0%b8%d0%b5-%d1%80%d0%b0%d0%b1%d0%be%d1%82%d1%8b)
       - [Makefile targets](#makefile-targets)
       - [Пушим образы](#%d0%9f%d1%83%d1%88%d0%b8%d0%bc-%d0%be%d0%b1%d1%80%d0%b0%d0%b7%d1%8b)
-    - [Задания со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
+    - [Задания со \*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
       - [MongoDB exporter](#mongodb-exporter)
         - [Установка](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0-1)
       - [Cloudprober](#cloudprober)
@@ -223,16 +223,16 @@ vscoder microservices repository
       - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-3)
       - [Запуск проекта](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82%d0%b0-3)
     - [Fix travis-ci test](#fix-travis-ci-test)
-    - [Задания со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be--1)
+    - [Задания со \*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be-1)
       - [Makefile](#makefile-2)
       - [Сбор метрик с docker](#%d0%a1%d0%b1%d0%be%d1%80-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba-%d1%81-docker)
       - [Telegraf](#telegraf)
       - [Alertmanager email](#alertmanager-email)
-    - [Задания с **](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81)
+    - [Задания с \*\*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81)
       - [Автоматическое развёртывание Grafana](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b5-%d1%80%d0%b0%d0%b7%d0%b2%d1%91%d1%80%d1%82%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-grafana)
       - [Stackdriver](#stackdriver)
       - [Свои метрики](#%d0%a1%d0%b2%d0%be%d0%b8-%d0%bc%d0%b5%d1%82%d1%80%d0%b8%d0%ba%d0%b8)
-    - [Задания со ***](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be)
+    - [Задания со \*\*\*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d1%81%d0%be-2)
       - [Tickster](#tickster)
       - [Автоматическое исправление проблем](#%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b5-%d0%b8%d1%81%d0%bf%d1%80%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc)
   - [HomeWork 18: Логирование и распределенная трассировка](#homework-18-%d0%9b%d0%be%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%b8-%d1%80%d0%b0%d1%81%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d1%82%d1%80%d0%b0%d1%81%d1%81%d0%b8%d1%80%d0%be%d0%b2%d0%ba%d0%b0)
@@ -265,7 +265,7 @@ vscoder microservices repository
       - [Networks](#networks)
       - [Пересоздадим наши сервисы](#%d0%9f%d0%b5%d1%80%d0%b5%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%b4%d0%b8%d0%bc-%d0%bd%d0%b0%d1%88%d0%b8-%d1%81%d0%b5%d1%80%d0%b2%d0%b8%d1%81%d1%8b-1)
     - [Вне заданий: проблемы с comment](#%d0%92%d0%bd%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b9-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b-%d1%81-comment)
-    - [Самостоятельное задание со звездочкой *](#%d0%a1%d0%b0%d0%bc%d0%be%d1%81%d1%82%d0%be%d1%8f%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be-%d0%b7%d0%b2%d0%b5%d0%b7%d0%b4%d0%be%d1%87%d0%ba%d0%be%d0%b9)
+    - [Самостоятельное задание со звездочкой \*](#%d0%a1%d0%b0%d0%bc%d0%be%d1%81%d1%82%d0%be%d1%8f%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be-%d0%b7%d0%b2%d0%b5%d0%b7%d0%b4%d0%be%d1%87%d0%ba%d0%be%d0%b9)
       - [Репозиторий](#%d0%a0%d0%b5%d0%bf%d0%be%d0%b7%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%b9)
       - [Проблема](#%d0%9f%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d0%b0)
       - [Поиск проблемы](#%d0%9f%d0%be%d0%b8%d1%81%d0%ba-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b-1)
@@ -279,7 +279,7 @@ vscoder microservices repository
     - [Kubernetes The Hard Way](#kubernetes-the-hard-way)
     - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-1)
     - [Возможные проблемы](#%d0%92%d0%be%d0%b7%d0%bc%d0%be%d0%b6%d0%bd%d1%8b%d0%b5-%d0%bf%d1%80%d0%be%d0%b1%d0%bb%d0%b5%d0%bc%d1%8b)
-    - [Задание со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be)
+    - [Задание со \*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be)
     - [Выполнение задания](#%d0%92%d1%8b%d0%bf%d0%be%d0%bb%d0%bd%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f)
     - [Проверка деплоя](#%d0%9f%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b0-%d0%b4%d0%b5%d0%bf%d0%bb%d0%be%d1%8f)
   - [HomeWork 20: Kubernetes. Запуск кластера и приложения. Модель безопасности.](#homework-20-kubernetes-%d0%97%d0%b0%d0%bf%d1%83%d1%81%d0%ba-%d0%ba%d0%bb%d0%b0%d1%81%d1%82%d0%b5%d1%80%d0%b0-%d0%b8-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f-%d0%9c%d0%be%d0%b4%d0%b5%d0%bb%d1%8c-%d0%b1%d0%b5%d0%b7%d0%be%d0%bf%d0%b0%d1%81%d0%bd%d0%be%d1%81%d1%82%d0%b8)
@@ -287,20 +287,20 @@ vscoder microservices repository
     - [Разворачиваем Kubernetes локально](#%d0%a0%d0%b0%d0%b7%d0%b2%d0%be%d1%80%d0%b0%d1%87%d0%b8%d0%b2%d0%b0%d0%b5%d0%bc-kubernetes-%d0%bb%d0%be%d0%ba%d0%b0%d0%bb%d1%8c%d0%bd%d0%be)
       - [Kubectl](#kubectl)
       - [minikube](#minikube)
-    - [Minikube](#minikube)
+    - [Minikube](#minikube-1)
       - [Before you begin](#before-you-begin)
       - [Installing minikube](#installing-minikube)
       - [Kubectl](#kubectl-1)
       - [Запустим приложение](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d0%bc-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d0%b5)
         - [Deployment](#deployment)
-          - [UI](#ui)
-          - [Comment](#comment)
-          - [Post](#post)
+          - [UI](#ui-1)
+          - [Comment](#comment-1)
+          - [Post](#post-1)
           - [MongoDB](#mongodb)
       - [Services](#services)
         - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-2)
         - [Services](#services-1)
-      - [Minikube](#minikube-1)
+      - [Minikube](#minikube-2)
       - [Namespaces](#namespaces)
       - [Dashboard](#dashboard)
     - [Разворачиваем Kubernetes](#%d0%a0%d0%b0%d0%b7%d0%b2%d0%be%d1%80%d0%b0%d1%87%d0%b8%d0%b2%d0%b0%d0%b5%d0%bc-kubernetes)
@@ -308,14 +308,14 @@ vscoder microservices repository
       - [ОШИБКА: Не отображаются комменты](#%d0%9e%d0%a8%d0%98%d0%91%d0%9a%d0%90-%d0%9d%d0%b5-%d0%be%d1%82%d0%be%d0%b1%d1%80%d0%b0%d0%b6%d0%b0%d1%8e%d1%82%d1%81%d1%8f-%d0%ba%d0%be%d0%bc%d0%bc%d0%b5%d0%bd%d1%82%d1%8b)
     - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-3)
     - [GKE Dashboard](#gke-dashboard)
-    - [Задание со *](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--1)
+    - [Задание со \*](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be-1)
   - [HomeWork 21: Kubernetes. Networks ,Storages](#homework-21-kubernetes-networks-storages)
     - [План](#%d0%9f%d0%bb%d0%b0%d0%bd-4)
     - [Сетевое взаимодействие](#%d0%a1%d0%b5%d1%82%d0%b5%d0%b2%d0%be%d0%b5-%d0%b2%d0%b7%d0%b0%d0%b8%d0%bc%d0%be%d0%b4%d0%b5%d0%b9%d1%81%d1%82%d0%b2%d0%b8%d0%b5)
       - [Service](#service)
       - [Kube-dns](#kube-dns)
       - [Service](#service-1)
-      - [kube-dns](#kube-dns)
+      - [kube-dns](#kube-dns-1)
         - [А в рамках кластера?](#%d0%90-%d0%b2-%d1%80%d0%b0%d0%bc%d0%ba%d0%b0%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%82%d0%b5%d1%80%d0%b0)
       - [kubenet](#kubenet)
         - [А в рамках кластера?](#%d0%90-%d0%b2-%d1%80%d0%b0%d0%bc%d0%ba%d0%b0%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%82%d0%b5%d1%80%d0%b0-1)
@@ -326,13 +326,13 @@ vscoder microservices repository
         - [Ingress](#ingress-1)
       - [Secret](#secret)
         - [TLS Termination](#tls-termination)
-      - [Задание со * Secret в виде Kubernetes-манифеста](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--secret-%d0%b2-%d0%b2%d0%b8%d0%b4%d0%b5-kubernetes-%d0%bc%d0%b0%d0%bd%d0%b8%d1%84%d0%b5%d1%81%d1%82%d0%b0)
+      - [Задание со \* Secret в виде Kubernetes-манифеста](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--secret-%d0%b2-%d0%b2%d0%b8%d0%b4%d0%b5-kubernetes-%d0%bc%d0%b0%d0%bd%d0%b8%d1%84%d0%b5%d1%81%d1%82%d0%b0)
         - [Анализ](#%d0%90%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7-5)
         - [Реализация](#%d0%a0%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-8)
       - [Network Policy](#network-policy)
         - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-4)
     - [Хранилище для базы](#%d0%a5%d1%80%d0%b0%d0%bd%d0%b8%d0%bb%d0%b8%d1%89%d0%b5-%d0%b4%d0%bb%d1%8f-%d0%b1%d0%b0%d0%b7%d1%8b)
-      - [Volume](#volume)
+      - [Volume](#volume-1)
       - [PersistentVolume](#persistentvolume)
       - [PersistentVolumeClaim](#persistentvolumeclaim)
       - [PersistentVolume](#persistentvolume-1)
@@ -353,13 +353,15 @@ vscoder microservices repository
       - [Helm - установка](#helm---%d1%83%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0)
       - [Charts](#charts)
       - [Templates](#templates)
-        - [Post](#post-1)
-        - [Comment](#comment-1)
+        - [Post](#post-2)
+        - [Comment](#comment-2)
         - [Helpers](#helpers)
         - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-5)
       - [Управление зависимостями](#%d0%a3%d0%bf%d1%80%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b7%d0%b0%d0%b2%d0%b8%d1%81%d0%b8%d0%bc%d0%be%d1%81%d1%82%d1%8f%d0%bc%d0%b8)
       - [helm2 tiller plugin](#helm2-tiller-plugin)
       - [Helm3](#helm3)
+    - [GitLab + Kubernetes](#gitlab--kubernetes)
+      - [Установим GitLab](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%b8%d0%bc-gitlab)
 
 # Makefile
 
@@ -16292,4 +16294,636 @@ Stopping Tiller...
 
 > Для продолжения выполнения ДЗ точь-в-точь необходимо вернуть _clusterAdmin tiller_ сущность в наш кластер. С другой стороны, дальнейшее использование `helm3` / `helm2 tiller plugin` не возбраняется:)
 
-Будем использовать `helm3` ^_^
+Будем использовать `helm3` ^_^... Но это не точно)))
+
+
+### GitLab + Kubernetes
+
+#### Установим GitLab
+
+Добавим новый node-pool для gitlab
+
+`kubernetes/terraform/main.tf`
+```conf
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE A NODE POOL FOR GITLAB
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "google_container_node_pool" "gitlab_node_pool" {
+  provider = google-beta
+
+  name     = "gitlab-pool"
+  project  = var.project
+  location = var.location
+  cluster  = module.gke_cluster.name
+
+  initial_node_count = "1"
+
+  // autoscaling {
+  //   min_node_count = "1"
+  //   max_node_count = "1"
+  // }
+
+  management {
+    auto_repair  = "true"
+    auto_upgrade = "true"
+  }
+
+  node_config {
+    image_type   = "COS"
+    machine_type = "n1-standard-2"
+
+    labels = {
+      app = "gitlab"
+    }
+
+    # Add a public tag to the instances. See the network access tier table for full details:
+    # https://github.com/gruntwork-io/terraform-google-network/tree/master/modules/vpc-network#access-tier
+    tags = [
+      module.vpc_network.public,
+      "public-pool-example",
+    ]
+
+    disk_size_gb = "30"
+    disk_type    = "pd-standard"
+    preemptible  = false
+
+    service_account = module.gke_service_account.email
+
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/cloud-platform",
+    ]
+  }
+
+  lifecycle {
+    ignore_changes = [initial_node_count]
+  }
+
+  timeouts {
+    create = "30m"
+    update = "30m"
+    delete = "30m"
+  }
+}
+```
+
+С помощью пулов узлов можно добавлять в кластер новые машины разной мощности и комплектации.
+
+P.S. подождите пока кластер будет готов к работе
+
+В ДЗ сказано отключить RBAC и включить устаревшие права доступа. 
+
+Но при создании кластера мы уже выяснили, что в текущей версии возможность включить устаревшие права доступа найти не удалось.
+
+Попробуем так же не отключать RBAC. ^_^
+
+Gitlab будем ставить также с помощью Helm Chart’а из пакета Omnibus. На всякий случай, официальная инструкция https://source.isimplelab.com/help/install/kubernetes/gitlab_omnibus.md
+
+1. Добавим репозиторий Gitlab
+```shell
+helm repo add gitlab https://charts.gitlab.io
+```
+```log
+"gitlab" has been added to your repositories
+```
+
+2. Мы будем менять конфигурацию Gitlab, поэтому скачаем Chart (последнюю версию, а не указанную в ДЗ)
+```shell
+helm fetch gitlab/gitlab-omnibus --untar
+cd gitlab-omnibus
+```
+
+3. Поправьте `gitlab-omnibus/values.yaml`
+```yaml
+baseDomain: your-domain.com
+legoEmail: you@example.com
+```
+
+4. Добавьте в `gitlab-omnibus/templates/gitlab/gitlab-svc.yaml`
+```yaml
+...
+    - name: web
+      port: 80
+      targetPort: workhorse
+...
+```
+Получим
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    name: {{ template "fullname" . }}
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: ssh
+    - name: mattermost
+      port: 8065
+      targetPort: mattermost
+    - name: registry
+      port: 8105
+      targetPort: registry
+    - name: workhorse
+      port: 8005
+      targetPort: workhorse
+    - name: prometheus
+      port: 9090
+      targetPort: prometheus
+    - name: web
+      port: 80
+      targetPort: workhorse
+    {{- if and .Values.pagesExternalScheme .Values.pagesExternalDomain}}
+    - name: pages
+      port: 8090
+      targetPort: pages
+    {{- end }}
+```
+
+5. Поправить в `gitlab-omnibus/templates/gitlab-config.yaml`
+```yaml
+...
+data:
+  external_scheme: http
+  external_hostname: {{ template "fullname" . }}
+...
+```
+
+6. Поправить в `gitlab-omnibus/templates/ingress/gitlab-ingress.yaml`
+```yaml
+...
+  rules:
+  - host: {{ template "fullname" . }}
+...
+---
+```
+Получим
+```yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "fullname" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+  - hosts:
+    - gitlab.{{ .Values.baseDomain }}
+    - registry.{{ .Values.baseDomain }}
+    - mattermost.{{ .Values.baseDomain }}
+    - prometheus.{{ .Values.baseDomain }}
+    secretName: gitlab-tls
+  rules:
+  - host: {{ template "fullname" . }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ template "fullname" . }}
+          servicePort: 8005
+  - host: registry.{{ .Values.baseDomain }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ template "fullname" . }}
+          servicePort: 8105
+  - host: mattermost.{{ .Values.baseDomain }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ template "fullname" . }}
+          servicePort: 8065
+  - host: prometheus.{{ .Values.baseDomain }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ template "fullname" . }}
+          servicePort: 9090
+---
+```
+
+Запустим деплой (напомню, у нас helm3)
+```shell
+helm install -f values.yaml gitlab .
+```
+```log
+WARNING: This chart is deprecated
+Error: unable to build kubernetes objects from release manifest: error validating "": error validating data: [unknown object type "nil" in ConfigMap.data.pages_external_domain, unknown object type "nil" in ConfigMap.data.pages_external_scheme]
+```
+
+Добавим в `gitlab-omnibus/values.yaml`
+```yaml
+...
+pagesExternalScheme: http
+pagesExternalDomain: your-pages-domain.com
+...
+```
+```log
+WARNING: This chart is deprecated
+NAME: gitlab
+LAST DEPLOYED: Sat Jan 11 18:12:13 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+It may take several minutes for GitLab to reconfigure.
+    You can watch the status by running `kubectl get deployment -w gitlab-gitlab --namespace default
+  You did not specify a baseIP so one will be assigned for you.
+  It may take a few minutes for the LoadBalancer IP to be available.
+  Watch the status with: 'kubectl get svc -w --namespace nginx-ingress nginx', then:
+
+  export SERVICE_IP=$(kubectl get svc --namespace nginx-ingress nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+  Then make sure to configure DNS with something like:
+    *.your-domain.com   300 IN A $SERVICE_IP
+```
+Деплой начался
+
+Проблемка:
+```shell
+kubectl get pods
+```
+```log
+NAME                                        READY   STATUS             RESTARTS   AGE
+gitlab-gitlab-766445f7d7-m4flm              0/1     Running            0          4m40s
+gitlab-gitlab-postgresql-66d5b899b8-tzggp   0/1     Pending            0          4m40s
+gitlab-gitlab-redis-6c675dd568-cp4xn        1/1     Running            0          4m40s
+gitlab-gitlab-runner-875586966-lbc6h        0/1     CrashLoopBackOff   4          4m39s
+```
+```shell
+kubectl describe pod gitlab-gitlab-postgresql-66d5b899b8-tzggp
+```
+```log
+Name:           gitlab-gitlab-postgresql-66d5b899b8-tzggp
+Namespace:      default
+Priority:       0
+Node:           <none>
+Labels:         app=gitlab-gitlab
+                name=gitlab-gitlab-postgresql
+                pod-template-hash=66d5b899b8
+Annotations:    kubernetes.io/limit-ranger: LimitRanger plugin set: cpu request for container postgresql
+Status:         Pending
+IP:             
+IPs:            <none>
+Controlled By:  ReplicaSet/gitlab-gitlab-postgresql-66d5b899b8
+Containers:
+  postgresql:
+    Image:      postgres:9.6.5
+    Port:       5432/TCP
+    Host Port:  0/TCP
+    Requests:
+      cpu:      100m
+    Liveness:   exec [pg_isready -h localhost -U postgres] delay=30s timeout=5s period=10s #success=1 #failure=3
+    Readiness:  exec [pg_isready -h localhost -U postgres] delay=5s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      POSTGRES_USER:      <set to the key 'postgres_user' of config map 'gitlab-gitlab-config'>   Optional: false
+      POSTGRES_PASSWORD:  <set to the key 'postgres_password' in secret 'gitlab-gitlab-secrets'>  Optional: false
+      POSTGRES_DB:        <set to the key 'postgres_db' of config map 'gitlab-gitlab-config'>     Optional: false
+      DB_EXTENSION:       pg_trgm
+      PGDATA:             /var/lib/postgresql/data/pgdata
+    Mounts:
+      /docker-entrypoint-initdb.d from initdb (ro)
+      /var/lib/postgresql/data from data (rw,path="postgres")
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-5lcj8 (ro)
+Conditions:
+  Type           Status
+  PodScheduled   False 
+Volumes:
+  data:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  gitlab-gitlab-postgresql-storage
+    ReadOnly:   false
+  initdb:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      gitlab-gitlab-postgresql-initdb
+    Optional:  false
+  default-token-5lcj8:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-5lcj8
+    Optional:    false
+QoS Class:       Burstable
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type     Reason            Age                  From               Message
+  ----     ------            ----                 ----               -------
+  Warning  FailedScheduling  22s (x9 over 5m23s)  default-scheduler  pod has unbound immediate PersistentVolumeClaims (repeated 3 times)
+```
+
+Идём дальше, смотрим `PersistentVolumeClaims`
+```shell
+kubectl get persistentvolumeclaims 
+```
+```log
+NAME                               STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS         AGE
+gitlab-gitlab-config-storage       Bound     pvc-e3284073-2016-4095-b79c-5b2585dd990a   1Gi        RWO            gitlab-gitlab-fast   20m
+gitlab-gitlab-postgresql-storage   Pending                                                                        gitlab-gitlab-fast   20m
+gitlab-gitlab-redis-storage        Bound     pvc-dbb0d126-ce15-42d5-9331-520a4301d54e   5Gi        RWO            gitlab-gitlab-fast   20m
+gitlab-gitlab-registry-storage     Bound     pvc-2bec254a-e45b-4d3e-9ed1-cdf5b4b45c12   30Gi       RWO            gitlab-gitlab-fast   20m
+gitlab-gitlab-storage              Bound     pvc-3b8b3abd-442b-4d8f-aed4-0caac0445de1   30Gi       RWO            gitlab-gitlab-fast   20m
+```
+```log
+kubectl describe persistentvolumeclaims gitlab-gitlab-postgresql-storage
+Name:          gitlab-gitlab-postgresql-storage
+Namespace:     default
+StorageClass:  gitlab-gitlab-fast
+Status:        Pending
+Volume:        
+Labels:        app=gitlab-gitlab
+               chart=gitlab-omnibus-0.1.37
+               heritage=Helm
+               release=gitlab
+Annotations:   volume.beta.kubernetes.io/storage-class: gitlab-gitlab-fast
+               volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/gce-pd
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      
+Access Modes:  
+VolumeMode:    Filesystem
+Mounted By:    gitlab-gitlab-postgresql-66d5b899b8-tzggp
+Events:
+  Type     Reason              Age                 From                         Message
+  ----     ------              ----                ----                         -------
+  Warning  ProvisioningFailed  21s (x17 over 21m)  persistentvolume-controller  Failed to provision volume with StorageClass "gitlab-gitlab-fast": googleapi: Error 403: QUOTA_EXCEEDED - Quota 'SSD_TOTAL_GB' exceeded.  Limit: 100.0 in region us-central1.
+```
+
+Ну всё понятно, `Failed to provision volume with StorageClass "gitlab-gitlab-fast": googleapi: Error 403: QUOTA_EXCEEDED - Quota 'SSD_TOTAL_GB' exceeded.  Limit: 100.0 in region us-central1.`
+
+Посмотрим доступные классы
+```shell
+kubectl get storageclasses
+```
+```log
+NAME                 PROVISIONER            AGE
+gitlab-gitlab-fast   kubernetes.io/gce-pd   24m
+standard (default)   kubernetes.io/gce-pd   19h
+```
+
+Есть 2 варианта решения:
+1. использовать _storageclas_ `standard`
+2. уменьшить запрашиваемое место чтобы уместиться в 100Гб
+
+Выберем 2й способ: для нашей задачи много места не нужно))
+
+`gitlab-omnibus/values.yaml`
+```yaml
+...
+redisStorageSize: 5Gi  # default 5Gb
+postgresStorageSize: 10Gi  # default 30Gb
+gitlabDataStorageSize: 10Gi  # default 30Gb
+gitlabRegistryStorageSize: 10Gi  # default 30Gb
+gitlabConfigStorageSize: 1Gi  # default 1Gb
+...
+```
+
+Попробуем применить
+```shell
+helm upgrade -f values.yaml gitlab .
+```
+```log
+WARNING: This chart is deprecated
+Error: UPGRADE FAILED: cannot patch "gitlab-gitlab-storage" with kind PersistentVolumeClaim: PersistentVolumeClaim "gitlab-gitlab-storage" is invalid: spec.resources.requests.storage: Forbidden: field can not be less than previous value && cannot patch "gitlab-gitlab-registry-storage" with kind PersistentVolumeClaim: PersistentVolumeClaim "gitlab-gitlab-registry-storage" is invalid: spec.resources.requests.storage: Forbidden: field can not be less than previous value && cannot patch "gitlab-gitlab-postgresql-storage" with kind PersistentVolumeClaim: PersistentVolumeClaim "gitlab-gitlab-postgresql-storage" is invalid: [spec: Forbidden: is immutable after creation except resources.requests for bound claims, spec.resources.requests.storage: Forbidden: field can not be less than previous value]
+```
+
+Логично, нельзя уменьшить уже запрошенное место
+
+Тогда полностью передиплоимся
+```shell
+helm uninstall gitlab
+```
+```log
+release "gitlab" uninstalled
+```
+```shell
+helm list --all       
+```
+```log
+NAME    NAMESPACE       REVISION        UPDATED STATUS  CHART   APP VERSION
+```
+```shell
+helm install -f values.yaml gitlab .
+```
+```log
+WARNING: This chart is deprecated
+NAME: gitlab
+LAST DEPLOYED: Sat Jan 11 18:50:28 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+It may take several minutes for GitLab to reconfigure.
+    You can watch the status by running `kubectl get deployment -w gitlab-gitlab --namespace default
+  You did not specify a baseIP so one will be assigned for you.
+  It may take a few minutes for the LoadBalancer IP to be available.
+  Watch the status with: 'kubectl get svc -w --namespace nginx-ingress nginx', then:
+
+  export SERVICE_IP=$(kubectl get svc --namespace nginx-ingress nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+  Then make sure to configure DNS with something like:
+    *.your-domain.com   300 IN A $SERVICE_IP
+```
+
+Проверяем
+```shell
+kubectl get pods
+```
+```log
+NAME                                        READY   STATUS    RESTARTS   AGE
+gitlab-gitlab-766445f7d7-nfts2              1/1     Running   0          23m
+gitlab-gitlab-postgresql-66d5b899b8-95kph   1/1     Running   0          23m
+gitlab-gitlab-redis-6c675dd568-9xbpw        1/1     Running   0          23m
+gitlab-gitlab-runner-875586966-q8frz        1/1     Running   4          23m
+```
+
+Должно пройти несколько минут. Найдите выданный IP-адрес ingress-контроллера nginx.
+
+```shell
+kubectl get service -n nginx-ingress nginx
+```
+```log
+NAME    TYPE           CLUSTER-IP   EXTERNAL-IP      PORT(S)                                   AGE
+nginx   LoadBalancer   10.4.15.19   35.223.233.250   80:31807/TCP,443:30526/TCP,22:32686/TCP   28m
+```
+
+Поместите запись в локальный файл `/etc/hosts` (поставьте свой IP-адрес)
+```shell
+echo "35.223.233.250 gitlab-gitlab staging production" | sudo tee /etc/hosts
+```
+
+Пробуем зайти: `Failed to connect to gitlab-gitlab port 80: В соединении отказано` Фаервол?
+
+```shell
+kubectl get pods -n nginx-ingress
+```
+```log
+NAME                                    READY   STATUS             RESTARTS   AGE
+default-http-backend-65b964d8cc-npbcq   1/1     Running            0          89m
+nginx-lvkst                             0/1     CrashLoopBackOff   22         89m
+```
+```shell
+kubectl logs nginx-lvkst -n nginx-ingress
+```
+```log
+[dumb-init] Unable to detach from controlling tty (errno=25 Inappropriate ioctl for device).
+[dumb-init] Child spawned with PID 6.
+[dumb-init] Unable to attach to controlling tty (errno=25 Inappropriate ioctl for device).
+[dumb-init] setsid complete.
+I0111 17:18:11.723933       6 launch.go:105] &{NGINX 0.9.0-beta.11 git-a3131c5 https://github.com/kubernetes/ingress}
+I0111 17:18:11.723968       6 launch.go:108] Watching for ingress class: nginx
+I0111 17:18:11.724233       6 launch.go:262] Creating API server client for https://10.4.0.1:443
+I0111 17:18:11.729500       6 nginx.go:182] starting NGINX process...
+F0111 17:18:11.775095       6 launch.go:122] no service with name nginx-ingress/default-http-backend found: services "default-http-backend" is forbidden: User "system:serviceaccount:nginx-ingress:default" cannot get resource "services" in API group "" in the namespace "nginx-ingress"
+[dumb-init] Received signal 17.
+[dumb-init] A child with PID 6 exited with exit status 255.
+[dumb-init] Forwarded signal 15 to children.
+[dumb-init] Child exited with status 255. Goodbye.
+```
+
+Вот она ошибочка
+```log
+no service with name nginx-ingress/default-http-backend found: services "default-http-backend" is forbidden: User "system:serviceaccount:nginx-ingress:default" cannot get resource "services" in API group "" in the namespace "nginx-ingress"
+```
+
+Попробуем задеплоиться в отдельный неймспейс
+
+```shell
+kubectl create namespace gitlab
+```
+```log
+namespace/gitlab created
+```
+```shell
+helm install --namespace gitlab -f values.yaml gitlab .
+```
+```log
+WARNING: This chart is deprecated
+NAME: gitlab
+LAST DEPLOYED: Sat Jan 11 20:37:37 2020
+NAMESPACE: gitlab
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+It may take several minutes for GitLab to reconfigure.
+    You can watch the status by running `kubectl get deployment -w gitlab-gitlab --namespace gitlab
+  You did not specify a baseIP so one will be assigned for you.
+  It may take a few minutes for the LoadBalancer IP to be available.
+  Watch the status with: 'kubectl get svc -w --namespace nginx-ingress nginx', then:
+
+  export SERVICE_IP=$(kubectl get svc --namespace nginx-ingress nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+  Then make sure to configure DNS with something like:
+    *.your-domain.com   300 IN A $SERVICE_IP
+```
+
+Та же ошибка
+```shell
+kubectl logs nginx-p4m8s -n nginx-ingress
+```
+```log
+[dumb-init] Unable to detach from controlling tty (errno=25 Inappropriate ioctl for device).
+[dumb-init] Child spawned with PID 6.
+[dumb-init] Unable to attach to controlling tty (errno=25 Inappropriate ioctl for device).
+[dumb-init] setsid complete.
+I0111 17:48:38.912239       6 launch.go:105] &{NGINX 0.9.0-beta.11 git-a3131c5 https://github.com/kubernetes/ingress}
+I0111 17:48:38.912274       6 launch.go:108] Watching for ingress class: nginx
+I0111 17:48:38.912938       6 launch.go:262] Creating API server client for https://10.4.0.1:443
+I0111 17:48:38.916966       6 nginx.go:182] starting NGINX process...
+F0111 17:48:38.970325       6 launch.go:122] no service with name nginx-ingress/default-http-backend found: services "default-http-backend" is kubectl logs nginx-p4m8s -n nginx-ing
+ress
+[dumb-init] Unable to detach from controlling tty (errno=25 Inappropriate ioctl for device).
+[dumb-init] Child spawned with PID 6.
+[dumb-init] Unable to attach to controlling tty (errno=25 Inappropriate ioctl for device).
+[dumb-init] setsid complete.
+I0111 17:48:38.912239       6 launch.go:105] &{NGINX 0.9.0-beta.11 git-a3131c5 https://github.com/kubernetes/ingress}
+I0111 17:48:38.912274       6 launch.go:108] Watching for ingress class: nginx
+I0111 17:48:38.912938       6 launch.go:262] Creating API server client for https://10.4.0.1:443
+I0111 17:48:38.916966       6 nginx.go:182] starting NGINX process...
+F0111 17:48:38.970325       6 launch.go:122] no service with name nginx-ingress/default-http-backend found: services "default-http-backend" is forbidden: User "system:serviceaccount:nginx-ingress:default" cannot get resource "services" in API group "" in the namespace "nginx-ingress"
+[dumb-init] Received signal 17.
+[dumb-init] A child with PID 6 exited with exit status 255.
+[dumb-init] Forwarded signal 15 to children.
+[dumb-init] Child exited with status 255. Goodbye. in API group "" in the namespace "nginx-ingress"
+[dumb-init] Received signal 17.
+[dumb-init] A child with PID 6 exited with exit status 255.
+[dumb-init] Forwarded signal 15 to children.
+[dumb-init] Child exited with status 255. Goodbye.
+```
+
+Гугл говорит: https://stackoverflow.com/questions/50613717/deploy-gitlab-with-helm-nginx-ingress-pods-cant-start
+
+Ещё момент: попробуем включить `Legacy Authorization`
+
+`kubernetes/terraform/main.tf`
+```conf
+...
+module "gke_cluster" {
+  ...
+  enable_legacy_abac = "true"
+}
+...
+```
+
+Был обнаружен баг в модуле `kubernetes/terraform/modules/gke-cluster`. В `kubernetes/terraform/modules/gke-cluster/variables.tf` есть переменная `enable_legacy_abac`, но она нигде не применяется. Хотя её значение должно устанавливать значение параметра `enable_legacy_abac` в `resource "google_container_cluster" "cluster" {` в `kubernetes/terraform/modules/gke-cluster/main.tf`
+
+Составлена issue https://github.com/gruntwork-io/terraform-google-gke/issues/79
+
+Создан PR https://github.com/gruntwork-io/terraform-google-gke/pull/80
+
+Локально данный баг исправлен
+
+`kubernetes/terraform/modules/gke-cluster/main.tf`
+```conf
+...
+resource "google_container_cluster" "cluster" {
+  ...
+  enable_legacy_abac = var.enable_legacy_abac
+}
+```
+
+Ждём когда гитлаб поднимется
+```shell
+kubectl get pods -n gitlab
+```
+```log
+NAME                                        READY   STATUS    RESTARTS   AGE
+gitlab-gitlab-766445f7d7-9ptqb              1/1     Running   0          11h
+gitlab-gitlab-postgresql-66d5b899b8-67qbm   1/1     Running   0          11h
+gitlab-gitlab-redis-6c675dd568-pb6xw        1/1     Running   0          11h
+gitlab-gitlab-runner-644c574f56-48kvd       1/1     Running   4          11h
+```
+
+Получаем внешний ip
+```shell
+kubectl get service -n nginx-ingress nginx
+```
+```log
+NAME    TYPE           CLUSTER-IP   EXTERNAL-IP   PORT(S)                                   AGE
+nginx   LoadBalancer   10.4.8.171   35.223.5.28   80:32197/TCP,443:32626/TCP,22:31543/TCP   10h
+```
+
+Добавляем `35.223.5.28 gitlab-gitlab staging production` в `/etc/hosts`
+
+Открываем http://gitlab-gitlab/
+
+Ставим собственный пароль. Логинимся под пользователем root и новым паролем otusgitlab (на самом деле нет ^_^).
+
+
