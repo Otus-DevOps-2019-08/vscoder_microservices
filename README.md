@@ -362,6 +362,16 @@ vscoder microservices repository
       - [Helm3](#helm3)
     - [GitLab + Kubernetes](#gitlab--kubernetes)
       - [Установим GitLab](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%b8%d0%bc-gitlab)
+      - [Запустим проект](#%d0%97%d0%b0%d0%bf%d1%83%d1%81%d1%82%d0%b8%d0%bc-%d0%bf%d1%80%d0%be%d0%b5%d0%ba%d1%82)
+        - [ui](#ui-2)
+        - [comment](#comment-3)
+        - [post](#post-3)
+        - [reddit-deploy](#reddit-deploy)
+      - [Настроим CI](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b8%d0%bc-ci)
+        - [ui](#ui-3)
+        - [comment](#comment-4)
+        - [post](#post-4)
+        - [feature-branch](#feature-branch)
 
 # Makefile
 
@@ -16927,3 +16937,1035 @@ nginx   LoadBalancer   10.4.8.171   35.223.5.28   80:32197/TCP,443:32626/TCP,22:
 Ставим собственный пароль. Логинимся под пользователем root и новым паролем otusgitlab (на самом деле нет ^_^).
 
 
+#### Запустим проект
+
+Создадим группу `vscoder` http://gitlab-gitlab/vscoder
+
+В настройках группы выберите пункт CI/CD http://gitlab-gitlab/groups/vscoder/-/settings/ci_cd
+
+Добавьте 2 переменные:
+- `CI_REGISTRY_USER` - логин в dockerhub
+- `CI_REGISTRY_PASSWORD` - пароль от Docker Hub
+
+> Эти учетные данные будут использованы при сборке и релизе docker-образов с помощью Gitlab CI
+
+В группе создадим новый проект `reddit-deploy` http://gitlab-gitlab/vscoder/reddit-deploy
+
+**Задание:** Создайте еще 3 проекта: _post_, _ui_, _comment_ (сделайте также их публичными)
+
+Созданы публичные проекты
+- `post` http://gitlab-gitlab/vscoder/post
+- `comment` http://gitlab-gitlab/vscoder/comment
+- `ui` http://gitlab-gitlab/vscoder/ui
+
+Локально (вне основного репозитория) создана директория `Gitlab_ci` со следующей структурой
+```log
+Gitlab_ci
+├── comment
+├── post
+├── reddit-deploy
+└── ui
+
+4 directories, 0 files
+```
+
+##### ui
+
+Перенесите исходные коды сервиса `ui` в `Gitlab_ci/ui`
+
+Структура директории стала
+```log
+Gitlab_ci/ui
+├── build_info.txt
+├── config.ru
+├── docker_build.sh
+├── Dockerfile
+├── Gemfile
+├── Gemfile.lock
+├── helpers.rb
+├── middleware.rb
+├── ui_app.rb
+├── VERSION
+└── views
+    ├── create.haml
+    ├── index.haml
+    ├── layout.haml
+    └── show.haml
+
+1 directory, 14 files
+```
+
+Заливаем код сервиса `ui` в соответствующий проект, инструкции представлены на странице пустого проекта `ui` в `gitlab`
+В директории `Gitlab_ci/`:
+```shell
+cd ./ui
+git init
+git remote add origin git@gitlab-gitlab:vscoder/ui.git
+git add .
+git commit -m "Initial commit"
+git push -u origin master
+```
+```log
+Initialised empty Git repository in /home/vscoder/projects/otus/devops-2019-08/Gitlab_ci/ui/.git/
+[master (корневой коммит) 049d01f] Initial commit
+ 14 files changed, 587 insertions(+)
+ create mode 100644 Dockerfile
+ create mode 100644 Gemfile
+ create mode 100644 Gemfile.lock
+ create mode 100644 VERSION
+ create mode 100644 build_info.txt
+ create mode 100644 config.ru
+ create mode 100644 docker_build.sh
+ create mode 100644 helpers.rb
+ create mode 100644 middleware.rb
+ create mode 100644 ui_app.rb
+ create mode 100644 views/create.haml
+ create mode 100644 views/index.haml
+ create mode 100644 views/layout.haml
+ create mode 100644 views/show.haml
+Подсчет объектов: 17, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (15/15), готово.
+Запись объектов: 100% (17/17), 7.28 KiB | 1.04 MiB/s, готово.
+Total 17 (delta 1), reused 0 (delta 0)
+To gitlab-gitlab:vscoder/ui.git
+ * [new branch]      master -> master
+Ветка «master» отслеживает внешнюю ветку «master» из «origin».
+```
+
+**Задание:** Для post и comment продейлайте аналогичные действия. Не забудьте указывать соответствующие названия репозиториев и групп.
+
+
+##### comment
+
+В директории `Gitlab_ci/`:
+```shell
+cd ./comment
+git init
+git remote add origin git@gitlab-gitlab:vscoder/comment.git
+git add .
+git commit -m "Initial commit"
+git push -u origin master
+```
+```log
+Initialised empty Git repository in /home/vscoder/projects/otus/devops-2019-08/Gitlab_ci/comment/.git/
+[master (корневой коммит) 1fa7a7f] Initial commit
+ 9 files changed, 290 insertions(+)
+ create mode 100644 Dockerfile
+ create mode 100644 Gemfile
+ create mode 100644 Gemfile.lock
+ create mode 100644 VERSION
+ create mode 100644 build_info.txt
+ create mode 100644 comment_app.rb
+ create mode 100644 config.ru
+ create mode 100644 docker_build.sh
+ create mode 100644 helpers.rb
+Подсчет объектов: 11, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (9/9), готово.
+Запись объектов: 100% (11/11), 3.53 KiB | 1.18 MiB/s, готово.
+Total 11 (delta 0), reused 0 (delta 0)
+To gitlab-gitlab:vscoder/comment.git
+ * [new branch]      master -> master
+Ветка «master» отслеживает внешнюю ветку «master» из «origin».
+```
+
+
+##### post
+
+В директории `Gitlab_ci/`:
+```shell
+cd ./post
+git init
+git remote add origin git@gitlab-gitlab:vscoder/post.git
+git add .
+git commit -m "Initial commit"
+git push -u origin master
+```
+```log
+Initialised empty Git repository in /home/vscoder/projects/otus/devops-2019-08/Gitlab_ci/post/.git/
+[master (корневой коммит) 9be6e80] Initial commit
+ 7 files changed, 351 insertions(+)
+ create mode 100644 Dockerfile
+ create mode 100644 VERSION
+ create mode 100644 build_info.txt
+ create mode 100644 docker_build.sh
+ create mode 100644 helpers.py
+ create mode 100644 post_app.py
+ create mode 100644 requirements.txt
+Подсчет объектов: 9, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (7/7), готово.
+Запись объектов: 100% (9/9), 3.96 KiB | 1013.00 KiB/s, готово.
+Total 9 (delta 0), reused 0 (delta 0)
+To gitlab-gitlab:vscoder/post.git
+ * [new branch]      master -> master
+Ветка «master» отслеживает внешнюю ветку «master» из «origin».
+```
+
+
+##### reddit-deploy
+
+1. Перенести содержимое директории `Charts` (папки ui, post, comment, reddit) в `Gitlab_ci/reddit-deploy`
+2. Запушить `reddit-deploy` в gitlab-проект _reddit-deploy_
+```shell
+cd reddit-deploy
+git init
+git remote add origin git@gitlab-gitlab:vscoder/reddit-deploy.git
+git add .
+git commit -m "Initial commit"
+git push -u origin master
+```
+```log
+Initialised empty Git repository in /home/vscoder/projects/otus/devops-2019-08/Gitlab_ci/reddit-deploy/.git/
+[master (корневой коммит) cbe8d36] Initial commit
+ 21 files changed, 323 insertions(+)
+ create mode 100644 comment/Chart.yaml
+ create mode 100644 comment/templates/_helpers.tpl
+ create mode 100644 comment/templates/deployment.yaml
+ create mode 100644 comment/templates/service.yaml
+ create mode 100644 comment/values.yaml
+ create mode 100644 post/Chart.yaml
+ create mode 100644 post/templates/_helpers.tpl
+ create mode 100644 post/templates/deployment.yaml
+ create mode 100644 post/templates/service.yaml
+ create mode 100644 post/values.yaml
+ create mode 100644 reddit/.gitignore
+ create mode 100644 reddit/Chart.yaml
+ create mode 100644 reddit/requirements.lock
+ create mode 100644 reddit/requirements.yaml
+ create mode 100644 reddit/values.yaml
+ create mode 100644 ui/Chart.yaml
+ create mode 100644 ui/templates/_helpers.tpl
+ create mode 100644 ui/templates/deployment.yaml
+ create mode 100644 ui/templates/ingress.yaml
+ create mode 100644 ui/templates/service.yaml
+ create mode 100644 ui/values.yaml
+Подсчет объектов: 30, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (29/29), готово.
+Запись объектов: 100% (30/30), 3.83 KiB | 490.00 KiB/s, готово.
+Total 30 (delta 6), reused 0 (delta 0)
+To gitlab-gitlab:vscoder/reddit-deploy.git
+ * [new branch]      master -> master
+Ветка «master» отслеживает внешнюю ветку «master» из «origin».
+```
+3. Структура должна выглядеть так (да, она выглядит так, добавлять не буду)
+
+
+#### Настроим CI
+
+
+##### ui
+
+1. Создайте файл `gitlab_ci/ui/.gitlab-ci.yml` с содержимым
+```yaml
+image: alpine:latest
+
+stages:
+  - build
+  - test
+  - release
+  - cleanup
+
+build:
+  stage: build
+  image: docker:git
+  services:
+    - docker:18.09.7-dind
+  script:
+    - setup_docker
+    - build
+  variables:
+    DOCKER_DRIVER: overlay2
+  only:
+    - branches
+
+test:
+  stage: test
+  script:
+    - exit 0
+  only:
+    - branches
+
+release:
+  stage: release
+  image: docker
+  services:
+    - docker:dind
+  script:
+    - setup_docker
+    - release
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+  only:
+    - master
+
+.auto_devops: &auto_devops |
+  [[ "$TRACE" ]] && set -x
+  export CI_REGISTRY="index.docker.io"
+  export CI_APPLICATION_REPOSITORY=$CI_REGISTRY/$CI_PROJECT_PATH
+  export CI_APPLICATION_TAG=$CI_COMMIT_REF_SLUG
+  export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
+  export TILLER_NAMESPACE="kube-system"
+
+  function setup_docker() {
+    if ! docker info &>/dev/null; then
+      if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+        export DOCKER_HOST='tcp://localhost:2375'
+      fi
+    fi
+  }
+
+  function release() {
+
+    echo "Updating docker images ..."
+
+    if [[ -n "$CI_REGISTRY_USER" ]]; then
+      echo "Logging to GitLab Container Registry with CI credentials..."
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      echo ""
+    fi
+
+    docker pull "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+    docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    docker push "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    echo ""
+  }
+
+  function build() {
+
+    echo "Building Dockerfile-based application..."
+    echo `git show --format="%h" HEAD | head -1` > build_info.txt
+    echo `git rev-parse --abbrev-ref HEAD` >> build_info.txt
+    docker build -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
+
+    if [[ -n "$CI_REGISTRY_USER" ]]; then
+      echo "Logging to GitLab Container Registry with CI credentials..."
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      echo ""
+    fi
+
+    echo "Pushing to GitLab Container Registry..."
+    docker push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+    echo ""
+  }
+
+before_script:
+  - *auto_devops
+```
+
+2. Закомитьте и запуште в gitlab
+```shell
+cd ./ui
+git add .
+git ci -m"Add .gitlab-ci.yml"
+git push
+```
+```log
+[master e270943] Add .gitlab-ci.yml
+ 1 file changed, 94 insertions(+)
+ create mode 100644 .gitlab-ci.yml
+Подсчет объектов: 3, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (3/3), готово.
+Запись объектов: 100% (3/3), 1.07 KiB | 1.07 MiB/s, готово.
+Total 3 (delta 1), reused 0 (delta 0)
+To gitlab-gitlab:vscoder/ui.git
+   049d01f..e270943  master -> master
+```
+
+3. Проверьте, что Pipeline работает
+   После ввода правильного пароля для `CI_REGISTRY_PASSWORD` пайплайн прошёл успешно :)
+
+В текущей конфигурации CI выполняет
+1. Build: Сборку докер-образа с тегом master
+2. Test: Фиктивное тестирование
+3. Release: Смену тега с master на тег из файла VERSION и пуш docker-образа с новым тегом
+
+Job для выполнения каждой задачи запускается в отдельном Kubernetes POD-е.
+
+Требуемые операции вызываются в блоках script:
+```yaml
+script:
+  - setup_docker
+  - build
+```
+
+Описание самих операций производится в виде bash-функций в блоке `.auto_devops`
+```shell
+.auto_devops: &auto_devops |
+function setup_docker() {
+  ...
+}
+function release() {
+  ...
+}
+function build() {
+  ...
+}
+```
+
+Для `Post` и `Comment` также добавьте в репозиторий `.gitlab-ci.yml` и проследите, что сборки образов прошли успешно.
+
+
+##### comment
+
+Копируем тот же `.gitlab-ci.yml`, затем
+```shell
+git add .
+git ci -m"Add .gitlab-ci.yml"
+git push
+```
+```log
+[master 9961b94] Add .gitlab-ci.yml
+ 1 file changed, 94 insertions(+)
+ create mode 100644 .gitlab-ci.yml
+Подсчет объектов: 3, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (3/3), готово.
+Запись объектов: 100% (3/3), 1.07 KiB | 1.07 MiB/s, готово.
+Total 3 (delta 1), reused 0 (delta 0)
+To gitlab-gitlab:vscoder/comment.git
+   1fa7a7f..9961b94  master -> master
+```
+
+Пайплайн полностью отработал
+
+
+##### post
+
+Копируем тот же `.gitlab-ci.yml`, затем
+```shell
+git add .
+git ci -m"Add .gitlab-ci.yml"
+git push
+```
+```log
+[master e0c8f14] Add .gitlab-ci.yml
+ 1 file changed, 94 insertions(+)
+ create mode 100644 .gitlab-ci.yml
+Подсчет объектов: 3, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (3/3), готово.
+Запись объектов: 100% (3/3), 1.08 KiB | 1.08 MiB/s, готово.
+Total 3 (delta 1), reused 0 (delta 0)
+To gitlab-gitlab:vscoder/post.git
+   9be6e80..e0c8f14  master -> master
+```
+
+Все стадии пайплайна прошли успешно
+
+##### feature-branch
+
+Дадим возможность разработчику запускать отдельное окружение в Kubernetes по коммиту в feature-бранч.
+
+Немного обновим конфиг ингресса для сервиса UI:
+`reddit-deploy/ui/templates/ingress.yml`
+```yaml
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "ui.fullname" . }}
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.ingress.class }}
+spec:
+  rules:
+  - host: {{ .Values.ingress.host | default .Release.Name }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ template "ui.fullname" . }}
+          servicePort: {{ .Values.service.externalPort }}
+...
+```
+> В качестве контроллера - nginx, поэтому правило другое
+
+Обновим конфиг ингресса для сервиса UI:
+`reddit-deploy/ui/templates/values.yml`  
+```yaml
+---
+service:
+  internalPort: 9292
+  externalPort: 9292
+
+image:
+  repository: vscoder/ui
+  tag: latest
+
+# Будем использовать nginx-ingress, 
+# который был поставлен вместе с gitlab-ом 
+# (так быстрее и правила более гибкие, чем у GCP)
+ingress:
+  class: nginx
+
+postHost:
+postPort:
+commentHost:
+commentPort:
+...
+```
+**Примечание:** возможно, путь к файлу в ДЗ не правильный, и должен быть `reddit-deploy/ui/values.yml`, так как по данному пути такой файл существует, вотличии от варианта из ДЗ. Его и используем, так как он выглядит логичней.
+
+Дадим возможность разработчику запускать отдельное окружение в Kubernetes по коммиту в feature-бранч.
+
+1. Создайте новый бранч в репозитории ui
+```shell
+git checkout -b feature/3
+```
+```log
+Переключено на новую ветку «feature/3»
+```
+2. Обновите `ui/.gitlab-ci.yml` файл:
+```yaml
+---
+image: alpine:latest
+
+stages:
+  - build
+  - test
+  - review
+  - release
+
+build:
+  stage: build
+  image: docker:git
+  services:
+    - docker:18.09.7-dind
+  script:
+    - setup_docker
+    - build
+  variables:
+    DOCKER_DRIVER: overlay2
+  only:
+    - branches
+
+test:
+  stage: test
+  script:
+    - exit 0
+  only:
+    - branches
+
+release:
+  stage: release
+  image: docker
+  services:
+    - docker:18.09.7-dind
+  script:
+    - setup_docker
+    - release
+  only:
+    - master
+
+review:
+  stage: review
+  script:
+    - install_dependencies
+    - ensure_namespace
+    - install_tiller
+    - deploy
+  variables:
+    KUBE_NAMESPACE: review
+    host: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    url: http://$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    on_stop: stop_review
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+
+.auto_devops: &auto_devops |
+  [[ "$TRACE" ]] && set -x
+  export CI_REGISTRY="index.docker.io"
+  export CI_APPLICATION_REPOSITORY=$CI_REGISTRY/$CI_PROJECT_PATH
+  export CI_APPLICATION_TAG=$CI_COMMIT_REF_SLUG
+  export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
+  export TILLER_NAMESPACE="kube-system"
+
+  function deploy() {
+    track="${1-stable}"
+    name="$CI_ENVIRONMENT_SLUG"
+
+    if [[ "$track" != "stable" ]]; then
+      name="$name-$track"
+    fi
+
+    echo "Clone deploy repository..."
+    git clone http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/reddit-deploy.git
+
+    echo "Download helm dependencies..."
+    helm dep update reddit-deploy/reddit
+
+    echo "Deploy helm release $name to $KUBE_NAMESPACE"
+    helm upgrade --install \
+      --wait \
+      --set ui.ingress.host="$host" \
+      --set $CI_PROJECT_NAME.image.tag=$CI_APPLICATION_TAG \
+      --namespace="$KUBE_NAMESPACE" \
+      --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+      "$name" \
+      reddit-deploy/reddit/
+  }
+
+  function install_dependencies() {
+
+    apk add -U openssl curl tar gzip bash ca-certificates git
+    wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk
+    apk add glibc-2.23-r3.apk
+    rm glibc-2.23-r3.apk
+
+    curl https://storage.googleapis.com/pub/gsutil.tar.gz | tar -xz -C $HOME
+    export PATH=${PATH}:$HOME/gsutil
+
+    curl https://kubernetes-helm.storage.googleapis.com/helm-v2.13.1-linux-amd64.tar.gz | tar zx
+
+    mv linux-amd64/helm /usr/bin/
+    helm version --client
+
+    curl  -o /usr/bin/sync-repo.sh https://raw.githubusercontent.com/kubernetes/helm/master/scripts/sync-repo.sh
+    chmod a+x /usr/bin/sync-repo.sh
+
+    curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    chmod +x /usr/bin/kubectl
+    kubectl version --client
+  }
+
+  function setup_docker() {
+    if ! docker info &>/dev/null; then
+      if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+        export DOCKER_HOST='tcp://localhost:2375'
+      fi
+    fi
+  }
+
+  function ensure_namespace() {
+    kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+  }
+
+  function release() {
+
+    echo "Updating docker images ..."
+
+    if [[ -n "$CI_REGISTRY_USER" ]]; then
+      echo "Logging to GitLab Container Registry with CI credentials..."
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      echo ""
+    fi
+
+    docker pull "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+    docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    docker push "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    echo ""
+  }
+
+  function build() {
+
+    echo "Building Dockerfile-based application..."
+    echo `git show --format="%h" HEAD | head -1` > build_info.txt
+    echo `git rev-parse --abbrev-ref HEAD` >> build_info.txt
+    docker build -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
+
+    if [[ -n "$CI_REGISTRY_USER" ]]; then
+      echo "Logging to GitLab Container Registry with CI credentials..."
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      echo ""
+    fi
+
+    echo "Pushing to GitLab Container Registry..."
+    docker push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+    echo ""
+  }
+
+  function install_tiller() {
+    echo "Checking Tiller..."
+    helm init --upgrade
+    kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
+    if ! helm version --debug; then
+      echo "Failed to init Tiller."
+      return 1
+    fi
+    echo ""
+  }
+
+before_script:
+  - *auto_devops
+...
+```
+
+3. Закоммитьте и запушьте изменения
+```shell
+git push
+```
+```log
+Подсчет объектов: 3, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (3/3), готово.
+Запись объектов: 100% (3/3), 1.91 KiB | 1.91 MiB/s, готово.
+Total 3 (delta 1), reused 0 (delta 0)
+remote: 
+remote: To create a merge request for feature/3, visit:
+remote:   http://gitlab-gitlab/vscoder/ui/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2F3
+remote: 
+To gitlab-gitlab:vscoder/ui.git
+ * [new branch]      feature/3 -> feature/3
+```
+
+Но ошибка однако, `yaml invalid` говорит гитлаб. Проверим: http://gitlab-gitlab/ci/lint
+```log
+Error: review job: on_stop job stop_review is not defined
+```
+Job `stop_review` будет добавлен далее в ДЗ.
+
+В коммитах ветки `feature/3` можете найти сделанные изменения
+
+Отметим, что мы добавили стадию `review`, запускающую приложение в k8s по коммиту в **feature-бранчи** (не master).
+```yaml
+review:
+  stage: review
+  script:
+    - install_dependencies
+    - ensure_namespace
+    - install_tiller
+    - deploy
+  variables:
+    KUBE_NAMESPACE: review
+    host: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    url: http://$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    on_stop: stop_review
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+```
+
+Мы добавили функцию `deploy`, которая загружает _Chart_ из репозитория `reddit-deploy` и делает релиз в неймспейсе `review` с образом приложения, собранным на стадии `build`.
+```shell
+function deploy() {
+  track="${1-stable}"
+  name="$CI_ENVIRONMENT_SLUG"
+
+  if [[ "$track" != "stable" ]]; then
+    name="$name-$track"
+  fi
+
+  echo "Clone deploy repository..."
+  git clone http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/reddit-deploy.git
+
+  echo "Download helm dependencies..."
+  helm dep update reddit-deploy/reddit
+
+  echo "Deploy helm release $name to $KUBE_NAMESPACE"
+  helm upgrade --install \
+    --wait \
+    --set ui.ingress.host="$host" \
+    --set $CI_PROJECT_NAME.image.tag=$CI_APPLICATION_TAG \
+    --namespace="$KUBE_NAMESPACE" \
+    --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+    "$name" \
+    reddit-deploy/reddit/
+}
+```
+
+Можем увидеть какие релизы запущены (на самом деле не можем, так как у нас до сих пор не содан job `review`, поэтому пока просто пойдём дальше)
+
+Созданные для таких целей окружения временны, их требуется "убивать", когда они больше не нужны
+
+Добавьте в `.gitlab-ci.yml`
+```yaml
+stages:
+  - build
+  - test
+  - review
+  - release
+  - cleanup  # вот это вот
+
+stop_review:  # и вот это
+  stage: cleanup
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - install_dependencies
+    - delete
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    action: stop
+  when: manual
+  allow_failure: true
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+```
+
+Добавьте функцию удаления окружения
+```shell
+  function delete() {
+    track="${1-stable}"
+    name="$CI_ENVIRONMENT_SLUG"
+    helm delete "$name" --purge || true
+  }
+```
+
+Итоговый `ui/.gitlab-ci.yml`
+```yaml
+---
+image: alpine:latest
+
+stages:
+  - build
+  - test
+  - review
+  - release
+  - cleanup
+
+build:
+  stage: build
+  image: docker:git
+  services:
+    - docker:18.09.7-dind
+  script:
+    - setup_docker
+    - build
+  variables:
+    DOCKER_DRIVER: overlay2
+  only:
+    - branches
+
+test:
+  stage: test
+  script:
+    - exit 0
+  only:
+    - branches
+
+release:
+  stage: release
+  image: docker
+  services:
+    - docker:18.09.7-dind
+  script:
+    - setup_docker
+    - release
+  only:
+    - master
+
+review:
+  stage: review
+  script:
+    - install_dependencies
+    - ensure_namespace
+    - install_tiller
+    - deploy
+  variables:
+    KUBE_NAMESPACE: review
+    host: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    url: http://$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    on_stop: stop_review
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+
+stop_review:
+  stage: cleanup
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - install_dependencies
+    - delete
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    action: stop
+  when: manual
+  allow_failure: true
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+
+.auto_devops: &auto_devops |
+  [[ "$TRACE" ]] && set -x
+  export CI_REGISTRY="index.docker.io"
+  export CI_APPLICATION_REPOSITORY=$CI_REGISTRY/$CI_PROJECT_PATH
+  export CI_APPLICATION_TAG=$CI_COMMIT_REF_SLUG
+  export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
+  export TILLER_NAMESPACE="kube-system"
+
+  function deploy() {
+    track="${1-stable}"
+    name="$CI_ENVIRONMENT_SLUG"
+
+    if [[ "$track" != "stable" ]]; then
+      name="$name-$track"
+    fi
+
+    echo "Clone deploy repository..."
+    git clone http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/reddit-deploy.git
+
+    echo "Download helm dependencies..."
+    helm dep update reddit-deploy/reddit
+
+    echo "Deploy helm release $name to $KUBE_NAMESPACE"
+    helm upgrade --install \
+      --wait \
+      --set ui.ingress.host="$host" \
+      --set $CI_PROJECT_NAME.image.tag=$CI_APPLICATION_TAG \
+      --namespace="$KUBE_NAMESPACE" \
+      --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+      "$name" \
+      reddit-deploy/reddit/
+  }
+
+  function install_dependencies() {
+
+    apk add -U openssl curl tar gzip bash ca-certificates git
+    wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk
+    apk add glibc-2.23-r3.apk
+    rm glibc-2.23-r3.apk
+
+    curl https://storage.googleapis.com/pub/gsutil.tar.gz | tar -xz -C $HOME
+    export PATH=${PATH}:$HOME/gsutil
+
+    curl https://kubernetes-helm.storage.googleapis.com/helm-v2.13.1-linux-amd64.tar.gz | tar zx
+
+    mv linux-amd64/helm /usr/bin/
+    helm version --client
+
+    curl  -o /usr/bin/sync-repo.sh https://raw.githubusercontent.com/kubernetes/helm/master/scripts/sync-repo.sh
+    chmod a+x /usr/bin/sync-repo.sh
+
+    curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    chmod +x /usr/bin/kubectl
+    kubectl version --client
+  }
+
+  function setup_docker() {
+    if ! docker info &>/dev/null; then
+      if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+        export DOCKER_HOST='tcp://localhost:2375'
+      fi
+    fi
+  }
+
+  function ensure_namespace() {
+    kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+  }
+
+  function release() {
+
+    echo "Updating docker images ..."
+
+    if [[ -n "$CI_REGISTRY_USER" ]]; then
+      echo "Logging to GitLab Container Registry with CI credentials..."
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      echo ""
+    fi
+
+    docker pull "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+    docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    docker push "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    echo ""
+  }
+
+  function build() {
+
+    echo "Building Dockerfile-based application..."
+    echo `git show --format="%h" HEAD | head -1` > build_info.txt
+    echo `git rev-parse --abbrev-ref HEAD` >> build_info.txt
+    docker build -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
+
+    if [[ -n "$CI_REGISTRY_USER" ]]; then
+      echo "Logging to GitLab Container Registry with CI credentials..."
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      echo ""
+    fi
+
+    echo "Pushing to GitLab Container Registry..."
+    docker push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+    echo ""
+  }
+
+  function delete() {
+    track="${1-stable}"
+    name="$CI_ENVIRONMENT_SLUG"
+    helm delete "$name" --purge || true
+  }
+
+  function install_tiller() {
+    echo "Checking Tiller..."
+    helm init --upgrade
+    kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
+    if ! helm version --debug; then
+      echo "Failed to init Tiller."
+      return 1
+    fi
+    echo ""
+  }
+
+before_script:
+  - *auto_devops
+```
+
+Запуште изменения в Git
+```shell
+git add .
+git ci -m"Update .gitlab-ci.yml"
+git push
+```
+```log
+[feature/3 f116405] Update .gitlab-ci.yml
+ 1 file changed, 25 insertions(+)
+Подсчет объектов: 3, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (3/3), готово.
+Запись объектов: 100% (3/3), 467 bytes | 467.00 KiB/s, готово.
+Total 3 (delta 2), reused 0 (delta 0)
+remote: 
+remote: To create a merge request for feature/3, visit:
+remote:   http://gitlab-gitlab/vscoder/ui/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2F3
+remote: 
+To gitlab-gitlab:vscoder/ui.git
+   fc6c6ac..f116405  feature/3 -> feature/3
+```
+
+Пайплайн отработал. Проверим деплой
+```shell
+helm-2.13.1 list                     
+```
+```log
+NAME                            REVISION        UPDATED                         STATUS          CHART           APP VERSION     NAMESPACE
+review-vscoder-ui-8kt2zr        1               Mon Jan 13 00:02:38 2020        DEPLOYED        reddit-0.1.0                    review
+```
+
+В Environments http://gitlab-gitlab/vscoder/ui/environments/1 смотрим url http://vscoder-ui-feature-3/
+
+Внесём хост `vscoder-ui-feature-3` в `/etc/hosts`
+
+Заходим на http://vscoder-ui-feature-3/
+```log
+default backend - 404
+``` 
+Ну ок, всё равно других сервисов больше нет. Хотя странно.
+
+На сегодня достаточно. TODO: продолжить с 9.25
