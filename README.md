@@ -372,6 +372,11 @@ vscoder microservices repository
         - [comment](#comment-4)
         - [post](#post-4)
         - [feature-branch](#feature-branch)
+          - [Для `post`](#%d0%94%d0%bb%d1%8f-post)
+          - [comment](#comment-5)
+      - [Деплоим](#%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b8%d0%bc)
+      - [Пайплайн здорового человека](#%d0%9f%d0%b0%d0%b9%d0%bf%d0%bb%d0%b0%d0%b9%d0%bd-%d0%b7%d0%b4%d0%be%d1%80%d0%be%d0%b2%d0%be%d0%b3%d0%be-%d1%87%d0%b5%d0%bb%d0%be%d0%b2%d0%b5%d0%ba%d0%b0)
+    - [Evicted](#evicted)
 
 # Makefile
 
@@ -17965,7 +17970,792 @@ review-vscoder-ui-8kt2zr        1               Mon Jan 13 00:02:38 2020        
 Заходим на http://vscoder-ui-feature-3/
 ```log
 default backend - 404
-``` 
-Ну ок, всё равно других сервисов больше нет. Хотя странно.
+```
+Не ок, будем разбираться... Разобрался, сам себе злобный буратино))
 
-На сегодня достаточно. TODO: продолжить с 9.25
+Смотрим ip нашего ingress
+```shell
+kubectl get ingress -n review 
+```
+```log
+NAME                          HOSTS   ADDRESS          PORTS   AGE
+review-vscoder-ui-8kt2zr-ui   *       34.107.198.236   80      15h
+```
+
+А мы мисали в `/etc/hosts` имя для ip гитлаба... Диагноз: нужно больше спать))
+
+Прописал в `/etc/hosts` соответствие `34.107.198.236 vscoder-ui-feature-3`. Проверил http://vscoder-ui-feature-3/ **все сервисы работают**
+
+
+В Pipelines: http://gitlab-gitlab/vscoder/ui/pipelines запустим удаление
+```log
+release "review-vscoder-ui-8kt2zr" deleted
+Job succeeded
+```
+
+`helm-2.13.1 ls` в этот раз не показал ничего
+
+**Задание:**
+
+Скопировать полученный файл `.gitlab-ci.yml` для ui в репозитории для post и comment.
+Проверить, что динамическое создание и удаление окружений работает с ними как ожидалось
+
+###### Для `post`
+
+```shell
+cd ../post
+cp ../ui/.gitlab-ci.yml ./
+git co -b feature/4
+git add .
+git ci -m"Test ci"
+git push
+```
+```log
+M       .gitlab-ci.yml
+Переключено на новую ветку «feature/4»
+[feature/4 d12d4a8] Test ci
+ 1 file changed, 111 insertions(+), 2 deletions(-)
+Подсчет объектов: 3, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (3/3), готово.
+Запись объектов: 100% (3/3), 2.00 KiB | 2.00 MiB/s, готово.
+Total 3 (delta 1), reused 0 (delta 0)
+remote: 
+remote: To create a merge request for feature/4, visit:
+remote:   http://gitlab-gitlab/vscoder/post/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2F4
+remote: 
+To gitlab-gitlab:vscoder/post.git
+ * [new branch]      feature/4 -> feature/4
+```
+
+Созданный ingress так же можно посмотреть в GCP https://console.cloud.google.com/kubernetes/ingresses
+
+reddit поднялся
+
+Не забываем удалить
+
+
+###### comment
+
+```shell
+cd ../comment
+cp ../ui/.gitlab-ci.yml ./
+git co -b feature/5
+git add .
+git ci -m"Test comment ci"
+git push
+```
+```log
+M       .gitlab-ci.yml
+Переключено на новую ветку «feature/5»
+[feature/5 78c9626] Test comment ci
+ 1 file changed, 111 insertions(+), 2 deletions(-)
+Подсчет объектов: 3, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (3/3), готово.
+Запись объектов: 100% (3/3), 2.00 KiB | 2.00 MiB/s, готово.
+Total 3 (delta 1), reused 0 (delta 0)
+remote: 
+remote: To create a merge request for feature/5, visit:
+remote:   http://gitlab-gitlab/vscoder/comment/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2F5
+remote: 
+To gitlab-gitlab:vscoder/comment.git
+ * [new branch]      feature/5 -> feature/5
+```
+
+Проверяем: окружение рабочее))
+
+Работа 2-х окружений одновременно проверена:
+```shell
+kubectl get ingress -n review
+```
+```log
+NAME                          HOSTS   ADDRESS         PORTS   AGE
+review-vscoder-co-ga6art-ui   *       34.107.213.1    80      7m43s
+review-vscoder-po-f2yqms-ui   *       34.95.116.107   80      20m
+```
+по http оба даступны
+
+helm видит оба
+```shell
+helm-2.13.1 ls
+```
+```log
+NAME                            REVISION        UPDATED                         STATUS          CHART           APP VERSION     NAMESPACE
+review-vscoder-co-ga6art        1               Mon Jan 13 16:01:30 2020        DEPLOYED        reddit-0.1.0                    review   
+review-vscoder-po-f2yqms        1               Mon Jan 13 15:48:35 2020        DEPLOYED        reddit-0.1.0                    review
+```
+
+Удаляем оба через gitlab
+
+
+#### Деплоим
+
+Теперь создадим `staging` и `production` среды для работы приложения
+
+Создайте файл `reddit-deploy/.gitlab-ci.yml`
+```yaml
+---
+image: alpine:latest
+
+stages:
+  - test
+  - staging
+  - production
+
+test:
+  stage: test
+  script:
+    - exit 0
+  only:
+    - triggers
+    - branches
+
+staging:
+  stage: staging
+  script:
+  - install_dependencies
+  - ensure_namespace
+  - install_tiller
+  - deploy
+  variables:
+    KUBE_NAMESPACE: staging
+  environment:
+    name: staging
+    url: http://staging
+  only:
+    refs:
+      - master
+    kubernetes: active
+
+production:
+  stage: production
+  script:
+    - install_dependencies
+    - ensure_namespace
+    - install_tiller
+    - deploy
+  variables:
+    KUBE_NAMESPACE: production
+  environment:
+    name: production
+    url: http://production
+  when: manual
+  only:
+    refs:
+      - master
+    kubernetes: active
+
+.auto_devops: &auto_devops |
+  # Auto DevOps variables and functions
+  [[ "$TRACE" ]] && set -x
+  export CI_REGISTRY="index.docker.io"
+  export CI_APPLICATION_REPOSITORY=$CI_REGISTRY/$CI_PROJECT_PATH
+  export CI_APPLICATION_TAG=$CI_COMMIT_REF_SLUG
+  export CI_CONTAINER_NAME=ci_job_build_${CI_JOB_ID}
+  export TILLER_NAMESPACE="kube-system"
+
+  function deploy() {
+    echo $KUBE_NAMESPACE
+    track="${1-stable}"
+    name="$CI_ENVIRONMENT_SLUG"
+    helm dep build reddit
+
+    # for microservice in $(helm dep ls | grep "file://" | awk '{print $1}') ; do
+    #   SET_VERSION="$SET_VERSION \ --set $microservice.image.tag='$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/ui/raw/master/VERSION)' "
+
+    helm upgrade --install \
+      --wait \
+      --set ui.ingress.host="$host" \
+      --set ui.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/ui/raw/master/VERSION)" \
+      --set post.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/post/raw/master/VERSION)" \
+      --set comment.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/comment/raw/master/VERSION)" \
+      --namespace="$KUBE_NAMESPACE" \
+      --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+      "$name" \
+      reddit
+  }
+
+  function install_dependencies() {
+
+    apk add -U openssl curl tar gzip bash ca-certificates git
+    wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk
+    apk add glibc-2.23-r3.apk
+    rm glibc-2.23-r3.apk
+
+    curl https://kubernetes-helm.storage.googleapis.com/helm-v2.13.1-linux-amd64.tar.gz | tar zx
+
+    mv linux-amd64/helm /usr/bin/
+    helm version --client
+
+    curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    chmod +x /usr/bin/kubectl
+    kubectl version --client
+  }
+
+  function ensure_namespace() {
+    kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+  }
+
+  function install_tiller() {
+    echo "Checking Tiller..."
+    helm init --upgrade
+    kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
+    if ! helm version --debug; then
+      echo "Failed to init Tiller."
+      return 1
+    fi
+    echo ""
+  }
+
+  function delete() {
+    track="${1-stable}"
+    name="$CI_ENVIRONMENT_SLUG"
+    helm delete "$name" || true
+  }
+
+before_script:
+  - *auto_devops
+```
+
+Запуште в репозиторий reddit-deploy ветку master
+```shell
+cd ../reddit-deploy
+git add .
+git ci -m"Update .gitlab-ci.yml and some others..."
+git push
+```
+```log
+[master cfe4726] Update .gitlab-ci.yml and some others...
+ 3 files changed, 130 insertions(+), 3 deletions(-)
+ create mode 100644 .gitlab-ci.yml
+Подсчет объектов: 7, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (7/7), готово.
+Запись объектов: 100% (7/7), 2.16 KiB | 1.08 MiB/s, готово.
+Total 7 (delta 2), reused 0 (delta 0)
+To gitlab-gitlab:vscoder/reddit-deploy.git
+   cbe8d36..cfe4726  master -> master
+```
+
+Этот файл отличается от предыдущих тем, что:
+
+1. Не собирает docker-образы
+2. Деплоит на статичные окружения (staging и production)
+3. Не удаляет окружения
+
+Удостоверьтесь, что staging успешно завершен... Ошибка в job `staging`
+```log
+$ deploy
+staging
+Error: requirements.lock is out of sync with requirements.yaml
+...
+```
+
+Обновим зависимости
+```shell
+cd reddit-deploy/reddit
+helm-2.13.1 dependency update
+```
+```log
+Hang tight while we grab the latest from your chart repositories...
+...Unable to get an update from the "local" chart repository (http://127.0.0.1:8879/charts):
+        Get http://127.0.0.1:8879/charts/index.yaml: dial tcp 127.0.0.1:8879: connect: connection refused
+...Successfully got an update from the "stable" chart repository
+Update Complete. ⎈Happy Helming!⎈
+Saving 4 charts
+Downloading mongodb from repo https://kubernetes-charts.storage.googleapis.com
+Deleting outdated charts
+```
+```shell
+reddit-deploy/reddit
+git ci -m"Fix Chart reddit requirements"
+git push
+```
+```log
+[master 720dc38] Fix Chart reddit requirements
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+Подсчет объектов: 4, готово.
+Delta compression using up to 12 threads.
+Сжатие объектов: 100% (4/4), готово.
+Запись объектов: 100% (4/4), 466 bytes | 466.00 KiB/s, готово.
+Total 4 (delta 3), reused 0 (delta 0)
+To gitlab-gitlab:vscoder/reddit-deploy.git
+   cfe4726..720dc38  master -> master
+```
+
+Деплой на staging прошёл успешно. Сайт доступен по ссылке из http://gitlab-gitlab/vscoder/reddit-deploy/environments
+
+Выкатываем на Production: здесь мы запускаем ручной пайплайн деплоя на прод. И ждем, пока пайплайн завершится
+
+В http://gitlab-gitlab/vscoder/reddit-deploy/environments видно  оба окружения
+
+В helm также все видно
+```shell
+helm-2.13.1 ls
+```
+```log
+NAME            REVISION        UPDATED                         STATUS          CHART           APP VERSION     NAMESPACE 
+production      1               Mon Jan 13 17:16:34 2020        DEPLOYED        reddit-0.1.0                    production
+staging         1               Mon Jan 13 17:08:55 2020        DEPLOYED        reddit-0.1.0                    staging
+```
+
+#### Пайплайн здорового человека
+
+Сейчас почти вся логика пайплайна заключена в `auto_devops` и трудночитаема. Давайте переделаем имеющийся для `ui` пайплайн так, чтобы он соответствовал синтаксису Gitlab
+
+```yaml
+---
+image: alpine:latest
+
+stages:
+  - build
+  - test
+  - review
+  - release
+  - cleanup
+
+build:
+  stage: build
+  only:
+    - branches
+  image: docker:git
+  services:
+    - docker:18.09.7-dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    CI_REGISTRY: 'index.docker.io'
+    CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+  before_script:
+    - >
+      if ! docker info &>/dev/null; then
+        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+          export DOCKER_HOST='tcp://localhost:2375'
+        fi
+      fi
+  script:
+    # Building
+    - echo "Building Dockerfile-based application..."
+    - echo `git show --format="%h" HEAD | head -1` > build_info.txt
+    - echo `git rev-parse --abbrev-ref HEAD` >> build_info.txt
+    - docker build -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
+    - >
+      if [[ -n "$CI_REGISTRY_USER" ]]; then
+        echo "Logging to GitLab Container Registry with CI credentials...for build"
+        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      fi
+    - echo "Pushing to GitLab Container Registry..."
+    - docker push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+
+test:
+  stage: test
+  script:
+    - exit 0
+  only:
+    - branches
+
+release:
+  stage: release
+  image: docker
+  services:
+    - docker:18.09.7-dind
+  variables:
+    CI_REGISTRY: 'index.docker.io'
+    CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+  before_script:
+    - >
+      if ! docker info &>/dev/null; then
+        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+          export DOCKER_HOST='tcp://localhost:2375'
+        fi
+      fi
+  script:
+    # Releasing
+    - echo "Updating docker images ..."
+    - >
+      if [[ -n "$CI_REGISTRY_USER" ]]; then
+        echo "Logging to GitLab Container Registry with CI credentials for release..."
+        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      fi
+    - docker pull "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+    - docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    - docker push "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    # latest is neede for feature flags
+    - docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:latest"
+    - docker push "$CI_APPLICATION_REPOSITORY:latest"
+  only:
+    - master
+
+review:
+  stage: review
+  variables:
+    KUBE_NAMESPACE: review
+    host: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    TILLER_NAMESPACE: kube-system
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    name: $CI_ENVIRONMENT_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    url: http://$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    on_stop: stop_review
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+  before_script:
+    # installing dependencies
+    - apk add -U openssl curl tar gzip bash ca-certificates git
+    - wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
+    - wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk
+    - apk add glibc-2.23-r3.apk
+    - curl https://storage.googleapis.com/pub/gsutil.tar.gz | tar -xz -C $HOME
+    - export PATH=${PATH}:$HOME/gsutil
+    - curl https://kubernetes-helm.storage.googleapis.com/helm-v2.13.1-linux-amd64.tar.gz | tar zx
+    - mv linux-amd64/helm /usr/bin/
+    - helm version --client
+    - curl  -o /usr/bin/sync-repo.sh https://raw.githubusercontent.com/kubernetes/helm/master/scripts/sync-repo.sh
+    - chmod a+x /usr/bin/sync-repo.sh
+    - curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    - chmod +x /usr/bin/kubectl
+    - kubectl version --client
+    # ensuring namespace
+    - kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+    # installing Tiller
+    - echo "Checking Tiller..."
+    - helm init --upgrade
+    - kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
+    - >
+      if ! helm version --debug; then
+        echo "Failed to init Tiller."
+        exit 1
+      fi
+  script:
+    - export track="${1-stable}"
+    - >
+      if [[ "$track" != "stable" ]]; then
+        name="$name-$track"
+      fi
+    - echo "Clone deploy repository..."
+    - git clone http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/reddit-deploy.git
+    - echo "Download helm dependencies..."
+    - helm dep update reddit-deploy/reddit
+    - echo "Deploy helm release $name to $KUBE_NAMESPACE"
+    - echo "Upgrading existing release..."
+    - echo "helm upgrade --install --wait --set ui.ingress.host="$host" --set $CI_PROJECT_NAME.image.tag="$CI_APPLICATION_TAG" --namespace="$KUBE_NAMESPACE" --version="$CI_PIPELINE_ID-$CI_JOB_ID" "$name" reddit-deploy/reddit/"
+    - >
+      helm upgrade \
+        --install \
+        --wait \
+        --set ui.ingress.host="$host" \
+        --set $CI_PROJECT_NAME.image.tag="$CI_APPLICATION_TAG" \
+        --namespace="$KUBE_NAMESPACE" \
+        --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+        "$name" \
+        reddit-deploy/reddit/
+
+stop_review:
+  stage: cleanup
+  variables:
+    GIT_STRATEGY: none
+    name: $CI_ENVIRONMENT_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    action: stop
+  when: manual
+  allow_failure: true
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+  before_script:
+    # installing dependencies
+    - apk add -U openssl curl tar gzip bash ca-certificates git
+    - wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
+    - wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk
+    - apk add glibc-2.23-r3.apk
+    - curl https://storage.googleapis.com/pub/gsutil.tar.gz | tar -xz -C $HOME
+    - export PATH=${PATH}:$HOME/gsutil
+    - curl https://kubernetes-helm.storage.googleapis.com/helm-v2.13.1-linux-amd64.tar.gz | tar zx
+    - mv linux-amd64/helm /usr/bin/
+    - helm version --client
+    - curl  -o /usr/bin/sync-repo.sh https://raw.githubusercontent.com/kubernetes/helm/master/scripts/sync-repo.sh
+    - chmod a+x /usr/bin/sync-repo.sh
+    - curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    - chmod +x /usr/bin/kubectl
+    - kubectl version --client
+  script:
+    - helm delete "$name" --purge
+...
+```
+Тонкости синтаксиса:
+
+- Объявление переменных можно перенести в variables
+- conditional statements можно записать так:
+  ```shell
+  if [[ "$track" != "stable" ]]; then
+  name="$name-$track"
+  fi
+  ```
+- А рзносить строку на несолько так:
+  ```shell
+  helm upgrade --install \
+  --wait \
+  --set ui.ingress.host="$host"
+  ```
+
+Как видите, читаемость кода значительно возросла.
+
+**Задание:**
+
+1. Изменить пайплайн сервиса _COMMENT_, использующих для деплоя `helm2` таким образом, чтобы деплой осуществлялся с использованием `tiller plugin`. Таким образом, деплой каждого пайплайна из трех сервисов должен производиться по-разному.
+2. Изменить пайплайн сервиса _POST_, чтобы он использовал `helm3` для деплоя.
+
+Полученные файлы пайплайнов для сервисов (4 штуки: `ui`, `post`, `comment`, `reddit`) положить в директорию `Charts/gitlabci` под именами `gitlab-ci-.yml` и закоммитить.
+
+
+### Evicted
+
+Пока я тут работал, k8s выселил мой gitlab =()
+```shell
+kubectl get pods -n gitlab
+```
+```log
+NAME                                        READY   STATUS             RESTARTS   AGE
+gitlab-gitlab-766445f7d7-2q69s              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-4tj6x              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-8gmp6              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-9brxd              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-9ptqb              0/1     Evicted            0          46h
+gitlab-gitlab-766445f7d7-9zdkd              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-d7mf6              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-fnrx4              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-jbw4w              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-k8spx              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-mgv9f              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-mkw7l              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-r97ht              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-rfzl6              0/1     CrashLoopBackOff   8          43m
+gitlab-gitlab-766445f7d7-sbd99              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-sjt2q              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-smwfk              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-t6lb7              0/1     Evicted            0          43m
+gitlab-gitlab-766445f7d7-tf4vq              0/1     Evicted            0          43m
+gitlab-gitlab-postgresql-66d5b899b8-67qbm   1/1     Running            0          46h
+gitlab-gitlab-redis-6c675dd568-pb6xw        1/1     Running            0          46h
+gitlab-gitlab-runner-644c574f56-48kvd       1/1     Running            4          46h
+```
+
+```shell
+kubectl logs gitlab-gitlab-766445f7d7-rfzl6 -n gitlab
+```
+```log
+  * service[postgres-exporter] action restart
+    - restart service service[postgres-exporter]
+  * ruby_block[reload postgres-exporter svlogd configuration] action create
+    - execute the ruby block reload postgres-exporter svlogd configuration
+
+Running handlers:
+Running handlers complete
+Chef Client finished, 318/508 resources updated in 02 minutes 51 seconds
+gitlab Reconfigured!
+Checking for an omnibus managed postgresql: NOT OK
+No currently installed postgresql in the omnibus instance found.
+Runnning Post Reconfigure Script...
+```
+
+```shell
+kubectl describe pod gitlab-gitlab-766445f7d7-rfzl6 -n gitlab
+```
+```log
+Name:           gitlab-gitlab-766445f7d7-rfzl6
+Namespace:      gitlab
+Priority:       0
+Node:           gke-reddit-public-gitlab-pool-05e41e6e-5kqp/10.3.0.3
+Start Time:     Mon, 13 Jan 2020 23:35:52 +0300
+Labels:         app=gitlab-gitlab
+                name=gitlab-gitlab
+                pod-template-hash=766445f7d7
+Annotations:    cni.projectcalico.org/podIP: 10.4.0.89/32
+Status:         Running
+IP:             10.4.0.89
+IPs:            <none>
+Controlled By:  ReplicaSet/gitlab-gitlab-766445f7d7
+Containers:
+  gitlab:
+    Container ID:  docker://e6d8fdc48b61ebdcd596798b22892f3f310b1b644fe82ad18562e521f8292973
+    Image:         gitlab/gitlab-ce:10.6.2-ce.0
+    Image ID:      docker-pullable://gitlab/gitlab-ce@sha256:573e1cf90a5bf1bd9b964d782dd22394b73d67ccdf7f47e0d3152feb112ac00d
+    Ports:         8105/TCP, 8065/TCP, 8005/TCP, 22/TCP, 9090/TCP, 8090/TCP
+    Host Ports:    0/TCP, 0/TCP, 0/TCP, 0/TCP, 0/TCP, 0/TCP
+    Command:
+      /bin/bash
+      -c
+      sed -i "s/environment ({'GITLAB_ROOT_PASSWORD' => initial_root_password }) if initial_root_password/environment ({'GITLAB_ROOT_PASSWORD' => initial_root_password, 'GITLAB_SHARED_RUNNERS_REGISTRATION_TOKEN' => node['gitlab']['gitlab-rails']['initial_shared_runners_registration_token'] })/g" /opt/gitlab/embedded/cookbooks/gitlab/recipes/database_migrations.rb && echo 'gitlab-omnibus-helm-chart' > /opt/gitlab/embedded/service/gitlab-rails/INSTALLATION_TYPE && exec /assets/wrapper
+    State:          Running
+      Started:      Tue, 14 Jan 2020 00:17:18 +0300
+    Last State:     Terminated
+      Reason:       Error
+      Exit Code:    137
+      Started:      Tue, 14 Jan 2020 00:08:11 +0300
+      Finished:     Tue, 14 Jan 2020 00:12:09 +0300
+    Ready:          False
+    Restart Count:  9
+    Liveness:       http-get http://:8005/health_check%3Ftoken=SXBAQichEJasbtDSygrD delay=180s timeout=15s period=10s #success=1 #failure=3
+    Readiness:      http-get http://:8005/health_check%3Ftoken=SXBAQichEJasbtDSygrD delay=15s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      GITLAB_EXTERNAL_SCHEME:                            <set to the key 'external_scheme' of config map 'gitlab-gitlab-config'>                         Optional: false
+      GITLAB_EXTERNAL_HOSTNAME:                          <set to the key 'external_hostname' of config map 'gitlab-gitlab-config'>                       Optional: false
+      GITLAB_REGISTRY_EXTERNAL_SCHEME:                   <set to the key 'registry_external_scheme' of config map 'gitlab-gitlab-config'>                Optional: false
+      GITLAB_REGISTRY_EXTERNAL_HOSTNAME:                 <set to the key 'registry_external_hostname' of config map 'gitlab-gitlab-config'>              Optional: false
+      GITLAB_MATTERMOST_EXTERNAL_SCHEME:                 <set to the key 'mattermost_external_scheme' of config map 'gitlab-gitlab-config'>              Optional: false
+      GITLAB_MATTERMOST_EXTERNAL_HOSTNAME:               <set to the key 'mattermost_external_hostname' of config map 'gitlab-gitlab-config'>            Optional: false
+      POSTGRES_USER:                                     <set to the key 'postgres_user' of config map 'gitlab-gitlab-config'>                           Optional: false
+      POSTGRES_PASSWORD:                                 <set to the key 'postgres_password' in secret 'gitlab-gitlab-secrets'>                          Optional: false
+      POSTGRES_DB:                                       <set to the key 'postgres_db' of config map 'gitlab-gitlab-config'>                             Optional: false
+      GITLAB_INITIAL_SHARED_RUNNERS_REGISTRATION_TOKEN:  <set to the key 'initial_shared_runners_registration_token' in secret 'gitlab-gitlab-secrets'>  Optional: false
+      MATTERMOST_APP_UID:                                <set to the key 'mattermost_app_uid' of config map 'gitlab-gitlab-config'>                      Optional: false
+      MATTERMOST_APP_SECRET:                             <set to the key 'mattermost_app_secret' in secret 'gitlab-gitlab-secrets'>                      Optional: false
+      PAGES_EXTERNAL_SCHEME:                             <set to the key 'pages_external_scheme' of config map 'gitlab-gitlab-config'>                   Optional: false
+      PAGES_EXTERNAL_DOMAIN:                             <set to the key 'pages_external_domain' of config map 'gitlab-gitlab-config'>                   Optional: false
+      GITLAB_OMNIBUS_CONFIG:                             external_url "#{ENV['GITLAB_EXTERNAL_SCHEME']}://#{ENV['GITLAB_EXTERNAL_HOSTNAME']}"
+                                                         registry_external_url "#{ENV['GITLAB_REGISTRY_EXTERNAL_SCHEME']}://#{ENV['GITLAB_REGISTRY_EXTERNAL_HOSTNAME']}"
+                                                         mattermost_external_url "#{ENV['GITLAB_MATTERMOST_EXTERNAL_SCHEME']}://#{ENV['GITLAB_MATTERMOST_EXTERNAL_HOSTNAME']}"
+                                                         
+                                                         gitlab_rails['initial_shared_runners_registration_token'] = ENV['GITLAB_INITIAL_SHARED_RUNNERS_REGISTRATION_TOKEN']
+                                                         
+                                                         nginx['enable'] = false
+                                                         registry_nginx['enable'] = false
+                                                         mattermost_nginx['enable'] = false
+                                                         
+                                                         gitlab_workhorse['listen_network'] = 'tcp'
+                                                         gitlab_workhorse['listen_addr'] = '0.0.0.0:8005'
+                                                         
+                                                         mattermost['service_address'] = '0.0.0.0'
+                                                         mattermost['service_port'] = '8065'
+                                                         
+                                                         registry['registry_http_addr'] = '0.0.0.0:8105'
+                                                         
+                                                         postgresql['enable'] = false
+                                                         gitlab_rails['db_host'] = 'gitlab-gitlab-postgresql'
+                                                         gitlab_rails['db_password'] = ENV['POSTGRES_PASSWORD']
+                                                         gitlab_rails['db_username'] = ENV['POSTGRES_USER']
+                                                         gitlab_rails['db_database'] = ENV['POSTGRES_DB']
+                                                         
+                                                         redis['enable'] = false
+                                                         gitlab_rails['redis_host'] = 'gitlab-gitlab-redis'
+                                                         
+                                                         mattermost['file_directory'] = '/gitlab-data/mattermost';
+                                                         mattermost['sql_driver_name'] = 'postgres';
+                                                         mattermost['sql_data_source'] = "user=#{ENV['POSTGRES_USER']} host=gitlab-gitlab-postgresql port=5432 dbname=mattermost_production password=#{ENV['POSTGRES_PASSWORD']} sslmode=disable";
+                                                         mattermost['gitlab_enable'] = true;
+                                                         mattermost['gitlab_secret'] = ENV['MATTERMOST_APP_SECRET'];
+                                                         mattermost['gitlab_id'] = ENV['MATTERMOST_APP_UID'];
+                                                         mattermost['gitlab_scope'] = '';
+                                                         mattermost['gitlab_auth_endpoint'] = "#{ENV['GITLAB_EXTERNAL_SCHEME']}://#{ENV['GITLAB_EXTERNAL_HOSTNAME']}/oauth/authorize";
+                                                         mattermost['gitlab_token_endpoint'] = "#{ENV['GITLAB_EXTERNAL_SCHEME']}://#{ENV['GITLAB_EXTERNAL_HOSTNAME']}/oauth/token";
+                                                         mattermost['gitlab_user_api_endpoint'] = "#{ENV['GITLAB_EXTERNAL_SCHEME']}://#{ENV['GITLAB_EXTERNAL_HOSTNAME']}/api/v4/user"
+                                                         
+                                                         manage_accounts['enable'] = true
+                                                         manage_storage_directories['manage_etc'] = false
+                                                         
+                                                         if ENV['PAGES_EXTERNAL_SCHEME'] && ENV['PAGES_EXTERNAL_DOMAIN']
+                                                           pages_external_url "#{ENV['PAGES_EXTERNAL_SCHEME']}://#{ENV['PAGES_EXTERNAL_DOMAIN']}/"
+                                                           gitlab_pages['enable'] = true
+                                                           gitlab_pages['listen_proxy'] = "0.0.0.0:8090"
+                                                         end
+                                                         
+                                                         gitlab_shell['auth_file'] = '/gitlab-data/ssh/authorized_keys'
+                                                         git_data_dirs({ "default" => { "path" => "/gitlab-data/git-data" } })
+                                                         gitlab_rails['shared_path'] = '/gitlab-data/shared'
+                                                         gitlab_rails['uploads_directory'] = '/gitlab-data/uploads'
+                                                         gitlab_ci['builds_directory'] = '/gitlab-data/builds'
+                                                         gitlab_rails['registry_path'] = '/gitlab-registry'
+                                                         gitlab_rails['trusted_proxies'] = ["10.0.0.0/8","172.16.0.0/12","192.168.0.0/16"]
+                                                         
+                                                         prometheus['listen_address'] = '0.0.0.0:9090'
+                                                         postgres_exporter['enable'] = true
+                                                         postgres_exporter['env'] = {
+                                                           'DATA_SOURCE_NAME' => "user=#{ENV['POSTGRES_USER']} host=gitlab-gitlab-postgresql port=5432 dbname=#{ENV['POSTGRES_DB']} password=#{ENV['POSTGRES_PASSWORD']} sslmode=disable"
+                                                         }
+                                                         redis_exporter['enable'] = true
+                                                         redis_exporter['flags'] = {
+                                                           'redis.addr' => "gitlab-gitlab-redis:6379",
+                                                         }
+                                                         
+      GITLAB_POST_RECONFIGURE_CODE:                      include Gitlab::CurrentSettings
+                                                         
+                                                         Doorkeeper::Application.where(uid: ENV["MATTERMOST_APP_UID"]).first_or_create(
+                                                           name: "GitLab Mattermost",
+                                                           secret: ENV["MATTERMOST_APP_SECRET"],
+                                                           redirect_uri: "#{ENV["GITLAB_MATTERMOST_EXTERNAL_SCHEME"]}://#{ENV["GITLAB_MATTERMOST_EXTERNAL_HOSTNAME"]}/signup/gitlab/complete\r\n#{ENV["GITLAB_MATTERMOST_EXTERNAL_SCHEME"]}://#{ENV["GITLAB_MATTERMOST_EXTERNAL_HOSTNAME"]}/login/gitlab/complete")
+                                                         
+                                                         PrometheusService.where(template: true).first_or_create(
+                                                           active: true, api_url: "http://localhost:9090")
+                                                         
+                                                         KubernetesService.where(template: true).first_or_create(
+                                                           active: true,
+                                                           api_url: "https://#{ENV["KUBERNETES_SERVICE_HOST"]}:#{ENV["KUBERNETES_SERVICE_PORT"]}",
+                                                           token: File.read("/var/run/secrets/kubernetes.io/serviceaccount/token"),
+                                                           ca_pem: File.read("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"))
+                                                         
+                                                         Gitlab::CurrentSettings.current_application_settings.update_attribute(:health_check_access_token, 'SXBAQichEJasbtDSygrD')
+                                                         
+      GITLAB_POST_RECONFIGURE_SCRIPT:                    /opt/gitlab/bin/gitlab-rails runner -e production "$GITLAB_POST_RECONFIGURE_CODE"
+                                                         
+    Mounts:
+      /etc/gitlab from config (rw)
+      /gitlab-data from data (rw,path="gitlab-data")
+      /gitlab-registry from registry (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-znmvd (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             False 
+  ContainersReady   False 
+  PodScheduled      True 
+Volumes:
+  data:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  gitlab-gitlab-storage
+    ReadOnly:   false
+  registry:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  gitlab-gitlab-registry-storage
+    ReadOnly:   false
+  config:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  gitlab-gitlab-config-storage
+    ReadOnly:   false
+  default-token-znmvd:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-znmvd
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type     Reason                  Age                    From                                                  Message
+  ----     ------                  ----                   ----                                                  -------
+  Warning  FailedScheduling        43m (x6 over 48m)      default-scheduler                                     0/1 nodes are available: 1 node(s) had taints that the pod didn't tolerate.
+  Normal   Scheduled               43m                    default-scheduler                                     Successfully assigned gitlab/gitlab-gitlab-766445f7d7-rfzl6 to gke-reddit-public-gitlab-pool-05e41e6e-5kqp
+  Normal   SuccessfulAttachVolume  43m                    attachdetach-controller                               AttachVolume.Attach succeeded for volume "pvc-89b7b55a-ed38-407a-b541-06c9f59731db"
+  Normal   SuccessfulAttachVolume  43m                    attachdetach-controller                               AttachVolume.Attach succeeded for volume "pvc-95f58849-b3fd-4d77-8754-54fa5a807586"
+  Normal   SuccessfulAttachVolume  43m                    attachdetach-controller                               AttachVolume.Attach succeeded for volume "pvc-61f1ca90-83b1-47f3-969b-2cf61c6dd293"
+  Normal   Pulled                  43m                    kubelet, gke-reddit-public-gitlab-pool-05e41e6e-5kqp  Container image "gitlab/gitlab-ce:10.6.2-ce.0" already present on machine
+  Normal   Created                 43m                    kubelet, gke-reddit-public-gitlab-pool-05e41e6e-5kqp  Created container gitlab
+  Normal   Started                 43m                    kubelet, gke-reddit-public-gitlab-pool-05e41e6e-5kqp  Started container gitlab
+  Warning  Unhealthy               39m (x3 over 40m)      kubelet, gke-reddit-public-gitlab-pool-05e41e6e-5kqp  Liveness probe failed: HTTP probe failed with statuscode: 502
+  Warning  Unhealthy               18m (x52 over 42m)     kubelet, gke-reddit-public-gitlab-pool-05e41e6e-5kqp  Readiness probe failed: Get http://10.4.0.89:8005/health_check?token=SXBAQichEJasbtDSygrD: dial tcp 10.4.0.89:8005: connect: connection refused
+  Warning  Unhealthy               8m15s (x113 over 40m)  kubelet, gke-reddit-public-gitlab-pool-05e41e6e-5kqp  Readiness probe failed: HTTP probe failed with statuscode: 502
+  Warning  BackOff                 3m7s (x23 over 7m19s)  kubelet, gke-reddit-public-gitlab-pool-05e41e6e-5kqp  Back-off restarting failed container
+```
