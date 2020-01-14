@@ -376,7 +376,11 @@ vscoder microservices repository
           - [comment](#comment-5)
       - [Деплоим](#%d0%94%d0%b5%d0%bf%d0%bb%d0%be%d0%b8%d0%bc)
       - [Пайплайн здорового человека](#%d0%9f%d0%b0%d0%b9%d0%bf%d0%bb%d0%b0%d0%b9%d0%bd-%d0%b7%d0%b4%d0%be%d1%80%d0%be%d0%b2%d0%be%d0%b3%d0%be-%d1%87%d0%b5%d0%bb%d0%be%d0%b2%d0%b5%d0%ba%d0%b0)
-    - [Evicted](#evicted)
+      - [Evicted](#evicted)
+      - [Пайплайн здорового человека: задание](#%d0%9f%d0%b0%d0%b9%d0%bf%d0%bb%d0%b0%d0%b9%d0%bd-%d0%b7%d0%b4%d0%be%d1%80%d0%be%d0%b2%d0%be%d0%b3%d0%be-%d1%87%d0%b5%d0%bb%d0%be%d0%b2%d0%b5%d0%ba%d0%b0-%d0%b7%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5)
+        - [Оптимизируем пайплайн ui](#%d0%9e%d0%bf%d1%82%d0%b8%d0%bc%d0%b8%d0%b7%d0%b8%d1%80%d1%83%d0%b5%d0%bc-%d0%bf%d0%b0%d0%b9%d0%bf%d0%bb%d0%b0%d0%b9%d0%bd-ui)
+        - [comment + tiller plugin](#comment--tiller-plugin)
+        - [post + helm3](#post--helm3)
 
 # Makefile
 
@@ -18514,15 +18518,8 @@ stop_review:
 
 Как видите, читаемость кода значительно возросла.
 
-**Задание:**
 
-1. Изменить пайплайн сервиса _COMMENT_, использующих для деплоя `helm2` таким образом, чтобы деплой осуществлялся с использованием `tiller plugin`. Таким образом, деплой каждого пайплайна из трех сервисов должен производиться по-разному.
-2. Изменить пайплайн сервиса _POST_, чтобы он использовал `helm3` для деплоя.
-
-Полученные файлы пайплайнов для сервисов (4 штуки: `ui`, `post`, `comment`, `reddit`) положить в директорию `Charts/gitlabci` под именами `gitlab-ci-.yml` и закоммитить.
-
-
-### Evicted
+#### Evicted
 
 Пока я тут работал, k8s выселил мой gitlab =()
 ```shell
@@ -18759,3 +18756,220 @@ Events:
   Warning  Unhealthy               8m15s (x113 over 40m)  kubelet, gke-reddit-public-gitlab-pool-05e41e6e-5kqp  Readiness probe failed: HTTP probe failed with statuscode: 502
   Warning  BackOff                 3m7s (x23 over 7m19s)  kubelet, gke-reddit-public-gitlab-pool-05e41e6e-5kqp  Back-off restarting failed container
 ```
+
+После некоторых танцев с бубном, пересоздал кластер и передеплоил всё. Теперь хельмы показывают все инсталляции корректно.
+```shell
+helm-3.0.2 list --all
+```
+```log
+NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+gitlab  default         1               2020-01-14 20:19:24.615711767 +0300 MSK deployed        gitlab-omnibus-0.1.37
+```
+```shell
+helm-2.13.1 list --all
+```
+```log
+NAME                            REVISION        UPDATED                         STATUS          CHART           APP VERSION     NAMESPACE 
+production                      1               Tue Jan 14 21:12:00 2020        DEPLOYED        reddit-0.1.0                    production
+review-vscoder-co-tl8stj        1               Tue Jan 14 21:12:49 2020        DEPLOYED        reddit-0.1.0                    review    
+review-vscoder-po-7fbjm5        1               Tue Jan 14 21:08:58 2020        DEPLOYED        reddit-0.1.0                    review    
+review-vscoder-ui-a347ed        1               Tue Jan 14 21:08:58 2020        DEPLOYED        reddit-0.1.0                    review    
+review-vscoder-ui-szjzwy        1               Tue Jan 14 21:08:22 2020        DEPLOYED        reddit-0.1.0                    review    
+staging                         1               Tue Jan 14 21:03:16 2020        DEPLOYED        reddit-0.1.0                    staging
+```
+
+
+#### Пайплайн здорового человека: задание
+
+1. Изменить пайплайн сервиса _COMMENT_, использующих для деплоя `helm2` таким образом, чтобы деплой осуществлялся с использованием `tiller plugin`. Таким образом, деплой каждого пайплайна из трех сервисов должен производиться по-разному.
+2. Изменить пайплайн сервиса _POST_, чтобы он использовал `helm3` для деплоя.
+
+Полученные файлы пайплайнов для сервисов (4 штуки: `ui`, `post`, `comment`, `reddit`) положить в директорию `Charts/gitlabci` под именами `gitlab-ci-.yml` и закоммитить.
+
+
+##### Оптимизируем пайплайн ui
+
+Создан а директория `kubernetes/docker-helm` с Dockerfile для сборки базового образа с предустановленными `helm` и `kubectl`
+
+Соответствующий образ создан и загружен на docker hub
+
+Jobs `review` и `stop_review` в указанном пайплайне неоптимальны, так как каждый раз устанавливают `helm` и `kubectl` в базовый образ `alpine:latest`. Для дальнейшей работы данный пайплайн будет переделан на использование образа `vscoder/helm:v2.13.1` собственной сборки
+
+`ui/.gitlab-ci.yml`
+```yaml
+---
+image: vscoder/helm:v2.13.1
+
+stages:
+  - build
+  - test
+  - review
+  - release
+  - cleanup
+
+build:
+  stage: build
+  only:
+    - branches
+  image: docker:git
+  services:
+    - docker:18.09.7-dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    CI_REGISTRY: "index.docker.io"
+    CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+  before_script:
+    - >
+      if ! docker info &>/dev/null; then
+        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+          export DOCKER_HOST='tcp://localhost:2375'
+        fi
+      fi
+  script:
+    # Building
+    - echo "Building Dockerfile-based application..."
+    - echo `git show --format="%h" HEAD | head -1` > build_info.txt
+    - echo `git rev-parse --abbrev-ref HEAD` >> build_info.txt
+    - docker build -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
+    - >
+      if [[ -n "$CI_REGISTRY_USER" ]]; then
+        echo "Logging to GitLab Container Registry with CI credentials...for build"
+        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      fi
+    - echo "Pushing to GitLab Container Registry..."
+    - docker push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+
+test:
+  stage: test
+  script:
+    - exit 0
+  only:
+    - branches
+
+release:
+  stage: release
+  image: docker
+  services:
+    - docker:18.09.7-dind
+  variables:
+    CI_REGISTRY: "index.docker.io"
+    CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+  before_script:
+    - >
+      if ! docker info &>/dev/null; then
+        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+          export DOCKER_HOST='tcp://localhost:2375'
+        fi
+      fi
+  script:
+    # Releasing
+    - echo "Updating docker images ..."
+    - >
+      if [[ -n "$CI_REGISTRY_USER" ]]; then
+        echo "Logging to GitLab Container Registry with CI credentials for release..."
+        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      fi
+    - docker pull "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+    - docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    - docker push "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    # latest is neede for feature flags
+    - docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:latest"
+    - docker push "$CI_APPLICATION_REPOSITORY:latest"
+  only:
+    - master
+
+review:
+  stage: review
+  variables:
+    KUBE_NAMESPACE: review
+    host: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    TILLER_NAMESPACE: kube-system
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    name: $CI_ENVIRONMENT_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    url: http://$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    on_stop: stop_review
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+  before_script:
+    - helm version --client
+    - kubectl version --client
+    # ensuring namespace
+    - kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+    # installing Tiller
+    - echo "Checking Tiller..."
+    - helm init --upgrade
+    - kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
+    - >
+      if ! helm version --debug; then
+        echo "Failed to init Tiller."
+        exit 1
+      fi
+  script:
+    - export track="${1-stable}"
+    - >
+      if [[ "$track" != "stable" ]]; then
+        name="$name-$track"
+      fi
+    - echo "Clone deploy repository..."
+    - git clone http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/reddit-deploy.git
+    - echo "Download helm dependencies..."
+    - helm dep update reddit-deploy/reddit
+    - echo "Deploy helm release $name to $KUBE_NAMESPACE"
+    - echo "Upgrading existing release..."
+    - echo "helm upgrade --install --wait --set ui.ingress.host="$host" --set $CI_PROJECT_NAME.image.tag="$CI_APPLICATION_TAG" --namespace="$KUBE_NAMESPACE" --version="$CI_PIPELINE_ID-$CI_JOB_ID" "$name" reddit-deploy/reddit/"
+    - >
+      helm upgrade \
+        --install \
+        --wait \
+        --set ui.ingress.host="$host" \
+        --set $CI_PROJECT_NAME.image.tag="$CI_APPLICATION_TAG" \
+        --namespace="$KUBE_NAMESPACE" \
+        --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+        "$name" \
+        reddit-deploy/reddit/
+
+stop_review:
+  stage: cleanup
+  variables:
+    GIT_STRATEGY: none
+    name: $CI_ENVIRONMENT_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    action: stop
+  when: manual
+  allow_failure: true
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+  before_script:
+    - helm version --client
+    - kubectl version --client
+  script:
+    - helm delete "$name" --purge
+```
+
+Пайплайн проверен. Работает. 
+
+Окружение `review` работает
+
+Остановка окружения `review` работает
+
+##### comment + tiller plugin
+
+
+##### post + helm3
+
+
