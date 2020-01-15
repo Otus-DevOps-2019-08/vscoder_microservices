@@ -381,6 +381,8 @@ vscoder microservices repository
         - [Оптимизируем пайплайн ui](#%d0%9e%d0%bf%d1%82%d0%b8%d0%bc%d0%b8%d0%b7%d0%b8%d1%80%d1%83%d0%b5%d0%bc-%d0%bf%d0%b0%d0%b9%d0%bf%d0%bb%d0%b0%d0%b9%d0%bd-ui)
         - [comment + tiller plugin](#comment--tiller-plugin)
         - [post + helm3](#post--helm3)
+        - [reddit-deploy](#reddit-deploy-1)
+    - [Задание со \*: Автоматический деплой production](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b9-%d0%b4%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-production)
 
 # Makefile
 
@@ -18969,7 +18971,1066 @@ stop_review:
 
 ##### comment + tiller plugin
 
+Модифицируем пайплайн для работы через helm tiller plugin
+
+`comment/.gitlab-ci.yml`
+```yaml
+---
+image: vscoder/helm:v2.13.1
+
+stages:
+  - build
+  - test
+  - review
+  - release
+  - cleanup
+
+build:
+  stage: build
+  only:
+    - branches
+  image: docker:git
+  services:
+    - docker:18.09.7-dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    CI_REGISTRY: "index.docker.io"
+    CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+  before_script:
+    - >
+      if ! docker info &>/dev/null; then
+        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+          export DOCKER_HOST='tcp://localhost:2375'
+        fi
+      fi
+  script:
+    # Building
+    - echo "Building Dockerfile-based application..."
+    - echo `git show --format="%h" HEAD | head -1` > build_info.txt
+    - echo `git rev-parse --abbrev-ref HEAD` >> build_info.txt
+    - docker build -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
+    - >
+      if [[ -n "$CI_REGISTRY_USER" ]]; then
+        echo "Logging to GitLab Container Registry with CI credentials...for build"
+        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      fi
+    - echo "Pushing to GitLab Container Registry..."
+    - docker push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+
+test:
+  stage: test
+  script:
+    - exit 0
+  only:
+    - branches
+
+release:
+  stage: release
+  image: docker
+  services:
+    - docker:18.09.7-dind
+  variables:
+    CI_REGISTRY: "index.docker.io"
+    CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+  before_script:
+    - >
+      if ! docker info &>/dev/null; then
+        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+          export DOCKER_HOST='tcp://localhost:2375'
+        fi
+      fi
+  script:
+    # Releasing
+    - echo "Updating docker images ..."
+    - >
+      if [[ -n "$CI_REGISTRY_USER" ]]; then
+        echo "Logging to GitLab Container Registry with CI credentials for release..."
+        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      fi
+    - docker pull "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+    - docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    - docker push "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    # latest is neede for feature flags
+    - docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:latest"
+    - docker push "$CI_APPLICATION_REPOSITORY:latest"
+  only:
+    - master
+
+review:
+  stage: review
+  variables:
+    KUBE_NAMESPACE: review
+    host: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    name: $CI_ENVIRONMENT_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    url: http://$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    on_stop: stop_review
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+  before_script:
+    - helm init --client-only  # init $HELM_HOME
+    - helm plugin install https://github.com/rimusz/helm-tiller  # install tiller plugin
+    - helm version --client
+    - kubectl version --client
+    # ensuring namespace
+    - kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+    # installing Tiller
+    #- echo "Checking Tiller..."
+    #- helm init --upgrade
+    #- kubectl rollout status -n "$TILLER_NAMESPACE" -w "deployment/tiller-deploy"
+    #- >
+    #  if ! helm version --debug; then
+    #    echo "Failed to init Tiller."
+    #    exit 1
+    #  fi
+  script:
+    - export track="${1-stable}"
+    - >
+      if [[ "$track" != "stable" ]]; then
+        name="$name-$track"
+      fi
+    - echo "Clone deploy repository..."
+    - git clone http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/reddit-deploy.git
+    - echo "Download helm dependencies..."
+    - helm tiller run -- helm dep update reddit-deploy/reddit
+    - echo "Deploy helm release $name to $KUBE_NAMESPACE"
+    - echo "Upgrading existing release..."
+    - echo "helm upgrade --install --wait --set ui.ingress.host="$host" --set $CI_PROJECT_NAME.image.tag="$CI_APPLICATION_TAG" --namespace="$KUBE_NAMESPACE" --version="$CI_PIPELINE_ID-$CI_JOB_ID" "$name" reddit-deploy/reddit/"
+    - >
+      helm tiller run -- helm upgrade \
+        --install \
+        --wait \
+        --set ui.ingress.host="$host" \
+        --set $CI_PROJECT_NAME.image.tag="$CI_APPLICATION_TAG" \
+        --namespace="$KUBE_NAMESPACE" \
+        --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+        "$name" \
+        reddit-deploy/reddit/
+
+stop_review:
+  stage: cleanup
+  variables:
+    GIT_STRATEGY: none
+    name: $CI_ENVIRONMENT_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    action: stop
+  when: manual
+  allow_failure: true
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+  before_script:
+    - helm init --client-only
+    - helm plugin install https://github.com/rimusz/helm-tiller
+    - helm version --client
+    - kubectl version --client
+  script:
+    - helm tiller run -- helm delete "$name" --purge
+```
+
+Пайплайн проверен: окружение `review` деплоится, работает. Удаление окружения работает.
+
+При желании, можно перенести установку tiller plugin в базовый docker-образ. Я оставлю в пайплайне для наглядности, а так же чтобы не усложнять излишне сборку базового докер-образа для разных версий helm (2 и 3)
+
 
 ##### post + helm3
 
+Исправим ошибку при передаче версии helm при сборке docker-образа
+`kubernetes/docker-helm/Dockerfile`
+```dockerfile
+FROM alpine:3
 
+# variable "HELM_VERSION" must be passed as docker environment variables during the image build
+# docker build --no-cache --build-arg HELM_VERSION=2.13.1 -t vscoder/helm:2.13.1 .
+
+ARG HELM_VERSION
+
+RUN apk add --update --no-cache openssl curl tar gzip bash ca-certificates git && \
+    wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub && \
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk && \
+    apk add glibc-2.23-r3.apk && \
+    curl https://storage.googleapis.com/pub/gsutil.tar.gz | tar -xz -C $HOME && \
+    export PATH=${PATH}:$HOME/gsutil && \
+    curl https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz | tar zx && \
+    mv linux-amd64/helm /usr/bin/ && \
+    helm version --client && \
+    curl  -o /usr/bin/sync-repo.sh https://raw.githubusercontent.com/kubernetes/helm/master/scripts/sync-repo.sh && \
+    chmod a+x /usr/bin/sync-repo.sh && \
+    curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \
+    chmod +x /usr/bin/kubectl && \
+    kubectl version --client && \
+    rm -rf linux-amd64 && \
+    apk del curl tar gzip && \
+    rm -f /var/cache/apk/*
+
+CMD ["bash"]
+```
+
+Соберём базовый образ с helm3
+Параметризована версия helm в `kubernetes/docker-helm/Makefile`
+```makefile
+HELM_VERSION=2.16.1
+
+.PHONY: build publish
+
+build:
+	. ./env \
+	&& export HELM_VERSION=$${HELM_VERSION} \
+	&& ./docker_build.sh
+
+publish:
+	. ./env \
+	&& export HELM_VERSION=$${HELM_VERSION} \
+	&& ./docker_push.sh
+```
+
+Соберём и загрузим в докерхаб образ с helm 3.0.2
+```shell
+cd ./kubernetes/docker-helm
+make build publish HELM_VERSION=3.0.2
+```
+```log
+. ./env \
+&& export HELM_VERSION=${HELM_VERSION} \
+&& ./docker_build.sh
++ echo docker build --build-arg HELM_VERSION=3.0.2 -t vscoder/helm:v3.0.2 .
+docker build --build-arg HELM_VERSION=3.0.2 -t vscoder/helm:v3.0.2 .
++ docker build --build-arg HELM_VERSION=3.0.2 -t vscoder/helm:v3.0.2 .
+Sending build context to Docker daemon  10.24kB
+Step 1/4 : FROM alpine:3
+ ---> cc0abc535e36
+Step 2/4 : ARG HELM_VERSION
+ ---> Using cache
+ ---> eb3418f75466
+Step 3/4 : RUN apk add --update --no-cache openssl curl tar gzip bash ca-certificates git &&     wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub &&     wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.23-r3/glibc-2.23-r3.apk &&     apk add glibc-2.23-r3.apk &&     curl https://storage.googleapis.com/pub/gsutil.tar.gz | tar -xz -C $HOME &&     export PATH=${PATH}:$HOME/gsutil &&     curl https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz | tar zx &&     mv linux-amd64/helm /usr/bin/ &&     helm version --client &&     curl  -o /usr/bin/sync-repo.sh https://raw.githubusercontent.com/kubernetes/helm/master/scripts/sync-repo.sh &&     chmod a+x /usr/bin/sync-repo.sh &&     curl -L -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl &&     chmod +x /usr/bin/kubectl &&     kubectl version --client &&     rm -rf linux-amd64 &&     apk del curl tar gzip &&     rm -f /var/cache/apk/*
+ ---> Using cache
+ ---> 2bff76f532a9
+Step 4/4 : CMD ["bash"]
+ ---> Using cache
+ ---> 4d5ef4d1bfe0
+Successfully built 4d5ef4d1bfe0
+Successfully tagged vscoder/helm:v3.0.2
+. ./env \
+&& export HELM_VERSION=${HELM_VERSION} \
+&& ./docker_push.sh
++ docker push vscoder/helm:v3.0.2
+The push refers to repository [docker.io/vscoder/helm]
+63373a9367f2: Pushed 
+6b27de954cca: Layer already exists 
+v3.0.2: digest: sha256:8e0512402256b17834c6cdf920fe4c688a3a9600aed3d893fb6990e257be2df1 size: 740
+```
+
+Изменим соответствующим образом пайплайн
+`post/.gitlab-ci.yml`
+```yaml
+---
+image: vscoder/helm:v3.0.2
+
+stages:
+  - build
+  - test
+  - review
+  - release
+  - cleanup
+
+build:
+  stage: build
+  only:
+    - branches
+  image: docker:git
+  services:
+    - docker:18.09.7-dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    CI_REGISTRY: "index.docker.io"
+    CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+  before_script:
+    - >
+      if ! docker info &>/dev/null; then
+        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+          export DOCKER_HOST='tcp://localhost:2375'
+        fi
+      fi
+  script:
+    # Building
+    - echo "Building Dockerfile-based application..."
+    - echo `git show --format="%h" HEAD | head -1` > build_info.txt
+    - echo `git rev-parse --abbrev-ref HEAD` >> build_info.txt
+    - docker build -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
+    - >
+      if [[ -n "$CI_REGISTRY_USER" ]]; then
+        echo "Logging to GitLab Container Registry with CI credentials...for build"
+        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      fi
+    - echo "Pushing to GitLab Container Registry..."
+    - docker push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+
+test:
+  stage: test
+  script:
+    - exit 0
+  only:
+    - branches
+
+release:
+  stage: release
+  image: docker
+  services:
+    - docker:18.09.7-dind
+  variables:
+    CI_REGISTRY: "index.docker.io"
+    CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+  before_script:
+    - >
+      if ! docker info &>/dev/null; then
+        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+          export DOCKER_HOST='tcp://localhost:2375'
+        fi
+      fi
+  script:
+    # Releasing
+    - echo "Updating docker images ..."
+    - >
+      if [[ -n "$CI_REGISTRY_USER" ]]; then
+        echo "Logging to GitLab Container Registry with CI credentials for release..."
+        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      fi
+    - docker pull "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+    - docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    - docker push "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    # latest is neede for feature flags
+    - docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:latest"
+    - docker push "$CI_APPLICATION_REPOSITORY:latest"
+  only:
+    - master
+
+review:
+  stage: review
+  variables:
+    KUBE_NAMESPACE: review
+    host: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    name: $CI_ENVIRONMENT_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    url: http://$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    on_stop: stop_review
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+  before_script:
+    # - helm init --client-only
+    # - helm plugin install https://github.com/rimusz/helm-tiller
+    - helm version --client
+    - kubectl version --client
+    # ensuring namespace
+    - kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+  script:
+    - export track="${1-stable}"
+    - >
+      if [[ "$track" != "stable" ]]; then
+        name="$name-$track"
+      fi
+    - echo "Clone deploy repository..."
+    - git clone http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/reddit-deploy.git
+    - echo "Download helm dependencies..."
+    - helm dep update reddit-deploy/reddit # убрали использование tiller plugin
+    - echo "Deploy helm release $name to $KUBE_NAMESPACE"
+    - echo "Upgrading existing release..."
+    - echo "helm upgrade --install --wait --set ui.ingress.host="$host" --set $CI_PROJECT_NAME.image.tag="$CI_APPLICATION_TAG" --namespace="$KUBE_NAMESPACE" --version="$CI_PIPELINE_ID-$CI_JOB_ID" "$name" reddit-deploy/reddit/"
+    - >  # убрали использование tiller plugin
+      helm upgrade \
+        "$name" \
+        reddit-deploy/reddit/ \
+        --install \
+        --wait \
+        --set ui.ingress.host="$host" \
+        --set $CI_PROJECT_NAME.image.tag="$CI_APPLICATION_TAG" \
+        --namespace="$KUBE_NAMESPACE" \
+        --version="$CI_PIPELINE_ID-$CI_JOB_ID"
+
+stop_review:
+  stage: cleanup
+  variables:
+    GIT_STRATEGY: none
+    name: $CI_ENVIRONMENT_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    action: stop
+  when: manual
+  allow_failure: true
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+  before_script:
+    # - helm init --client-only
+    # - helm plugin install https://github.com/rimusz/helm-tiller
+    - helm version --client
+    - kubectl version --client
+  script:
+    - helm delete "$name" # убрали использование tiller plugin. Так же helm3 не умеет флаг --purge
+```
+
+Пайплайн отработал успешно (да, не с первого раза ^_^ )
+```log
+helm upgrade --install --wait --set ui.ingress.host=vscoder-post-feature-4 --set post.image.tag=feature-4 --namespace=review --version=15-66 review-vscoder-po-7fbjm5 reddit-deploy/reddit/
+$ helm upgrade \ # collapsed multi-line command
+Release "review-vscoder-po-7fbjm5" does not exist. Installing it now.
+NAME: review-vscoder-po-7fbjm5
+LAST DEPLOYED: Wed Jan 15 19:02:38 2020
+NAMESPACE: review
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+Job succeeded
+```
+
+Environment проверен. Работает.
+
+Удаление environment-а не отработало. Причина: старый базовый образ
+```log
+Running with gitlab-runner 10.3.0 (5cf5e19a)
+  on gitlab-gitlab-runner-875586966-psz7q (0562f0e5)
+Using Kubernetes namespace: default
+Using Kubernetes executor with image vscoder/helm:v3.0.2 ...
+Waiting for pod default/runner-0562f0e5-project-1-concurrent-0bgb74 to be running, status is Pending
+Waiting for pod default/runner-0562f0e5-project-1-concurrent-0bgb74 to be running, status is Pending
+Waiting for pod default/runner-0562f0e5-project-1-concurrent-0bgb74 to be running, status is Pending
+Running on runner-0562f0e5-project-1-concurrent-0bgb74 via gitlab-gitlab-runner-875586966-psz7q...
+Skipping Git repository setup
+Skippping Git checkout
+Skipping Git submodules setup
+$ helm version --client
+Client: &version.Version{SemVer:"v2.13.1", GitCommit:"618447cbf203d147601b4b9bd7f8c37a5d39fbb4", GitTreeState:"clean"}
+$ kubectl version --client
+Client Version: version.Info{Major:"1", Minor:"17", GitVersion:"v1.17.0", GitCommit:"70132b0f130acc0bed193d9ba59dd186f0e634cf", GitTreeState:"clean", BuildDate:"2019-12-07T21:20:10Z", GoVersion:"go1.13.4", Compiler:"gc", Platform:"linux/amd64"}
+$ helm delete "$name" --purge
+Error: release: "review-vscoder-po-7fbjm5" not found
+ERROR: Job failed: error executing remote command: command terminated with non-zero exit code: Error executing in Docker Container: 1
+```
+
+Полезная ссылка по теме кеша gitlab https://docs.gitlab.com/ce/ci/caching/
+
+Выполнен на всех 3 нодах кубера `sudo docker image rm vscoder/helm:v3.0.2`
+
+
+Руками дропнул под с раннером, кубик его пересоздал. В гитлабе новый раннер зарегистрирован.
+
+Но! Проблема. Некоторые пайплайны не отрабатывают:
+```log
+Running with gitlab-runner 10.3.0 (5cf5e19a)
+  on gitlab-gitlab-runner-875586966-94clb (d2450449)
+Using Kubernetes namespace: default
+Using Kubernetes executor with image vscoder/helm:v3.0.2 ...
+Waiting for pod default/runner-d2450449-project-1-concurrent-0gjfkz to be running, status is Pending
+Waiting for pod default/runner-d2450449-project-1-concurrent-0gjfkz to be running, status is Pending
+Waiting for pod default/runner-d2450449-project-1-concurrent-0gjfkz to be running, status is Pending
+Waiting for pod default/runner-d2450449-project-1-concurrent-0gjfkz to be running, status is Pending
+Waiting for pod default/runner-d2450449-project-1-concurrent-0gjfkz to be running, status is Pending
+Waiting for pod default/runner-d2450449-project-1-concurrent-0gjfkz to be running, status is Pending
+Waiting for pod default/runner-d2450449-project-1-concurrent-0gjfkz to be running, status is Pending
+Waiting for pod default/runner-d2450449-project-1-concurrent-0gjfkz to be running, status is Pending
+Waiting for pod default/runner-d2450449-project-1-concurrent-0gjfkz to be running, status is Pending
+... # и в конце
+ERROR: Job failed (system failure): timedout waiting for pod to start
+```
+
+Проверил на какой ноде запускался под: `kubectl get pods` `kubectl describe pod runner-d2450449-project-1-concurrent-0gjfkz`
+
+_gke-reddit-public-main-pool-a1c843ac-kj9h_
+
+Повторный запуск прошёл успешно.
+
+Закоммитил в новый бренч: снова та же проблема. Нода `gke-reddit-public-main-pool-a1c843ac-td4d/`
+ 
+Ещё и раннер упал
+```shell
+kubectl get pods                                                
+```
+```log
+NAME                                          READY   STATUS    RESTARTS   AGE
+gitlab-gitlab-766445f7d7-72cl4                1/1     Running   0          23h
+gitlab-gitlab-postgresql-66d5b899b8-grfbz     1/1     Running   0          23h
+gitlab-gitlab-redis-6c675dd568-b5svr          1/1     Running   0          23h
+gitlab-gitlab-runner-875586966-94clb          0/1     Running   0          24m
+runner-d2450449-project-1-concurrent-0hp6m7   0/3     Pending   0          2m41s
+```
+```shell
+kubectl describe pod gitlab-gitlab-runner-875586966-94clb
+```
+```log
+Name:           gitlab-gitlab-runner-875586966-94clb
+Namespace:      default
+Priority:       0
+Node:           gke-reddit-public-main-pool-a1c843ac-td4d/10.3.0.12
+Start Time:     Wed, 15 Jan 2020 22:27:06 +0300
+Labels:         app=gitlab-gitlab-runner
+                pod-template-hash=875586966
+Annotations:    checksum/configmap: 9881f87576bd484ffb2801f6abf1b90cd637d2a61c44e01b5fbc639d206ddfac
+                checksum/secrets: 2bb41baa011e9685826ef270dc14a2c5d51f791686bd9196c26b3df16da95a6f
+                cni.projectcalico.org/podIP: 10.4.2.17/32
+                kubernetes.io/limit-ranger: LimitRanger plugin set: cpu request for container gitlab-gitlab-runner
+Status:         Running
+IP:             10.4.2.17
+IPs:            <none>
+Controlled By:  ReplicaSet/gitlab-gitlab-runner-875586966
+Containers:
+  gitlab-gitlab-runner:
+    Container ID:  docker://26cf3fe8bfdecc0cfa7d87127c0ce98a8ee43491244d990b35b25678239dd868
+    Image:         gitlab/gitlab-runner:alpine-v10.3.0
+    Image ID:      docker-pullable://gitlab/gitlab-runner@sha256:9b1e53a91fc8914c934b9eacf93365c7af97d97514c71b1825f677c8ee2a2369
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      /bin/bash
+      /scripts/entrypoint
+    State:          Running
+      Started:      Wed, 15 Jan 2020 22:28:52 +0300
+    Ready:          False
+    Restart Count:  0
+    Requests:
+      cpu:      100m
+    Liveness:   exec [/usr/bin/pgrep gitlab.*runner] delay=60s timeout=1s period=10s #success=1 #failure=3
+    Readiness:  exec [/usr/bin/pgrep gitlab.*runner] delay=10s timeout=1s period=10s #success=1 #failure=3
+    Environment:
+      CI_SERVER_URL:                      http://gitlab-gitlab.default:8005/
+      CI_SERVER_TOKEN:                    <set to the key 'runner-token' in secret 'gitlab-gitlab-runner'>               Optional: false
+      REGISTRATION_TOKEN:                 <set to the key 'runner-registration-token' in secret 'gitlab-gitlab-runner'>  Optional: false
+      KUBERNETES_IMAGE:                   ubuntu:16.04
+      KUBERNETES_PRIVILEGED:              true
+      KUBERNETES_NAMESPACE:               default
+      KUBERNETES_CPU_LIMIT:               
+      KUBERNETES_MEMORY_LIMIT:            
+      KUBERNETES_CPU_REQUEST:             
+      KUBERNETES_MEMORY_REQUEST:          
+      KUBERNETES_SERVICE_CPU_LIMIT:       
+      KUBERNETES_SERVICE_MEMORY_LIMIT:    
+      KUBERNETES_SERVICE_CPU_REQUEST:     
+      KUBERNETES_SERVICE_MEMORY_REQUEST:  
+      KUBERNETES_HELPERS_CPU_LIMIT:       
+      KUBERNETES_HELPERS_MEMORY_LIMIT:    
+      KUBERNETES_HELPERS_CPU_REQUEST:     
+      KUBERNETES_HELPERS_MEMORY_REQUEST:  
+    Mounts:
+      /scripts from scripts (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-l84tq (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             False 
+  ContainersReady   False 
+  PodScheduled      True 
+Volumes:
+  var-run-docker-sock:
+    Type:          HostPath (bare host directory volume)
+    Path:          /var/run/docker.sock
+    HostPathType:  
+  scripts:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      gitlab-gitlab-runner
+    Optional:  false
+  default-token-l84tq:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-l84tq
+    Optional:    false
+QoS Class:       Burstable
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type     Reason       Age    From                                                Message
+  ----     ------       ----   ----                                                -------
+  Normal   Scheduled    25m    default-scheduler                                   Successfully assigned default/gitlab-gitlab-runner-875586966-94clb to gke-reddit-public-main-pool-a1c843ac-td4d
+  Normal   Pulling      25m    kubelet, gke-reddit-public-main-pool-a1c843ac-td4d  Pulling image "gitlab/gitlab-runner:alpine-v10.3.0"
+  Normal   Pulled       23m    kubelet, gke-reddit-public-main-pool-a1c843ac-td4d  Successfully pulled image "gitlab/gitlab-runner:alpine-v10.3.0"
+  Normal   Created      23m    kubelet, gke-reddit-public-main-pool-a1c843ac-td4d  Created container gitlab-gitlab-runner
+  Normal   Started      23m    kubelet, gke-reddit-public-main-pool-a1c843ac-td4d  Started container gitlab-gitlab-runner
+  Warning  FailedMount  8m56s  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d  MountVolume.SetUp failed for volume "default-token-l84tq" : couldn't propagate object cache: timed out waiting for the condition
+  Warning  FailedMount  8m56s  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d  MountVolume.SetUp failed for volume "scripts" : couldn't propagate object cache: timed out waiting for the condition
+  Warning  FailedMount  5m53s  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d  MountVolume.SetUp failed for volume "scripts" : couldn't propagate object cache: timed out waiting for the condition
+  Warning  FailedMount  5m53s  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d  MountVolume.SetUp failed for volume "default-token-l84tq" : couldn't propagate object cache: timed out waiting for the condition
+  ```
+
+Странно. Повторный запуск задачи в пайплайне помог, но при этом гитлаб-раннер всё ещё "лежит"
+```shell
+kubectl get pods                                                
+```
+```log
+NAME                                          READY   STATUS    RESTARTS   AGE
+gitlab-gitlab-766445f7d7-72cl4                1/1     Running   0          23h
+gitlab-gitlab-postgresql-66d5b899b8-grfbz     1/1     Running   0          23h
+gitlab-gitlab-redis-6c675dd568-b5svr          1/1     Running   0          23h
+gitlab-gitlab-runner-875586966-94clb          0/1     Running   0          29m
+runner-d2450449-project-1-concurrent-0bkvlp   3/3     Running   0          52s
+```
+
+Спустя какое-то время запустился другой раннер
+```log
+kubectl get pods
+NAME                                          READY   STATUS    RESTARTS   AGE
+gitlab-gitlab-766445f7d7-72cl4                1/1     Running   0          23h
+gitlab-gitlab-postgresql-66d5b899b8-grfbz     1/1     Running   0          23h
+gitlab-gitlab-redis-6c675dd568-b5svr          1/1     Running   0          23h
+gitlab-gitlab-runner-875586966-94clb          0/1     Unknown   0          36m
+gitlab-gitlab-runner-875586966-qktll          1/1     Running   0          5m24s
+runner-d2450449-project-1-concurrent-0bkvlp   3/3     Running   0          7m43s
+```
+
+А вот наша сборка уже достаточно долго висит на
+```log
+...
+(14/17) Installing gcc (5.3.0-r0)
+(15/17) Installing musl-dev (1.1.14-r16)
+(16/17) Installing .build-deps (0)
+(17/17) Upgrading musl-utils (1.1.14-r14 -> 1.1.14-r16)
+Executing busybox-1.24.2-r13.trigger
+OK: 117 MiB in 48 packages
+Collecting prometheus_client==0.0.21 (from -r /app/requirements.txt (line 1))
+  Downloading https://files.pythonhosted.org/packages/45/6d/0cc171ce82a8f284133faf12a50018501abdc4b0742e4f8f471b6b2dc81f/prometheus_client-0.0.21.tar.gz
+```
+
+Перезапущу ка я пайплайн руками ^_^. Посмотрим на результат))
+
+Пока дело движется....
+
+Все стадии, включая review, прошли успешно! Окружение доступно http://vscoder-post-feature-10/
+
+А вот удаление релиза не работает((
+```log
+Running with gitlab-runner 10.3.0 (5cf5e19a)
+  on gitlab-gitlab-runner-875586966-qktll (d0b36d07)
+Using Kubernetes namespace: default
+Using Kubernetes executor with image vscoder/helm:v3.0.2 ...
+Waiting for pod default/runner-d0b36d07-project-1-concurrent-086wv8 to be running, status is Pending
+Running on runner-d0b36d07-project-1-concurrent-086wv8 via gitlab-gitlab-runner-875586966-qktll...
+Skipping Git repository setup
+Skippping Git checkout
+Skipping Git submodules setup
+$ helm version --client
+version.BuildInfo{Version:"v3.0.2", GitCommit:"19e47ee3283ae98139d98460de796c1be1e3975f", GitTreeState:"clean", GoVersion:"go1.13.5"}
+$ kubectl version --client
+Client Version: version.Info{Major:"1", Minor:"17", GitVersion:"v1.17.1", GitCommit:"d224476cd0730baca2b6e357d144171ed74192d6", GitTreeState:"clean", BuildDate:"2020-01-14T21:04:32Z", GoVersion:"go1.13.5", Compiler:"gc", Platform:"linux/amd64"}
+$ helm delete "$name"
+Error: uninstall: Release not loaded: review-vscoder-po-zthnmc: release: not found
+ERROR: Job failed: error executing remote command: command terminated with non-zero exit code: Error executing in Docker Container: 1
+```
+
+Вопрос: где helm3 хранит список релизов? В локальной директории? Получает из кубика?
+
+Но вот ещё одна странность: в который раз пересоздаётся нода
+```shell
+kubectl get nodes
+```
+```log
+NAME                                          STATUS     ROLES    AGE     VERSION
+gke-reddit-public-gitlab-pool-3b2988e5-mx8f   Ready      <none>   3h16m   v1.15.7-gke.2
+gke-reddit-public-main-pool-a1c843ac-kj9h     Ready      <none>   24m     v1.15.7-gke.2
+gke-reddit-public-main-pool-a1c843ac-td4d     NotReady   <none>   11m     v1.15.7-gke.2
+```
+```shell
+kubectl describe node gke-reddit-public-main-pool-a1c843ac-td4d
+Name:               gke-reddit-public-main-pool-a1c843ac-td4d
+Roles:              <none>
+Labels:             all-pools-example=true
+                    beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/fluentd-ds-ready=true
+                    beta.kubernetes.io/instance-type=g1-small
+                    beta.kubernetes.io/masq-agent-ds-ready=true
+                    beta.kubernetes.io/os=linux
+                    cloud.google.com/gke-nodepool=main-pool
+                    cloud.google.com/gke-os-distribution=cos
+                    failure-domain.beta.kubernetes.io/region=us-central1
+                    failure-domain.beta.kubernetes.io/zone=us-central1-a
+                    kubernetes.io/arch=amd64
+                    kubernetes.io/hostname=gke-reddit-public-main-pool-a1c843ac-td4d
+                    kubernetes.io/os=linux
+                    node.kubernetes.io/masq-agent-ds-ready=true
+                    projectcalico.org/ds-ready=true
+Annotations:        container.googleapis.com/instance_id: 5153271999223746451
+                    node.alpha.kubernetes.io/ttl: 0
+                    projectcalico.org/IPv4IPIPTunnelAddr: 10.4.2.1
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Wed, 15 Jan 2020 23:10:18 +0300
+Taints:             ToBeDeletedByClusterAutoscaler=1579119624:NoSchedule
+                    node.kubernetes.io/unreachable:NoSchedule
+                    DeletionCandidateOfClusterAutoscaler=1579119021:PreferNoSchedule
+Unschedulable:      false
+Lease:
+  HolderIdentity:  gke-reddit-public-main-pool-a1c843ac-td4d
+  AcquireTime:     <unset>
+  RenewTime:       Wed, 15 Jan 2020 23:20:29 +0300
+Conditions:
+  Type                          Status    LastHeartbeatTime                 LastTransitionTime                Reason                          Message
+  ----                          ------    -----------------                 ------------------                ------                          -------
+  CorruptDockerOverlay2         False     Wed, 15 Jan 2020 23:20:25 +0300   Wed, 15 Jan 2020 23:10:18 +0300   NoCorruptDockerOverlay2         docker overlay2 is functioning properly
+  FrequentUnregisterNetDevice   False     Wed, 15 Jan 2020 23:20:25 +0300   Wed, 15 Jan 2020 23:10:18 +0300   NoFrequentUnregisterNetDevice   node is functioning properly
+  FrequentKubeletRestart        False     Wed, 15 Jan 2020 23:20:25 +0300   Wed, 15 Jan 2020 23:10:18 +0300   NoFrequentKubeletRestart        kubelet is functioning properly
+  FrequentDockerRestart         False     Wed, 15 Jan 2020 23:20:25 +0300   Wed, 15 Jan 2020 23:10:18 +0300   NoFrequentDockerRestart         docker is functioning properly
+  FrequentContainerdRestart     False     Wed, 15 Jan 2020 23:20:25 +0300   Wed, 15 Jan 2020 23:10:18 +0300   NoFrequentContainerdRestart     containerd is functioning properly
+  KernelDeadlock                False     Wed, 15 Jan 2020 23:20:25 +0300   Wed, 15 Jan 2020 23:10:18 +0300   KernelHasNoDeadlock             kernel has no deadlock
+  ReadonlyFilesystem            False     Wed, 15 Jan 2020 23:20:25 +0300   Wed, 15 Jan 2020 23:10:18 +0300   FilesystemIsNotReadOnly         Filesystem is not read-only
+  NetworkUnavailable            False     Wed, 15 Jan 2020 23:10:19 +0300   Wed, 15 Jan 2020 23:10:19 +0300   RouteCreated                    NodeController create implicit route
+  MemoryPressure                Unknown   Wed, 15 Jan 2020 23:20:21 +0300   Wed, 15 Jan 2020 23:21:13 +0300   NodeStatusUnknown               Kubelet stopped posting node status.
+  DiskPressure                  Unknown   Wed, 15 Jan 2020 23:20:21 +0300   Wed, 15 Jan 2020 23:21:13 +0300   NodeStatusUnknown               Kubelet stopped posting node status.
+  PIDPressure                   Unknown   Wed, 15 Jan 2020 23:20:21 +0300   Wed, 15 Jan 2020 23:21:13 +0300   NodeStatusUnknown               Kubelet stopped posting node status.
+  Ready                         Unknown   Wed, 15 Jan 2020 23:20:21 +0300   Wed, 15 Jan 2020 23:21:13 +0300   NodeStatusUnknown               Kubelet stopped posting node status.
+Addresses:
+  InternalIP:   10.3.0.16
+  ExternalIP:   35.202.167.185
+  InternalDNS:  gke-reddit-public-main-pool-a1c843ac-td4d.us-central1-a.c.docker-257914.internal
+  Hostname:     gke-reddit-public-main-pool-a1c843ac-td4d.us-central1-a.c.docker-257914.internal
+Capacity:
+  attachable-volumes-gce-pd:  15
+  cpu:                        1
+  ephemeral-storage:          26615568Ki
+  hugepages-2Mi:              0
+  memory:                     1732780Ki
+  pods:                       110
+Allocatable:
+  attachable-volumes-gce-pd:  15
+  cpu:                        940m
+  ephemeral-storage:          8422780069
+  hugepages-2Mi:              0
+  memory:                     1184940Ki
+  pods:                       110
+System Info:
+  Machine ID:                 f417f94ad5bed3d2924f39b8bb9a7c07
+  System UUID:                f417f94a-d5be-d3d2-924f-39b8bb9a7c07
+  Boot ID:                    c05f745c-8ec0-4ede-b5a9-71beabe87aa5
+  Kernel Version:             4.19.76+
+  OS Image:                   Container-Optimized OS from Google
+  Operating System:           linux
+  Architecture:               amd64
+  Container Runtime Version:  docker://19.3.1
+  Kubelet Version:            v1.15.7-gke.2
+  Kube-Proxy Version:         v1.15.7-gke.2
+PodCIDR:                      10.4.2.0/24
+ProviderID:                   gce://docker-257914/us-central1-a/gke-reddit-public-main-pool-a1c843ac-td4d
+Non-terminated Pods:          (6 in total)
+  Namespace                   Name                                                    CPU Requests  CPU Limits  Memory Requests  Memory Limits  AGE
+  ---------                   ----                                                    ------------  ----------  ---------------  -------------  ---
+  kube-system                 calico-node-x7vv5                                       100m (10%)    0 (0%)      0 (0%)           0 (0%)         11m
+  kube-system                 fluentd-gcp-v3.1.1-fkn56                                100m (10%)    1 (106%)    200Mi (17%)      500Mi (43%)    11m
+  kube-system                 ip-masq-agent-85596                                     10m (1%)      0 (0%)      16Mi (1%)        0 (0%)         11m
+  kube-system                 kube-proxy-gke-reddit-public-main-pool-a1c843ac-td4d    100m (10%)    0 (0%)      0 (0%)           0 (0%)         11m
+  kube-system                 prometheus-to-sd-4ndfz                                  1m (0%)       3m (0%)     20Mi (1%)        20Mi (1%)      11m
+  nginx-ingress               nginx-46fr5                                             0 (0%)        0 (0%)      0 (0%)           0 (0%)         11m
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource                   Requests     Limits
+  --------                   --------     ------
+  cpu                        311m (33%)   1003m (106%)
+  memory                     236Mi (20%)  520Mi (44%)
+  ephemeral-storage          0 (0%)       0 (0%)
+  attachable-volumes-gce-pd  0            0
+Events:
+  Type    Reason                         Age                From                                                        Message
+  ----    ------                         ----               ----                                                        -------
+  Normal  Starting                       47m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Starting kubelet.
+  Normal  NodeHasSufficientMemory        47m (x2 over 47m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientMemory
+  Normal  NodeHasNoDiskPressure          47m (x2 over 47m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientPID           47m (x2 over 47m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientPID
+  Normal  NodeNotReady                   47m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeNotReady
+  Normal  NodeReady                      47m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeReady
+  Normal  NodeAllocatableEnforced        47m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Updated Node Allocatable limit across pods
+  Normal  Starting                       44m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Starting kubelet.
+  Normal  NodeNotReady                   44m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeNotReady
+  Normal  NodeHasSufficientMemory        44m (x2 over 44m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientMemory
+  Normal  NodeHasNoDiskPressure          44m (x2 over 44m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientPID           44m (x2 over 44m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientPID
+  Normal  NodeAllocatableEnforced        44m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Updated Node Allocatable limit across pods
+  Normal  NodeReady                      44m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeReady
+  Normal  Starting                       43m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Starting kubelet.
+  Normal  NodeHasSufficientMemory        43m (x2 over 43m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientMemory
+  Normal  NodeHasNoDiskPressure          43m (x2 over 43m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientPID           43m (x2 over 43m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientPID
+  Normal  NodeNotReady                   43m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeNotReady
+  Normal  NodeAllocatableEnforced        43m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Updated Node Allocatable limit across pods
+  Normal  NodeReady                      43m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeReady
+  Normal  Starting                       41m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Starting kubelet.
+  Normal  NodeHasSufficientMemory        41m (x2 over 41m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientMemory
+  Normal  NodeHasNoDiskPressure          41m (x2 over 41m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientPID           41m (x2 over 41m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientPID
+  Normal  NodeAllocatableEnforced        41m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Updated Node Allocatable limit across pods
+  Normal  NodeNotReady                   40m (x2 over 41m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeNotReady
+  Normal  NodeReady                      40m (x2 over 41m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeReady
+  Normal  Starting                       38m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Starting kubelet.
+  Normal  NodeHasSufficientMemory        38m (x2 over 38m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientMemory
+  Normal  NodeNotReady                   38m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeNotReady
+  Normal  NodeHasSufficientPID           38m (x2 over 38m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientPID
+  Normal  NodeHasNoDiskPressure          38m (x2 over 38m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasNoDiskPressure
+  Normal  NodeAllocatableEnforced        38m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Updated Node Allocatable limit across pods
+  Normal  NodeReady                      38m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeReady
+  Normal  Starting                       36m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Starting kubelet.
+  Normal  NodeHasSufficientMemory        36m (x2 over 36m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientMemory
+  Normal  NodeHasNoDiskPressure          36m (x2 over 36m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientPID           36m (x2 over 36m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientPID
+  Normal  NodeNotReady                   36m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeNotReady
+  Normal  NodeReady                      36m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeReady
+  Normal  NodeAllocatableEnforced        36m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Updated Node Allocatable limit across pods
+  Normal  Starting                       35m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Starting kubelet.
+  Normal  NodeHasSufficientMemory        35m (x2 over 35m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientMemory
+  Normal  NodeHasNoDiskPressure          35m (x2 over 35m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientPID           35m (x2 over 35m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientPID
+  Normal  NodeNotReady                   35m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeNotReady
+  Normal  NodeAllocatableEnforced        35m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Updated Node Allocatable limit across pods
+  Normal  NodeReady                      35m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeReady
+  Normal  Starting                       33m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Starting kubelet.
+  Normal  NodeNotReady                   33m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeNotReady
+  Normal  NodeHasSufficientMemory        33m (x2 over 33m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientMemory
+  Normal  NodeHasNoDiskPressure          33m (x2 over 33m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientPID           33m (x2 over 33m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientPID
+  Normal  NodeReady                      33m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeReady
+  Normal  NodeAllocatableEnforced        33m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Updated Node Allocatable limit across pods
+  Normal  Starting                       32m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Starting kubelet.
+  Normal  NodeHasSufficientPID           32m (x2 over 32m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientPID
+  Normal  NodeHasSufficientMemory        32m (x2 over 32m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientMemory
+  Normal  NodeNotReady                   32m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeNotReady
+  Normal  NodeHasNoDiskPressure          32m (x2 over 32m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasNoDiskPressure
+  Normal  NodeAllocatableEnforced        32m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Updated Node Allocatable limit across pods
+  Normal  NodeReady                      31m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeReady
+  Normal  NoFrequentKubeletRestart       30m                systemd-monitor, gke-reddit-public-main-pool-a1c843ac-td4d  Node condition FrequentKubeletRestart is now: Unknown, reason: NoFrequentKubeletRestart
+  Normal  NoFrequentUnregisterNetDevice  30m                kernel-monitor, gke-reddit-public-main-pool-a1c843ac-td4d   Node condition FrequentUnregisterNetDevice is now: Unknown, reason: NoFrequentUnregisterNetDevice
+  Normal  Starting                       28m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Starting kubelet.
+  Normal  NodeNotReady                   28m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeNotReady
+  Normal  NodeHasSufficientMemory        28m (x2 over 28m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientMemory
+  Normal  NodeHasNoDiskPressure          28m (x2 over 28m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientPID           28m (x2 over 28m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientPID
+  Normal  NodeAllocatableEnforced        28m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Updated Node Allocatable limit across pods
+  Normal  NodeReady                      28m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeReady
+  Normal  NoFrequentUnregisterNetDevice  25m                kernel-monitor, gke-reddit-public-main-pool-a1c843ac-td4d   Node condition FrequentUnregisterNetDevice is now: False, reason: NoFrequentUnregisterNetDevice
+  Normal  FrequentKubeletRestart         25m (x2 over 36m)  systemd-monitor, gke-reddit-public-main-pool-a1c843ac-td4d  Node condition FrequentKubeletRestart is now: True, reason: FrequentKubeletRestart
+  Normal  Starting                       11m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Starting kubelet.
+  Normal  NodeAllocatableEnforced        11m                kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Updated Node Allocatable limit across pods
+  Normal  NodeHasNoDiskPressure          11m (x7 over 11m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasNoDiskPressure
+  Normal  NodeHasSufficientMemory        11m (x8 over 11m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientMemory
+  Normal  NodeHasSufficientPID           11m (x8 over 11m)  kubelet, gke-reddit-public-main-pool-a1c843ac-td4d          Node gke-reddit-public-main-pool-a1c843ac-td4d status is now: NodeHasSufficientPID
+  Normal  Starting                       11m                kube-proxy, gke-reddit-public-main-pool-a1c843ac-td4d       Starting kube-proxy.
+```
+
+В итоге GKE удалил ноду. Но, возможно, ему просто нужны ноды по-жирнее? ))
+
+Заменим `g1-small` на `n1-standard-1` для node pool main
+
+Сделал. Перезапустил пайплайн. А гитлаб стал `Evicted`
+```shell
+kubectl get pods 
+```
+```log
+NAME                                          READY   STATUS    RESTARTS   AGE
+gitlab-gitlab-766445f7d7-72cl4                0/1     Evicted   0          24h
+gitlab-gitlab-766445f7d7-7p2gd                0/1     Running   0          57s
+gitlab-gitlab-postgresql-66d5b899b8-grfbz     1/1     Running   0          24h
+gitlab-gitlab-redis-6c675dd568-b5svr          1/1     Running   0          24h
+gitlab-gitlab-runner-875586966-ljkcn          1/1     Running   0          13m
+runner-34e3fb54-project-1-concurrent-09r8gd   3/3     Running   0          2m
+runner-d2450449-project-1-concurrent-0bkvlp   3/3     Running   0          55m
+```
+
+Всю память скушал наш гитлаб...
+```log
+kubelet, gke-reddit-public-gitlab-pool-3b2988e5-mx8f  The node was low on resource: memory. Container gitlab was using 2703536Ki, which exceeds its request of 0.
+```
+
+А внось созданный под с гитлабом запустился только со второго раза.
+
+В очередной раз пофиксил пайплайн
+`post/.gitlab-ci.yml`
+```yaml
+---
+image: vscoder/helm:v3.0.2
+
+stages:
+  - build
+  - test
+  - review
+  - release
+  - cleanup
+
+build:
+  stage: build
+  only:
+    - branches
+  image: docker:git
+  services:
+    - docker:18.09.7-dind
+  variables:
+    DOCKER_DRIVER: overlay2
+    CI_REGISTRY: "index.docker.io"
+    CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+  before_script:
+    - >
+      if ! docker info &>/dev/null; then
+        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+          export DOCKER_HOST='tcp://localhost:2375'
+        fi
+      fi
+  script:
+    # Building
+    - echo "Building Dockerfile-based application..."
+    - echo `git show --format="%h" HEAD | head -1` > build_info.txt
+    - echo `git rev-parse --abbrev-ref HEAD` >> build_info.txt
+    - docker build -t "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" .
+    - >
+      if [[ -n "$CI_REGISTRY_USER" ]]; then
+        echo "Logging to GitLab Container Registry with CI credentials...for build"
+        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      fi
+    - echo "Pushing to GitLab Container Registry..."
+    - docker push "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+
+test:
+  stage: test
+  script:
+    - exit 0
+  only:
+    - branches
+
+release:
+  stage: release
+  image: docker
+  services:
+    - docker:18.09.7-dind
+  variables:
+    CI_REGISTRY: "index.docker.io"
+    CI_APPLICATION_REPOSITORY: $CI_REGISTRY/$CI_PROJECT_PATH
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    CI_CONTAINER_NAME: ci_job_build_${CI_JOB_ID}
+  before_script:
+    - >
+      if ! docker info &>/dev/null; then
+        if [ -z "$DOCKER_HOST" -a "$KUBERNETES_PORT" ]; then
+          export DOCKER_HOST='tcp://localhost:2375'
+        fi
+      fi
+  script:
+    # Releasing
+    - echo "Updating docker images ..."
+    - >
+      if [[ -n "$CI_REGISTRY_USER" ]]; then
+        echo "Logging to GitLab Container Registry with CI credentials for release..."
+        docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+      fi
+    - docker pull "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG"
+    - docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    - docker push "$CI_APPLICATION_REPOSITORY:$(cat VERSION)"
+    # latest is neede for feature flags
+    - docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:latest"
+    - docker push "$CI_APPLICATION_REPOSITORY:latest"
+  only:
+    - master
+
+review:
+  stage: review
+  variables:
+    KUBE_NAMESPACE: review
+    host: $CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    CI_APPLICATION_TAG: $CI_COMMIT_REF_SLUG
+    name: $CI_ENVIRONMENT_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    url: http://$CI_PROJECT_PATH_SLUG-$CI_COMMIT_REF_SLUG
+    on_stop: stop_review
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+  before_script:
+    # - helm init --client-only
+    # - helm plugin install https://github.com/rimusz/helm-tiller
+    - helm version --client
+    - kubectl version --client
+    # ensuring namespace
+    - kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+  script:
+    - export track="${1-stable}"
+    - >
+      if [[ "$track" != "stable" ]]; then
+        name="$name-$track"
+      fi
+    - echo "Clone deploy repository..."
+    - git clone http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/reddit-deploy.git
+    - echo "Download helm dependencies..."
+    - helm dep update reddit-deploy/reddit
+    - echo "Deploy helm release $name to $KUBE_NAMESPACE"
+    - echo "Upgrading existing release..."
+    - echo "helm upgrade --install --wait --set ui.ingress.host="$host" --set $CI_PROJECT_NAME.image.tag="$CI_APPLICATION_TAG" --namespace="$KUBE_NAMESPACE" --version="$CI_PIPELINE_ID-$CI_JOB_ID" "$name" reddit-deploy/reddit/"
+    - >
+      helm upgrade \
+        "$name" \
+        reddit-deploy/reddit/ \
+        --install \
+        --wait \
+        --set ui.ingress.host="$host" \
+        --set $CI_PROJECT_NAME.image.tag="$CI_APPLICATION_TAG" \
+        --namespace="$KUBE_NAMESPACE" \
+        --version="$CI_PIPELINE_ID-$CI_JOB_ID"
+
+stop_review:
+  stage: cleanup
+  variables:
+    KUBE_NAMESPACE: review  # Добавил для передачи в --namespace
+    GIT_STRATEGY: none
+    name: $CI_ENVIRONMENT_SLUG
+  environment:
+    name: review/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    action: stop
+  when: manual
+  allow_failure: true
+  only:
+    refs:
+      - branches
+    kubernetes: active
+  except:
+    - master
+  before_script:
+    # - helm init --client-only
+    # - helm plugin install https://github.com/rimusz/helm-tiller
+    - helm version --client
+    - kubectl version --client
+  script:
+    - helm delete "$name" --namespace="$KUBE_NAMESPACE" # Добавил --namespace
+```
+
+И теперь все стадии, включая удаление окружения, прошли успешно! Доступность окружения так же была проверена.
+
+
+##### reddit-deploy
+
+Самостоятельно переделать пайплайн для reddit-deploy (`reddit-deploy/.gitlab-ci.yml`) аналогичным образом, избавившись от auto_devops.
+
+TODO:
+
+### Задание со \*: Автоматический деплой production
+
+Сейчас у нас выкатка на staging и production - по нажатию кнопки. Свяжите пайплайны сборки образов и пайплайн деплоя на staging и production так, чтобы после релиза образа из ветки мастер запускался деплой уже новой версии приложения на production
+
+TODO:
