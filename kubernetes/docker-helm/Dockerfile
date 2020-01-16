@@ -20,7 +20,7 @@ RUN apk add --update --no-cache openssl curl tar gzip bash ca-certificates git &
     chmod +x /usr/bin/kubectl && \
     kubectl version --client && \
     rm -rf linux-amd64 && \
-    apk del curl tar gzip && \
+    apk del tar gzip && \
     rm -f /var/cache/apk/*
 
 CMD ["bash"]
