@@ -20367,3 +20367,17 @@ Done. Placed in `kubernetes/Charts`
 Папку `Gitlab_ci` - **не комитить**!
 
 Удалил так же все директории `.git` из `./src/*/`
+
+Проблема: директория `./src/post` в репозитории пустая
+```shell
+LANG=C git add src/post/.gitlab-ci.yml
+```
+```log
+fatal: Pathspec 'src/post/.gitlab-ci.yml' is in submodule 'src/post'
+```
+
+Лекарство: https://stackoverflow.com/a/31270959/3488348
+```shell
+ git rm --cached src/post
+ git add src/post
+ ```
