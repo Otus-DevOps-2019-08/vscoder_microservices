@@ -1,0 +1,92 @@
+---
+image: vscoder/helm:v3.0.2
+
+stages:
+  - test
+  - staging
+  - production
+
+test:
+  stage: test
+  script:
+    - exit 0
+  only:
+    - triggers
+    - branches
+
+staging:
+  stage: staging
+  variables:
+    KUBE_NAMESPACE: staging
+    name: $CI_ENVIRONMENT_SLUG
+  before_script:
+    - helm version --client
+    - kubectl version --client
+    - kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+  script:
+    - echo KUBE_NAMESPACE=$KUBE_NAMESPACE
+    - export track="${1-stable}"
+    - echo "Download helm dependencies..."
+    - helm dep update reddit
+    - >
+      # for microservice in $(helm dep ls | grep "file://" | awk '{print $1}') ; do
+      #   SET_VERSION="$SET_VERSION \ --set $microservice.image.tag='$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/ui/raw/master/VERSION)' "
+    - >
+      echo helm upgrade --install --wait --set ui.ingress.host="$host" --set ui.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/ui/raw/master/VERSION)" --set post.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/post/raw/master/VERSION)" --set comment.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/comment/raw/master/VERSION)" --namespace="$KUBE_NAMESPACE" --version="$CI_PIPELINE_ID-$CI_JOB_ID" "$name" reddit
+    - >
+      helm upgrade --install \
+        --wait \
+        --set ui.ingress.host="$host" \
+        --set ui.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/ui/raw/master/VERSION)" \
+        --set post.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/post/raw/master/VERSION)" \
+        --set comment.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/comment/raw/master/VERSION)" \
+        --namespace="$KUBE_NAMESPACE" \
+        --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+        "$name" \
+        reddit
+  environment:
+    name: staging
+    url: http://staging
+  only:
+    refs:
+      - master
+    kubernetes: active
+
+production:
+  stage: production
+  variables:
+    KUBE_NAMESPACE: production
+    name: $CI_ENVIRONMENT_SLUG
+  before_script:
+    - helm version --client
+    - kubectl version --client
+    - kubectl describe namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+  script:
+    - echo KUBE_NAMESPACE=$KUBE_NAMESPACE
+    - export track="${1-stable}"
+    - echo "Download helm dependencies..."
+    - helm dep update reddit
+    - >
+      # for microservice in $(helm dep ls | grep "file://" | awk '{print $1}') ; do
+      #   SET_VERSION="$SET_VERSION \ --set $microservice.image.tag='$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/ui/raw/master/VERSION)' "
+    - >
+      echo helm upgrade --install --wait --set ui.ingress.host="$host" --set ui.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/ui/raw/master/VERSION)" --set post.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/post/raw/master/VERSION)" --set comment.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/comment/raw/master/VERSION)" --namespace="$KUBE_NAMESPACE" --version="$CI_PIPELINE_ID-$CI_JOB_ID" "$name" reddit
+    - >
+      helm upgrade --install \
+        --wait \
+        --set ui.ingress.host="$host" \
+        --set ui.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/ui/raw/master/VERSION)" \
+        --set post.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/post/raw/master/VERSION)" \
+        --set comment.image.tag="$(curl http://gitlab-gitlab/$CI_PROJECT_NAMESPACE/comment/raw/master/VERSION)" \
+        --namespace="$KUBE_NAMESPACE" \
+        --version="$CI_PIPELINE_ID-$CI_JOB_ID" \
+        "$name" \
+        reddit
+  environment:
+    name: production
+    url: http://production
+  when: manual
+  only:
+    refs:
+      - master
+    kubernetes: active

@@ -383,6 +383,7 @@ vscoder microservices repository
         - [post + helm3](#post--helm3)
         - [reddit-deploy](#reddit-deploy-1)
     - [Задание со \*: Автоматический деплой production](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b9-%d0%b4%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-production)
+    - [Завершение](#%d0%97%d0%b0%d0%b2%d0%b5%d1%80%d1%88%d0%b5%d0%bd%d0%b8%d0%b5)
 
 # Makefile
 
@@ -20277,5 +20278,91 @@ TODO: разобраться как перейти на helm3 без удале�
 
 TODO: change app's pipelines
 
-
 Второй вариант: https://docs.gitlab.com/ce/ci/triggers/
+
+Протестируем на ui:
+
+Смотрим ID проекта: _Settings_ -> _General_ -> _General project settings_ -> **Project ID** в нашем случае ***4***
+![](kubernetes/img/screenshot-gitlab-projectid.png)
+
+Добавим в конец секции `script` джобы `release` команду
+```shell
+- curl -v --request POST --form "token=$CI_JOB_TOKEN" --form ref=master http://gitlab-gitlab/api/v4/projects/4/trigger/pipeline
+```
+
+Ошибка:
+```log
+curl: (28) Failed to connect to gitlab-gitlab port 443: Operation timed out
+```
+
+Нашлась лишняя подсеть...
+![](kubernetes/img/screenshot-vpc-subnetworks.png)
+
+На обоих воркерах (их сейчас два), в качестве default gateway указан `10.3.0.1`, значит они оба в подсети `reddit-public-network-5opx-subnetwork-public`. Да, знаю, можно и по другому посмотретьопределить))
+
+Возможно, подсеть `reddit-public-network-5opx-subnetwork-private` осталась от ранее созданного `private`-кластера... TODO: разобраться.
+
+Но подсети здесь не при чём.
+
+После приведения команды к следующему виду:
+```shell
+curl -v --request POST --form "token=$CI_JOB_TOKEN" --form ref=master http://gitlab-gitlab/api/v4/projects/4/trigger/pipeline
+```
+Получили ошибку
+```log
+curl -v --request POST --form "token=$CI_JOB_TOKEN" --form ref=master http://gitlab-gitlab/api/v4/projects/4/trigger/pipeline
+*   Trying 10.4.2.243:80...
+* TCP_NODELAY set
+* Connected to gitlab-gitlab (10.4.2.243) port 80 (#0)
+> POST /api/v4/projects/4/trigger/pipeline HTTP/1.1
+> Host: gitlab-gitlab
+> User-Agent: curl/7.67.0
+> Accept: */*
+> Content-Length: 258
+> Content-Type: multipart/form-data; boundary=------------------------3bba22cfb87cb6b0
+> 
+} [258 bytes data]
+* We are completely uploaded and fine
+{"message":"404 Not Found"}* Mark bundle as not supporting multiuse
+< HTTP/1.1 404 Not Found
+< Cache-Control: no-cache
+< Content-Length: 27
+< Content-Type: application/json
+< Date: Fri, 17 Jan 2020 19:57:05 GMT
+< Vary: Origin
+< X-Content-Type-Options: nosniff
+< X-Frame-Options: SAMEORIGIN
+< X-Request-Id: 182d383e-7ac9-40ae-a152-d10ce875856e
+< X-Runtime: 0.029111
+< 
+{ [27 bytes data]
+```
+
+Опять же, В - внимательность: https://docs.gitlab.com/ce/ci/multi_project_pipelines.html
+
+Это **Премиумная фича**, в бесплатной версии недоступна...
+> Available in GitLab Premium, GitLab.com Silver, and higher tiers
+
+Но в теории, должно работать))
+
+Буду считать задание выполненым ^_^
+
+Оставлю примет только для ui
+
+
+### Завершение
+
+Файлы `.gitlab-ci.yml`, полученные в ходе работы, поместите в папку с исходниками для каждой компоненты приложения.
+
+Done. Placed in `./src/*/.gitlab-ci.yml`
+
+Файл `.gitlab-ci.yml` для reddit-deploy поместите в `charts`.
+
+Done. Placed in `kubernetes/Charts/.gitlab-ci.yml`
+
+Все изменения, которые были внесены в Chart’ы - перенести в папку charts, созданную вначале.
+
+Done. Placed in `kubernetes/Charts`
+
+
+Папку `Gitlab_ci` - **не комитить**!

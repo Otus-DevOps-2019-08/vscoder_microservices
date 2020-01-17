@@ -7,6 +7,9 @@ image:
   repository: vscoder/ui
   tag: latest
 
+# Будем использовать nginx-ingress, 
+# который был поставлен вместе с gitlab-ом 
+# (так быстрее и правила более гибкие, чем у GCP)
 ingress:
   class: nginx
 
@@ -14,3 +17,4 @@ postHost:
 postPort:
 commentHost:
 commentPort:
+...

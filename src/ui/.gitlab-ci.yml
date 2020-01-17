@@ -66,6 +66,7 @@ release:
           export DOCKER_HOST='tcp://localhost:2375'
         fi
       fi
+    - apk --update --no-cache add curl
   script:
     # Releasing
     - echo "Updating docker images ..."
@@ -80,6 +81,8 @@ release:
     # latest is neede for feature flags
     - docker tag "$CI_APPLICATION_REPOSITORY:$CI_APPLICATION_TAG" "$CI_APPLICATION_REPOSITORY:latest"
     - docker push "$CI_APPLICATION_REPOSITORY:latest"
+    - echo curl -v --request POST --form "token=$CI_JOB_TOKEN" --form ref=master http://gitlab-gitlab/api/v4/projects/4/trigger/pipeline
+    - curl -v --request POST --form "token=$CI_JOB_TOKEN" --form ref=master http://gitlab-gitlab/api/v4/projects/4/trigger/pipeline
   only:
     - master
 

@@ -61,6 +61,8 @@ module "gke_cluster" {
 resource "google_container_node_pool" "node_pool" {
   provider = google-beta
 
+  count = 1
+
   name     = "main-pool"
   project  = var.project
   location = var.location
@@ -90,7 +92,7 @@ resource "google_container_node_pool" "node_pool" {
     # https://github.com/gruntwork-io/terraform-google-network/tree/master/modules/vpc-network#access-tier
     tags = [
       module.vpc_network.public,
-      "public-pool-example",
+      "public-pool-main",
     ]
 
     disk_size_gb = "30"
@@ -122,6 +124,8 @@ resource "google_container_node_pool" "node_pool" {
 resource "google_container_node_pool" "gitlab_node_pool" {
   provider = google-beta
 
+  count = 1
+
   name     = "gitlab-pool"
   project  = var.project
   location = var.location
@@ -151,7 +155,7 @@ resource "google_container_node_pool" "gitlab_node_pool" {
     # https://github.com/gruntwork-io/terraform-google-network/tree/master/modules/vpc-network#access-tier
     tags = [
       module.vpc_network.public,
-      "public-pool-example",
+      "public-pool-gitlab",
     ]
 
     disk_size_gb = "30"
