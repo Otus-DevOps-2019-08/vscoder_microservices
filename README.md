@@ -20364,5 +20364,6 @@ Done. Placed in `kubernetes/Charts/.gitlab-ci.yml`
 
 Done. Placed in `kubernetes/Charts`
 
-
 Папку `Gitlab_ci` - **не комитить**!
+
+Удалил так же все директории `.git` из `./src/*/`
