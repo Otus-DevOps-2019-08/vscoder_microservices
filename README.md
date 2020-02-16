@@ -397,6 +397,7 @@ vscoder microservices repository
       - [Targets](#targets-2)
       - [Relabel config](#relabel-config)
       - [Metrics](#metrics)
+        - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-6)
 
 # Makefile
 
@@ -21471,3 +21472,79 @@ projectcalico_org_ds_ready="true"
 
 #### Metrics
 
+Все найденные на эндпоинтах метрики сразу же отобразятся в списке (вкладка Graph). Метрики Cadvisor начинаются с `container_`.
+
+Cadvisor собирает лишь информацию о потреблении ресурсов и производительности отдельных docker-контейнеров. При этом он ничего не знает о сущностях k8s (деплойменты, репликасеты, ...).
+
+Для сбора этой информации будем использовать сервис `kube-state-metrics`. Он входит в чарт Prometheus. Включим его.
+
+`prometheus/custom_values.yml`
+```yaml
+kubeStateMetrics:
+  enabled: true
+```
+
+Обновим релиз
+```shell
+helm upgrade prom . -f custom_values.yml --install
+```
+```log
+coalesce.go:196: warning: cannot overwrite table with non table for annotations (map[])
+coalesce.go:196: warning: cannot overwrite table with non table for alertmanager.yml (map[global:map[] receivers:[map[name:default-receiver]] route:map[group_interval:5m group_wait:10s receiver:default-receiver repeat_interval:3h]])
+Release "prom" has been upgraded. Happy Helming!
+NAME: prom
+LAST DEPLOYED: Sun Feb 16 22:04:39 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+The Prometheus server can be accessed via port 80 on the following DNS name from within your cluster:
+prom-prometheus-server.default.svc.cluster.local
+
+From outside the cluster, the server URL(s) are:
+http://reddit-prometheus
+
+
+#################################################################################
+######   WARNING: Pod Security Policy has been moved to a global property.  #####
+######            use .Values.podSecurityPolicy.enabled with pod-based      #####
+######            annotations                                               #####
+######            (e.g. .Values.nodeExporter.podSecurityPolicy.annotations) #####
+#################################################################################
+
+
+
+For more information on running Prometheus, visit:
+https://prometheus.io/
+```
+
+в Targets:
+| Endpoint                     | State | Labels                                                                                                                                                                                                                | Last Scrape | Error                                                                                    |
+| ---------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------- |
+| http://10.4.1.3:8080/metrics | UP    | app="prometheus" chart="prometheus-10.4.0" component="kube-state-metrics" heritage="Helm" instance="10.4.1.3:8080" kubernetes_name="prom-prometheus-kube-state-metrics" kubernetes_namespace="default" release="prom" | 5.875s ago  |                                                                                          |
+| http://10.4.1.3:8081/metrics | DOWN  | app="prometheus" chart="prometheus-10.4.0" component="kube-state-metrics" heritage="Helm" instance="10.4.1.3:8081" kubernetes_name="prom-prometheus-kube-state-metrics" kubernetes_namespace="default" release="prom" | 27.232s ago | Get http://10.4.1.3:8081/metrics: dial tcp 10.4.1.3:8081: getsockopt: connection refused |
+
+Пока оставим второй энжпоинт без внимания, на TODO:, так как необходимые метриги отдаются
+
+в Graph: `kube_...` и их много))
+
+##### Задание
+
+По аналогии с kube_state_metrics включите (enabled: true) поды node-exporter в `custom_values.yml`.
+```yaml
+nodeExporter:
+  ## If false, node-exporter will not be installed
+  ##
+  enabled: true
+```
+```shell
+helm upgrade prom . -f custom_values.yml --install
+```
+```log
+вывод в консоль аналогичен предыдущему
+```
+
+Проверьте, что метрики начали собираться с них.
+
+Появилось множество метрик `node_*`
