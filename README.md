@@ -386,6 +386,10 @@ vscoder microservices repository
     - [Завершение](#%d0%97%d0%b0%d0%b2%d0%b5%d1%80%d1%88%d0%b5%d0%bd%d0%b8%d0%b5)
   - [HomeWork 23: Kubernetes. Мониторинг и логирование](#homework-23-kubernetes-%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d0%b8-%d0%bb%d0%be%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5)
     - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-6)
+      - [Настройка инфраструктуры](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d0%b8%d0%bd%d1%84%d1%80%d0%b0%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d1%8b)
+      - [Установка nginx-ingress-controller](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0-nginx-ingress-controller)
+        - [Путь ДЗ](#%d0%9f%d1%83%d1%82%d1%8c-%d0%94%d0%97)
+        - [Путь terraform](#%d0%9f%d1%83%d1%82%d1%8c-terraform)
 
 # Makefile
 
@@ -20388,6 +20392,8 @@ fatal: Pathspec 'src/post/.gitlab-ci.yml' is in submodule 'src/post'
 
 ### Подготовка
 
+#### Настройка инфраструктуры
+
 В `kubernetes/terraform/main.tf` отключены rbac, логгирование и мониторинг, а так же описано 2 node-pools
 ```conf
 module "gke_cluster" {
@@ -20418,3 +20424,68 @@ resource "google_container_node_pool" "elastic_node_pool" {
   }
   ...
 }
+```
+
+Инфраструктура применена
+```shell
+cd kubernetes/terraform
+make init apply
+```
+и создана спустя примерно 15 минут
+
+Зададим контекст для kubectl
+```shell
+gcloud container clusters get-credentials reddit-public --zone us-central1-a --project docker-257914
+```
+```log
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for reddit-public.
+```
+
+#### Установка nginx-ingress-controller
+
+##### Путь ДЗ
+
+Из Helm-чарта установим ingress-контроллер nginx
+```shell
+helm install stable/nginx-ingress --name nginx
+```
+но мы пойдём другим путём
+
+##### Путь terraform
+
+Создадим файл `kubernetes/terraform/nginx-ingress-controller.tf`
+```conf
+provider "helm" {
+  kubernetes {
+    host     = module.gke_cluster.endpoint
+
+    client_certificate     = module.gke_cluster.client_certificate
+    client_key             = module.gke_cluster.client_key
+    cluster_ca_certificate = module.gke_cluster.cluster_ca_certificate
+  }
+}
+data "helm_repository" "stable" {
+  name = "stable"
+  url  = "https://kubernetes-charts.storage.googleapis.com"
+}
+resource "helm_release" "nginx" {
+  name  = "nginx"
+  chart = "stable/nginx-ingress"
+  repository = data.helm_repository.stable.metadata[0].name
+
+  cleanup_on_fail = true
+  wait = true
+}
+```
+
+Найдите IP-адрес, выданный nginx’у
+```shell
+kubectl get svc
+```
+```log
+NAME                                  TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)                      AGE
+kubernetes                            ClusterIP      10.4.0.1     <none>          443/TCP                      39m
+nginx-nginx-ingress-controller        LoadBalancer   10.4.7.187   34.69.197.128   80:32087/TCP,443:30552/TCP   9m59s
+nginx-nginx-ingress-default-backend   ClusterIP      10.4.5.206   <none>          80/TCP                       9m59s
+```
