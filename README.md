@@ -384,6 +384,8 @@ vscoder microservices repository
         - [reddit-deploy](#reddit-deploy-1)
     - [Задание со \*: Автоматический деплой production](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b9-%d0%b4%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-production)
     - [Завершение](#%d0%97%d0%b0%d0%b2%d0%b5%d1%80%d1%88%d0%b5%d0%bd%d0%b8%d0%b5)
+  - [HomeWork 23: Kubernetes. Мониторинг и логирование](#homework-23-kubernetes-%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d0%b8-%d0%bb%d0%be%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5)
+    - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-6)
 
 # Makefile
 
@@ -20381,3 +20383,38 @@ fatal: Pathspec 'src/post/.gitlab-ci.yml' is in submodule 'src/post'
  git rm --cached src/post
  git add src/post
  ```
+
+## HomeWork 23: Kubernetes. Мониторинг и логирование
+
+### Подготовка
+
+В `kubernetes/terraform/main.tf` отключены rbac, логгирование и мониторинг, а так же описано 2 node-pools
+```conf
+module "gke_cluster" {
+  ...
+  enable_legacy_abac = "true"  # отключен rbac
+  logging_service = "none"  # отключено логгирование
+  monitoring_service = "none"  # отключен мониторинг
+}
+resource "google_container_node_pool" "node_pool" {
+  node_config {
+    machine_type = "g1-small"  # тип инстанса для первого пула
+    ...
+  }
+  autoscaling {
+    min_node_count = "2"  # минимум 2 ноды
+    max_node_count = "3"
+  }
+  ...
+}
+resource "google_container_node_pool" "elastic_node_pool" {
+  initial_node_count = "1"  # количество нод, autoscaling не включен
+  node_config {
+    machine_type = "n1-standard-2"  # тип инстанса для второго пула
+    labels = {
+      elastichost = true  # добавляем лейбл
+    }
+    ...
+  }
+  ...
+}
