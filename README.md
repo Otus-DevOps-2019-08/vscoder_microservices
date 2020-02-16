@@ -394,6 +394,9 @@ vscoder microservices repository
     - [Мониторинг](#%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3)
       - [Стек](#%d0%a1%d1%82%d0%b5%d0%ba)
       - [Установим Prometheus](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%b8%d0%bc-prometheus)
+      - [Targets](#targets-2)
+      - [Relabel config](#relabel-config)
+      - [Metrics](#metrics)
 
 # Makefile
 
@@ -21356,3 +21359,115 @@ helm upgrade prom . -f custom_values.yml --install
 ```
 
 Проверяем: http://reddit-prometheus успешно)
+
+
+#### Targets
+
+У нас уже присутствует ряд endpoint’ов для сбора метрик:
+- Метрики API-сервера
+- метрики нод с cadvisor’ов
+- сам prometheus
+
+Отметим, что можно собирать метрики cadvisor’а (который уже
+является частью kubelet) через проксирующий запрос в kube-apiserver
+
+Если зайти по ssh на любую из машин кластера и запросить `curl http://localhost:4194/metrics` то получим те же метрики у kubelet напрямую
+
+**Но вариант с kube-api предпочтительней, т.к. этот трафик
+шифруется TLS и требует аутентификации.**
+
+Таргеты для сбора метрик найдены с помощью service discovery
+(**SD**), настроенного в конфиге prometheus (лежит в `custom_values.yml`)
+
+`prometheus.yml`:
+```yaml
+...
+- job_name: 'kubernetes-apiservers' # kubernetes-apiservers (1/1 up)
+...
+- job_name: 'kubernetes-nodes' # kubernetes-nodes (3/3 up)
+  kubernetes_sd_configs: # Настройки Service Discovery (для поиска target’ов)
+  - role: node
+    scheme: https # Настройки подключения к target’ам (для сбора метрик)
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      insecure_skip_verify: true
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs: # Настройки различных меток, фильтрация найденных таргетов, их изменений
+```
+
+Использование SD в kubernetes позволяет нам динамично менять кластер (как сами хосты, так и сервисы и приложения)
+
+Цели для мониторинга находим c помощью запросов к k8s API:
+`prometheus.yml`
+```yaml
+...
+  scrape_configs:
+    - job_name: 'kubernetes-nodes'
+      kubernetes_sd_configs:
+        - role: node  # Role объект, который нужно найти:
+                      # - node
+                      # - endpoints
+                      # - pod
+                      # - service
+                      # - ingress
+```
+
+Т.к. сбор метрик prometheus осуществляется поверх стандартного HTTP-протокола, то могут понадобится доп. настройки для безопасного доступа к метрикам.
+
+Ниже приведены настройки для сбора метрик из k8s AP
+```yaml
+scheme: https
+tls_config:
+  ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  insecure_skip_verify: true
+bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+```
+
+1. Схема подключения - http (default) или https
+2. Конфиг TLS - коревой сертификат сервера для проверки достоверности сервера
+3. Токен для аутентификации насервере
+
+Targets:
+- gke-cluster-1-default-pool-f9c66281-kxrc
+- gke-cluster-1-default-pool-f9c66281-8gkc
+- gke-cluster-1-big-pool-b4209075-jlnq
+
+#### Relabel config
+
+https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
+
+```yaml
+#Kubernetes nodes
+relabel_configs:
+  - action: labelmap # преобразовать все k8s лейблы таргета в лейблы prometheus
+    regex: __meta_kubernetes_node_label_(.+)
+  - target_label: __address__ # Поменять лейбл для адреса сбора метрик
+    replacement: kubernetes.default.svc:443
+  - source_labels: [__meta_kubernetes_node_name] # Поменять лейбл для пути сбора метрик
+    regex: (.+)
+    target_label: __metrics_path__
+    replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+```
+
+В результате получим такие лейблы в prometheus:
+```
+beta_kubernetes_io_arch="amd64"
+beta_kubernetes_io_fluentd_ds_ready="true"
+beta_kubernetes_io_instance_type="n1-standard-2"
+beta_kubernetes_io_masq_agent_ds_ready="true"
+beta_kubernetes_io_os="linux"
+cloud_google_com_gke_nodepool="elastic-pool"
+cloud_google_com_gke_os_distribution="cos"
+elastichost="true"
+failure_domain_beta_kubernetes_io_region="us-central1"
+failure_domain_beta_kubernetes_io_zone="us-central1-a"
+instance="gke-reddit-public-elastic-pool-6fb5390b-fc8w"
+kubernetes_io_arch="amd64"
+kubernetes_io_hostname="gke-reddit-public-elastic-pool-6fb5390b-fc8w"
+kubernetes_io_os="linux"
+node_kubernetes_io_masq_agent_ds_ready="true"
+projectcalico_org_ds_ready="true"
+```
+
+#### Metrics
+
