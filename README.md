@@ -398,6 +398,8 @@ vscoder microservices repository
       - [Relabel config](#relabel-config)
       - [Metrics](#metrics)
         - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-6)
+      - [Метрики приложений](#%d0%9c%d0%b5%d1%82%d1%80%d0%b8%d0%ba%d0%b8-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d0%b9)
+        - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-7)
 
 # Makefile
 
@@ -21548,3 +21550,200 @@ helm upgrade prom . -f custom_values.yml --install
 Проверьте, что метрики начали собираться с них.
 
 Появилось множество метрик `node_*`
+
+
+#### Метрики приложений
+
+Запустите приложение из helm чарта reddit (напомню, в отличие от ДЗ у нас тут helm3 ^_^)
+```shell
+cd kubernetes/Charts/
+helm upgrade reddit-test ./reddit --install
+kubectl describe namespace production || kubectl create namespace production
+helm upgrade production --namespace production ./reddit --install
+kubectl describe namespace staging || kubectl create namespace staging
+helm upgrade staging --namespace staging ./reddit --install
+```
+
+Раньше мы "хардкодили" адреса/dns-имена наших приложений для сбора метрик с них.
+
+`prometheus.yml`
+```yaml
+- job_name: 'ui'
+  static_configs:
+    - targets:
+      - 'ui:9292'
+- job_name: 'comment'
+  static_configs:
+    - targets:
+      - 'comment:9292'
+```
+
+Теперь мы можем использовать механизм ServiceDiscovery для обнаружения приложений, запущенных в k8s.
+
+Приложения будем искать так же, как и служебные сервисы k8s.
+
+Модернизируем конфиг prometheus:
+`custom_values.yml`
+```yaml
+  - job_name: "reddit-endpoints"
+    kubernetes_sd_configs:
+      - role: endpoints
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_label_app]
+        action: keep   # Используем действие keep, чтобы оставить
+        regex: reddit  # только эндпоинты сервисов с метками
+                       # “app=reddit”
+```
+
+Обновите релиз prometheus
+```shell
+cd ./prometheus
+helm upgrade prom . -f custom_values.yml --install
+```
+```log
+coalesce.go:196: warning: cannot overwrite table with non table for annotations (map[])
+coalesce.go:196: warning: cannot overwrite table with non table for alertmanager.yml (map[global:map[] receivers:[map[name:default-receiver]] route:map[group_interval:5m group_wait:10s receiver:default-receiver repeat_interval:3h]])
+Release "prom" has been upgraded. Happy Helming!
+NAME: prom
+LAST DEPLOYED: Tue Feb 18 22:15:38 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 4
+TEST SUITE: None
+NOTES:
+The Prometheus server can be accessed via port 80 on the following DNS name from within your cluster:
+prom-prometheus-server.default.svc.cluster.local
+
+From outside the cluster, the server URL(s) are:
+http://reddit-prometheus
+
+
+#################################################################################
+######   WARNING: Pod Security Policy has been moved to a global property.  #####
+######            use .Values.podSecurityPolicy.enabled with pod-based      #####
+######            annotations                                               #####
+######            (e.g. .Values.nodeExporter.podSecurityPolicy.annotations) #####
+#################################################################################
+
+
+
+For more information on running Prometheus, visit:
+https://prometheus.io/
+```
+
+Мы получили эндпоинты, но что это за поды мы не знаем. Добавим метки k8s
+
+Все лейблы и аннотации k8s изначально отображаются в prometheus в формате:
+- `__meta_kubernetes_service_label_labelname`
+- `__meta_kubernetes_service_annotation_annotationname`
+
+`custom_values.yml`
+```yaml
+relabel_configs:
+  - action: labelmap # Отобразить все совпадения групп
+    regex: __meta_kubernetes_service_label_(.+) # из regex в label’ы Prometheus
+```
+
+Обновите релиз prometheus
+```shell
+helm upgrade prom . -f custom_values.yml --install
+```
+
+Теперь мы видим лейблы k8s, присвоенные POD’ам (на примере метрики `ui_request_count`)
+
+Добавим еще label’ы для prometheus и обновим helm-релиз Т.к. метки вида `__meta*` не публикуются, то нужно создать свои, перенеся в них информацию
+```yaml
+- source_labels: [__meta_kubernetes_namespace]
+  target_label: kubernetes_namespace
+- source_labels: [__meta_kubernetes_service_name]
+  target_label: kubernetes_name
+```
+
+Обновите релиз prometheus и ...
+```shell
+helm upgrade prom . -f custom_values.yml --install
+```
+
+Сейчас мы собираем метрики со всех сервисов reddit’а в 1 группе target-ов. Мы можем отделить target-ы компонент друг от друга (по окружениям, по самим компонентам), а также выключать и включать опцию мониторинга для них с помощью все тех же labelов. Например, добавим в конфиг еще 1 job:
+```yaml
+- job_name: 'reddit-production'
+   kubernetes_sd_configs:
+     - role: endpoints
+   relabel_configs:
+     - action: labelmap
+       regex: __meta_kubernetes_service_label_(.+)
+     - source_labels: [__meta_kubernetes_service_label_app, __meta_kubernetes_namespace]
+       action: keep                         # Для разных лейблов
+       regex: reddit;(production|staging)+  # разные регекспы
+     - source_labels: [__meta_kubernetes_namespace]
+       target_label: kubernetes_namespace
+     - source_labels: [__meta_kubernetes_service_name]
+       target_label: kubernetes_name
+```
+
+Обновим релиз prometheus и посмотрим
+```shell
+helm upgrade prom . -f custom_values.yml --install
+```
+и видим соответствующие target-ы
+
+Метрики будут отображаться для всех инстансов приложений
+
+##### Задание
+
+Разбейте конфигурацию job’а reddit-endpoints (слайд 24) так,чтобы было 3 job’а для каждой из компонент приложений (post-endpoints, comment-endpoints, ui-endpoints), а reddit-endpoints уберите.
+
+easy:
+```yaml
+      - job_name: "comment-endpoints"
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_label_app]
+            action: keep
+            regex: reddit
+          - source_labels: [__meta_kubernetes_service_label_component]
+            action: keep
+            regex: comment
+          - action: labelmap # Отобразить все совпадения групп
+            regex: __meta_kubernetes_service_label_(.+) # из regex в label’ы Prometheus
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: kubernetes_name
+
+      - job_name: "ui-endpoints"
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_label_app]
+            action: keep
+            regex: reddit
+          - source_labels: [__meta_kubernetes_service_label_component]
+            action: keep
+            regex: ui
+          - action: labelmap # Отобразить все совпадения групп
+            regex: __meta_kubernetes_service_label_(.+) # из regex в label’ы Prometheus
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: kubernetes_name
+
+      - job_name: "post-endpoints"
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_label_app]
+            action: keep
+            regex: reddit
+          - source_labels: [__meta_kubernetes_service_label_component]
+            action: keep
+            regex: post
+          - action: labelmap # Отобразить все совпадения групп
+            regex: __meta_kubernetes_service_label_(.+) # из regex в label’ы Prometheus
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: kubernetes_name
+```
+
