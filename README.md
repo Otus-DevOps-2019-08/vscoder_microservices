@@ -405,6 +405,7 @@ vscoder microservices repository
       - [Templating](#templating)
         - [UI metrics](#ui-metrics)
         - [Business Logic Monitoring](#business-logic-monitoring)
+      - [Смешанные графики](#%d0%a1%d0%bc%d0%b5%d1%88%d0%b0%d0%bd%d0%bd%d1%8b%d0%b5-%d0%b3%d1%80%d0%b0%d1%84%d0%b8%d0%ba%d0%b8)
 
 # Makefile
 
@@ -21865,3 +21866,11 @@ done
 - Metrics: `rate(comment_count{kubernetes_namespace=~"$namespace"}[1h])`
 
 Дашборд сохранён в [monitoring/grafana/dashboards/k8s_Business_Logic_Monitoring.json](monitoring/grafana/dashboards/k8s_Business_Logic_Monitoring.json)
+
+#### Смешанные графики
+
+Импортируйте следующий график: https://grafana.com/grafana/dashboards/741
+
+Интересная цифра `Deployment memory usage` = 119%. Довольно странная цифра.
+
+На этом графике одновременно используются метрики и шаблоны из cAdvisor, и из kube-state-metrics для отображения сводной информации по деплойментам
