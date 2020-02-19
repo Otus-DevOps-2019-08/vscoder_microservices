@@ -41,6 +41,11 @@ HADOLINT_VERSION?=1.17.2
 HADOLINT_URL=https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-x86_64
 HADOLINT?=${BIN_DIR}/hadolint
 
+# Helm
+HELM_VERSION?=3.0.2
+HELM_URL=https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz
+HELM?=${BIN_DIR}/helm
+
 # mongodb_exporter
 MONGODB_EXPORTER_DOCKER_IMAGE_NAME?=$${USER_NAME}/mongodb-exporter
 MONGODB_EXPORTER_VERSION?=v0.10.0
@@ -102,6 +107,13 @@ install_hadolint:
 	chmod +x ${BIN_DIR}/hadolint
 	${BIN_DIR}/hadolint --version
 
+install_helm:
+	wget ${HELM_URL} -O ${TEMP_DIR}/helm-${HELM_VERSION}.tar.gz
+	cd ${TEMP_DIR}/ && tar vxzf ${TEMP_DIR}/helm-${HELM_VERSION}.tar.gz
+	mv ${TEMP_DIR}/linux-amd64/helm ${BIN_DIR}/helm-${HELM_VERSION}
+	chmod +x ${BIN_DIR}/helm-${HELM_VERSION}
+	ln -sf helm-${HELM_VERSION} ${BIN_DIR}/helm
+	${BIN_DIR}/helm version && rm -rf ${TEMP_DIR}/helm-${HELM_VERSION}.tar.gz ${TEMP_DIR}/linux-amd64
 
 ###
 # docker-machine
