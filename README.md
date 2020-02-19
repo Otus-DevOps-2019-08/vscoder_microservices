@@ -402,6 +402,9 @@ vscoder microservices repository
         - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-7)
       - [Визуализация](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f)
         - [Урашечки, грабельки](#%d0%a3%d1%80%d0%b0%d1%88%d0%b5%d1%87%d0%ba%d0%b8-%d0%b3%d1%80%d0%b0%d0%b1%d0%b5%d0%bb%d1%8c%d0%ba%d0%b8)
+      - [Templating](#templating)
+        - [UI metrics](#ui-metrics)
+        - [Business Logic Monitoring](#business-logic-monitoring)
 
 # Makefile
 
@@ -21795,3 +21798,70 @@ done
 Остальное завелось.
 
 
+#### Templating
+
+В текущий момент на графиках, относящихся к приложению, одновременно отображены значения метрик со всех источников сразу. При большом количестве сред и при их динамичном изменении имеет смысл сделать динамичной и удобно настройку наших дашбордов в Grafana.
+
+Сделать это можно в нашем случае с помощью механизма templating’а
+
+##### UI metrics
+
+Создадим новую переменную
+
+| Key                | Value                        |
+| ------------------ | ---------------------------- |
+| Name               | namespace                    |
+| Type               | Query                        |
+| Label              | env                          |
+| Datasource         | Prometheus                   |
+| Refresh            | On Dashboard Load            |
+| Query              | `label_values(namespace)`    |
+| Regex              | `/.+/` все непустые значения |
+| Sort               | Alphabetical (asc)           |
+| Multi-value        | true                         |
+| Include All option | true                         |
+
+У нас появился список со значениями переменной.
+
+Пока что они бесполезны. Чтобы их использование имело эффект нужно шаблонизировать запросы к Prometheus
+
+
+- Title: `UI http request response time 95 quantile ($namespace)`
+- Metrics: `histogram_quantile(0.95, sum(rate(ui_request_response_time_bucket{kubernetes_namespace=~"$namespace"}[5m])) by (le))`
+
+- Title: `UI http errors count ($namespace)`
+- Metrics: `rate(ui_request_count{kubernetes_namespace=~"$namespace",http_status=~"^[45].*"}[1m])`
+
+- Title: `UI http requests count ($namespace)`
+- Metrics: `rate(ui_request_count{kubernetes_namespace=~"$namespace",component="ui"}[1m])`
+
+Дашборд сохранён в [monitoring/grafana/dashboards/k8s_UI_Service_Monitoring.json](monitoring/grafana/dashboards/k8s_UI_Service_Monitoring.json)
+
+##### Business Logic Monitoring
+
+Создадим новую переменную
+
+| Key                | Value                        |
+| ------------------ | ---------------------------- |
+| Name               | namespace                    |
+| Type               | Query                        |
+| Label              | env                          |
+| Datasource         | Prometheus                   |
+| Refresh            | On Dashboard Load            |
+| Query              | `label_values(namespace)`    |
+| Regex              | `/.+/` все непустые значения |
+| Sort               | Alphabetical (asc)           |
+| Multi-value        | true                         |
+| Include All option | true                         |
+
+У нас появился список со значениями переменной.
+
+Пока что они бесполезны. Чтобы их использование имело эффект нужно шаблонизировать запросы к Prometheus
+
+- Title: `Post count ($namespace)`
+- Metrics: `rate(post_count{kubernetes_namespace=~"$namespace"}[1h])`
+
+- Title: `Comment count ($namespace)`
+- Metrics: `rate(comment_count{kubernetes_namespace=~"$namespace"}[1h])`
+
+Дашборд сохранён в [monitoring/grafana/dashboards/k8s_Business_Logic_Monitoring.json](monitoring/grafana/dashboards/k8s_Business_Logic_Monitoring.json)
