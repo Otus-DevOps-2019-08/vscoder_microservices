@@ -21775,4 +21775,23 @@ helm upgrade --install grafana stable/grafana --set "adminPassword=admin" \
 
 и получаем веб-интерфейс по ссылке http://reddit-grafana/
 
-Пока хватит. TODO: продолжить с 7.1
+Вошли, сменили пароль.
+
+Добавьте prometheus data-source. Адрес найдите из имени сервиса prometheus сервера
+```shell
+kubectl get svc
+```
+http://prom-prometheus-server
+
+done
+
+Добавим [самый распространённый](https://grafana.com/grafana/dashboards/315) дашборд для отслеживания
+состояния ресурсов k8s
+
+Добавьте собственные дашборды, созданные ранее (в ДЗ по мониторингу). Они должны также успешно отобразить данные.
+
+В дашборде `UI metrics` пришлось заменить параметр `job="ui"` на `component="ui"`
+
+Остальное завелось.
+
+
