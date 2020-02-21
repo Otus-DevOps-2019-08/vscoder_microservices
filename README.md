@@ -406,6 +406,8 @@ vscoder microservices repository
         - [UI metrics](#ui-metrics)
         - [Business Logic Monitoring](#business-logic-monitoring)
       - [Смешанные графики](#%d0%a1%d0%bc%d0%b5%d1%88%d0%b0%d0%bd%d0%bd%d1%8b%d0%b5-%d0%b3%d1%80%d0%b0%d1%84%d0%b8%d0%ba%d0%b8)
+    - [Задание со \*: alertmanager](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--alertmanager)
+      - [nginx-ingress-controller](#nginx-ingress-controller)
 
 # Makefile
 
@@ -21874,3 +21876,266 @@ done
 Интересная цифра `Deployment memory usage` = 119%. Довольно странная цифра.
 
 На этом графике одновременно используются метрики и шаблоны из cAdvisor, и из kube-state-metrics для отображения сводной информации по деплойментам
+
+
+### Задание со \*: alertmanager
+
+В целом, принципы работы с инструментами не поменялись. Добавились лишь особенности, поэтому мы можем использовать старые наработки и для k8s.
+
+Задание: запустить alertmanager в k8s и настроить правила для контроля за доступностью api-сервера и хостов k8s
+
+[Формат описания правил](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/)
+
+Изменим `kubernetes/Charts/prometheus/custom_values.yml`
+```yaml
+alertmanager:
+  enabled: true
+  ...
+  ingress:
+    enabled: true
+    hosts:
+      - reddit-alertmanager
+    ...
+  service:
+    type: LoadBalancer
+    ...
+```
+
+Задеплоим
+```shell
+cd kubernetes/Charts/prometheus
+helm upgrade prom . -f custom_values.yml --install
+```
+
+При попытке зайти на http://reddit-alertmanager/ видим ошибку 503: Service Temporarily Unavailable
+Причина: `Error syncing load balancer: failed to ensure load balancer: failed to ensure a static IP for load balancer (adff8df779459482fad7d84091869a95(default/prom-prometheus-alertmanager)): error creating gce static IP address: googleapi: Error 403: QUOTA_EXCEEDED - Quota 'STATIC_ADDRESSES' exceeded.  Limit: 1.0 in region us-central1.`
+
+Попробуем по-другому
+```yaml
+alertmanager:
+  service:
+    type: ClusterIP
+```
+```
+Error: UPGRADE FAILED: cannot patch "prom-prometheus-alertmanager" with kind Service: Service "prom-prometheus-alertmanager" is invalid: spec.ports[0].nodePort: Forbidden: may not be used when `type` is 'ClusterIP'
+```
+
+Значин будем делать nginx-ingress-controller
+
+#### nginx-ingress-controller
+
+Добавлен чарт `kubernetes/Charts/ingress-nginx`
+```
+ingress-nginx
+├── Chart.yaml
+└── values.yaml
+
+0 directories, 2 files
+```
+`Chart.yaml`
+```yaml
+---
+apiVersion: v2
+name: nginx-ingress
+version: 0.1.0
+description: cluster-wide nginx ingress
+maintainers:
+  - name: Aleksey Koloskov
+    email: vsyscoder@gmail.com
+
+dependencies:
+  - name: nginx-ingress
+    version: 1.30.0
+    repository: https://kubernetes-charts.storage.googleapis.com/
+```
+
+`values.yaml`
+```yaml
+---
+nginx-ingress:
+  publishService:
+    enabled: true
+  rbac:
+    create: false
+  controller:
+    service:
+      loadBalancerIP:
+    scope:
+      enabled: true
+      namespace:
+```
+
+Создан `kubernetes/Charts/Makefile`
+```makefile
+NS?=default
+
+update_deps: clean_deps
+	cd ./reddit && helm dep update
+	cd ./ingress-nginx && helm dep update
+
+clean_deps:
+	rm -rf ./reddit/charts || true
+	rm -rf ./ingress-nginx/charts || true
+
+# install nginx-ingress
+install_nginx:
+	helm upgrade \
+		--install \
+		--set nginx-ingress.controller.scope.enabled=true \
+		--set nginx-ingress.controller.scope.namespace=$(NS) \
+		--namespace $(NS) \
+		nginx-ingress-$(NS) \
+		./ingress-nginx
+```
+
+Установлен nginx-ingress-controller
+```shell
+make update_deps
+make install_nginx NS=default
+```
+```log
+helm upgrade \
+        --install \
+        --set nginx-ingress.controller.scope.enabled=true \
+        --set nginx-ingress.controller.scope.namespace=default \
+        --namespace default \
+        nginx-ingress-default \
+        ./ingress-nginx
+Release "nginx-ingress-default" does not exist. Installing it now.
+NAME: nginx-ingress-default
+LAST DEPLOYED: Fri Feb 21 22:36:03 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+```
+
+Прописываем аннотации для сервисов мониторинга
+```yaml
+alertmanager:
+  ingress:
+    annotations:
+      kubernetes.io/ingress.class: nginx
+  service:
+    type: LoadBalancer
+...
+server:
+  ingress:
+    annotations:
+      kubernetes.io/ingress.class: nginx
+```
+
+В `kubernetes/Charts/Makefile` добавили target
+```makefile
+# deploy prometheus
+deploy_prometheus:
+	helm upgrade \
+		--install \
+		-f ./prometheus/custom_values.yml \
+    --namespace default \
+		prom \
+		./prometheus
+```
+
+Деплоим prometheus
+```shell
+make deploy_prometheus
+```
+
+Тут анализ `kubectl get service` внезапно выдал наличие двух nginx-ingress-controller... Есть подозрение, что мой был лишним ^_^
+```log
+...
+nginx-ingress-default-controller        LoadBalancer   10.4.3.90     <pending>       80:31784/TCP,443:30099/TCP   27m
+nginx-ingress-default-default-backend   ClusterIP      10.4.0.73     <none>          80/TCP                       27m
+nginx-nginx-ingress-controller          LoadBalancer   10.4.7.187    34.69.197.128   80:32087/TCP,443:30552/TCP   5d6h
+nginx-nginx-ingress-default-backend     ClusterIP      10.4.5.206    <none>          80/TCP                       5d6h
+```
+
+Придётся деинсталлировать)))
+
+Добавим в `kubernetes/Charts/Makefile` target
+```makefile
+# uninstall nginx-ingress
+uninstall_nginx:
+	helm uninstall --namespace $(NS) nginx-ingress-$(NS)
+```
+
+И выполним деинсталлацию(((
+```shell
+make uninstall_nginx NS=default
+```
+```shell
+kubectl get service
+```
+```log
+kubectl get service            
+NAME                                  TYPE           CLUSTER-IP    EXTERNAL-IP     PORT(S)                      AGE
+grafana                               NodePort       10.4.7.117    <none>          80:31701/TCP                 3d
+kubernetes                            ClusterIP      10.4.0.1      <none>          443/TCP                      5d7h
+nginx-nginx-ingress-controller        LoadBalancer   10.4.7.187    34.69.197.128   80:32087/TCP,443:30552/TCP   5d6h
+nginx-nginx-ingress-default-backend   ClusterIP      10.4.5.206    <none>          80/TCP                       5d6h
+prom-prometheus-alertmanager          LoadBalancer   10.4.2.75     <pending>       80:32024/TCP                 49m
+prom-prometheus-kube-state-metrics    ClusterIP      None          <none>          80/TCP,81/TCP                5d1h
+prom-prometheus-node-exporter         ClusterIP      None          <none>          9100/TCP                     5d
+prom-prometheus-server                LoadBalancer   10.4.15.25    34.67.57.194    80:31921/TCP                 5d5h
+reddit-test-comment                   ClusterIP      10.4.7.46     <none>          9292/TCP                     3d1h
+reddit-test-mongodb                   ClusterIP      10.4.0.108    <none>          27017/TCP                    3d1h
+reddit-test-post                      ClusterIP      10.4.12.14    <none>          5000/TCP                     3d1h
+reddit-test-ui                        NodePort       10.4.14.209   <none>          9292:31304/TCP               3d1h
+```
+
+теперь всё выглядит по-приличнее)
+
+Проверим
+
+http://reddit-alertmanager
+
+А воз и ныне там... Похоже я не в ту степь поскакал(
+```shell
+kubectl describe service prom-prometheus-alertman
+```
+```log
+Error syncing load balancer: failed to ensure load balancer: failed to ensure a static IP for load balancer (adff8df779459482fad7d84091869a95(default/prom-prometheus-alertmanager)): error creating gce static IP address: googleapi: Error 403: QUOTA_EXCEEDED - Quota 'STATIC_ADDRESSES' exceeded.  Limit: 1.0 in region us-central1.
+```
+
+Хотя причём здесь static ip? Нас и динамический устроит... Попробуем ка кпередеплоиться...
+
+Добавим в `kubernetes/Charts/Makefile` target
+```makefile
+# uninstall prometheus
+uninstall_prometheus:
+	helm uninstall --namespace default prom
+```
+
+И передеплоимся
+```shell
+make uninstall_prometheus
+# ...подождём удаления
+make deploy_prometheus
+# готово
+```
+
+Не деплоится алертменеджер, ошибку выдаёт
+```shell
+kubectl logs prom-prometheus-alertmanager-5fb4dd8574-6mzfw -c prometheus-alertmanager
+```
+```log
+flag provided but not defined: -cluster.advertise-address
+...
+```
+
+видимо потому, что серис сервера всё ещё `pending`
+```log
+prom-prometheus-server                LoadBalancer   10.4.11.106   <pending>       80:30165/TCP                 5m23s
+```
+
+Что-то нехватает нам ip-адресов
+```shell
+kubectl describe service prom-prometheus-server
+```
+```log
+Normal   EnsuringLoadBalancer    43s (x7 over 6m11s)  service-controller  Ensuring load balancer
+  Warning  SyncLoadBalancerFailed  41s (x7 over 6m9s)   service-controller  Error syncing load balancer: failed to ensure load balancer: failed to ensure a static IP for load balancer (a9642f8c6a0d149c5bb046eecfd6fd9a(default/prom-prometheus-server)): error creating gce static IP address: googleapi: Error 403: QUOTA_EXCEEDED - Quota 'STATIC_ADDRESSES' exceeded.  Limit: 1.0 in region us-central1.
+```
+
+Думаю, хватит на сегодня... Передохнём.

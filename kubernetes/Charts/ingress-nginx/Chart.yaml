@@ -1,0 +1,13 @@
+---
+apiVersion: v2
+name: nginx-ingress
+version: 0.1.0
+description: cluster-wide nginx ingress
+maintainers:
+  - name: Aleksey Koloskov
+    email: vsyscoder@gmail.com
+
+dependencies:
+  - name: nginx-ingress
+    version: 1.30.0
+    repository: https://kubernetes-charts.storage.googleapis.com/

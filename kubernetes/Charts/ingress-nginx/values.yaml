@@ -1,0 +1,12 @@
+---
+nginx-ingress:
+  publishService:
+    enabled: true
+  rbac:
+    create: false
+  controller:
+    service:
+      loadBalancerIP:
+    scope:
+      enabled: true
+      namespace:

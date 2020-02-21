@@ -1,0 +1,6 @@
+dependencies:
+- name: nginx-ingress
+  repository: https://kubernetes-charts.storage.googleapis.com/
+  version: 1.30.0
+digest: sha256:19c786bc4fa4048d9d2afb77154423457334edfa6aaae84b5ac614decaed4af1
+generated: "2020-02-21T22:35:26.738167575+03:00"
