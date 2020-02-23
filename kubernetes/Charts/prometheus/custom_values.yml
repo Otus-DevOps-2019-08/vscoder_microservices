@@ -17,17 +17,18 @@ alertmanager:
   ##
   image:
     repository: prom/alertmanager
-    tag: v0.10.0
+    tag: v0.20.0
     pullPolicy: IfNotPresent
 
   ## Additional alertmanager container arguments
   ##
-  extraArgs: {}
+  extraArgs:
+  #  log.level: debug
 
   ## The URL prefix at which the container can be accessed. Useful in the case the '-web.external-url' includes a slug
   ## so that the various internal URLs are still able to access as they are in the default case.
   ## (Optional)
-  baseURL: "/"
+  baseURL: "http://reddit-alertmanager"
 
   ## Additional alertmanager container environment variable
   ## For instance to add a http_proxy
@@ -65,9 +66,9 @@ alertmanager:
     #     hosts:
     #       - alertmanager.domain.com
 
-  ## Alertmanager Deployment Strategy type
-  # strategy:
-  #   type: Recreate
+  # Alertmanager Deployment Strategy type
+  strategy:
+    type: Recreate
 
   ## Node labels for alertmanager pod assignment
   ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
@@ -78,7 +79,7 @@ alertmanager:
     ## If true, alertmanager will create/use a Persistent Volume Claim
     ## If false, use emptyDir
     ##
-    enabled: true
+    enabled: false
 
     ## alertmanager data Persistent Volume access modes
     ## Must match those of existing PV or dynamic provisioner
@@ -151,7 +152,8 @@ alertmanager:
     servicePort: 80
     # nodePort: 30000
     #type: ClusterIP
-    type: LoadBalancer
+    #type: LoadBalancer
+    type: NodePort
 
 ## Monitors ConfigMap changes and POSTs to a URL
 ## Ref: https://github.com/jimmidyson/configmap-reload
@@ -481,7 +483,8 @@ server:
     loadBalancerIP: ""
     loadBalancerSourceRanges: []
     servicePort: 80
-    type: LoadBalancer
+    #type: LoadBalancer
+    type: NodePort
 
   ## Prometheus server pod termination grace period
   ##
@@ -578,15 +581,13 @@ pushgateway:
 ## alertmanager ConfigMap entries
 ##
 alertmanagerFiles:
-  alertmanager.yml: |-
-    global:
-      # slack_api_url: ''
-
+  alertmanager.yml:
     receivers:
       - name: default-receiver
-        # slack_configs:
-        #  - channel: '@you'
-        #    send_resolved: true
+        slack_configs:
+          - api_url: "https://hooks.slack.com/services/hereisasecret"
+            channel: "@Aleksey Koloskov"
+            send_resolved: true
 
     route:
       group_wait: 10s

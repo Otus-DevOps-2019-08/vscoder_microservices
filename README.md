@@ -408,6 +408,7 @@ vscoder microservices repository
       - [Смешанные графики](#%d0%a1%d0%bc%d0%b5%d1%88%d0%b0%d0%bd%d0%bd%d1%8b%d0%b5-%d0%b3%d1%80%d0%b0%d1%84%d0%b8%d0%ba%d0%b8)
     - [Задание со \*: alertmanager](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--alertmanager)
       - [nginx-ingress-controller](#nginx-ingress-controller)
+      - [Fix alertmanager](#fix-alertmanager)
 
 # Makefile
 
@@ -22138,4 +22139,117 @@ Normal   EnsuringLoadBalancer    43s (x7 over 6m11s)  service-controller  Ensuri
   Warning  SyncLoadBalancerFailed  41s (x7 over 6m9s)   service-controller  Error syncing load balancer: failed to ensure load balancer: failed to ensure a static IP for load balancer (a9642f8c6a0d149c5bb046eecfd6fd9a(default/prom-prometheus-server)): error creating gce static IP address: googleapi: Error 403: QUOTA_EXCEEDED - Quota 'STATIC_ADDRESSES' exceeded.  Limit: 1.0 in region us-central1.
 ```
 
-Думаю, хватит на сегодня... Передохнём.
+Хватит это терпеть! Установим `service.type: NodePort` для сервисов prometheus `server` и `alertmanager`, чтобы не занимать статические ip.
+
+`kubernetes/Charts/prometheus/custom_values.yml`
+```yaml
+aletrmanager:
+  service:
+    type: NodePort
+...
+server:
+  service:
+    type: NodePort
+```
+
+И после применения изменений
+```shell
+make deploy_prometheus
+```
+у нас вернулся в строй prometheus-server
+
+#### Fix alertmanager
+
+Но alert-manager морду высовывать так и не хочет ^_^
+
+nginx-ingress-controller говорит: `503 Service Temporarily Unavailable`
+
+А всё потому что... Ошибочку видим в логах
+```shell
+kubectl logs prom-prometheus-alertmanager-5fb4dd8574-5tr56 prometheus-alertmanager
+```
+```log
+flag provided but not defined: -cluster.advertise-address
+```
+
+Значение флага `-cluster.advertise-address`
+```shell
+kubectl describe pod prom-prometheus-alertmanager-5
+fb4dd8574-5tr56
+```
+```log
+...
+Containers:
+  prometheus-alertmanager:
+    ...
+    --cluster.Multi-Attach error for volume "pvc-1cba0a70-2b87-4e67-afec-f1f7b0876f93" Volume is already used by pod(s) prom-prometheus-alertmanager-5fb4dd8574-5tr56=$(POD_IP):6783
+...
+```
+
+Но у нас нет кластера alertmanager-оф, а если ему сделать `replicaCount: 1`, второй под не взлетает так как не может использовать тот же volume
+```log
+Multi-Attach error for volume "pvc-1cba0a70-2b87-4e67-afec-f1f7b0876f93" Volume is already used by pod(s) prom-prometheus-alertmanager-5fb4dd8574-5tr56
+```
+
+Имеет смысл убрать данный параметр, что мы и сделаем в `kubernetes/Charts/prometheus/templates/alertmanager-statefulset.yaml`, закомментировав строку 53
+```yaml
+...
+          args:
+            - --config.file=/etc/config/{{ .Values.alertmanager.configFileName }}
+            - --storage.path={{ .Values.alertmanager.persistentVolume.mountPath }}
+            #- --cluster.advertise-address=$(POD_IP):6783
+```
+
+но теперь получаем ту же ситуацию и что-то странное в логе
+```shell
+kubectl logs -f prom-prometheus-alertmanager-567447967c-5tgct prometheus-alertmanager
+```
+```log
+level=info ts=2020-02-23T20:41:52.492813385Z caller=main.go:155 msg="Starting Alertmanager" version="(version=0.10.0, branch=HEAD, revision=133c888ef3644b47a52acbaeffb09f4cc637df1b)"
+level=info ts=2020-02-23T20:41:52.492891792Z caller=main.go:156 build_context="(go=go1.9.2, user=root@01302b7cd08a, date=20171109-15:34:53)"
+level=info ts=2020-02-23T20:41:52.494359403Z caller=main.go:293 msg="Loading configuration file" file=/etc/config/alertmanager.yml
+level=error ts=2020-02-23T20:41:52.494481786Z caller=main.go:296 msg="Loading configuration file failed" file=/etc/config/alertmanager.yml err="yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `global:...` into config.plain"
+```
+
+Прри замене `$(POD_IP)` на `127.0.0.1`, получаем снова странный результат
+```log
+flag provided but not defined: -cluster.advertise-address
+```
+Вывод: `$(POD_IP)` возможно и не пуст, но неверным обращом передаётся параметр...
+
+Дальнейшие танцы с бубном результата не принесли, та же ошибка.
+
+После обновления alertmanager до актуальной версии `v0.20.0` (по ДЗ была `v0.10.0`), удалось добиться запуска, но начались приключения с конфигом.
+
+В итоге пришли к рабочему варианту
+```yaml
+alertmanager:
+  image:
+    tag: v0.20.0
+  baseURL: "http://reddit-alertmanager"
+  service:
+    type: NodePort
+  ...
+server:
+  service:
+    type: NodePort
+  ...
+alertmanagerFiles:
+  alertmanager.yml:
+    receivers:
+      - name: default-receiver
+        slack_configs:
+          - api_url: "https://hooks.slack.com/services/hereisasecret"
+            channel: "@Aleksey Koloskov"
+            send_resolved: true
+
+    route:
+      group_wait: 10s
+      group_interval: 5m
+      receiver: default-receiver
+      repeat_interval: 3h
+```
+
+и наконец-то можно увидеть веб-интерфейс по адресу http://reddit-alertmanager
+
+Далее: прикрутить алерты!
