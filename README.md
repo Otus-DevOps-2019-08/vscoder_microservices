@@ -409,6 +409,7 @@ vscoder microservices repository
     - [Задание со \*: alertmanager](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--alertmanager)
       - [nginx-ingress-controller](#nginx-ingress-controller)
       - [Fix alertmanager](#fix-alertmanager)
+      - [Alert rules](#alert-rules-1)
 
 # Makefile
 
@@ -22240,7 +22241,7 @@ alertmanagerFiles:
       - name: default-receiver
         slack_configs:
           - api_url: "https://hooks.slack.com/services/hereisasecret"
-            channel: "@Aleksey Koloskov"
+            channel: "#vscoder-k5"
             send_resolved: true
 
     route:
@@ -22252,4 +22253,594 @@ alertmanagerFiles:
 
 и наконец-то можно увидеть веб-интерфейс по адресу http://reddit-alertmanager
 
-Далее: прикрутить алерты!
+
+#### Alert rules
+
+Добавим же пару алертов
+
+`custom-values.yml`
+```yaml
+...
+## Prometheus server ConfigMap entries
+##
+serverFiles:
+  alerts: {}
+  rules: {}
+
+  ## Alerts configuration
+  ## Ref: https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/
+  ## alerting_rules.yml: {}
+  alerting_rules.yml:
+    groups:
+      - name: Instances
+        rules:
+          - alert: InstanceDown
+            expr: up == 0
+            for: 30s
+            labels:
+              severity: page
+            annotations:
+              description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+              summary: "Instance {{ $labels.instance }} down"
+      - "name": "kubernetes-apps"
+        "rules":
+          - "alert": "KubePodCrashLooping"
+            "annotations":
+              "message": 'Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is restarting {{ printf "%.2f" $value }} times / 5 minutes.'
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepodcrashlooping"
+            "expr": |
+              rate(kube_pod_container_status_restarts_total{component="kube-state-metrics"}[15m]) * 60 * 5 > 0
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubePodNotReady"
+            "annotations":
+              "message": "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for longer than 15 minutes."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepodnotready"
+            "expr": |
+              sum by (namespace, pod) (max by(namespace, pod) (kube_pod_status_phase{component="kube-state-metrics", phase=~"Pending|Unknown"}) * on(namespace, pod) group_left(owner_kind) max by(namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"})) > 0
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeDeploymentGenerationMismatch"
+            "annotations":
+              "message": "Deployment generation for {{ $labels.namespace }}/{{ $labels.deployment }} does not match, this indicates that the Deployment has failed but has not been rolled back."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedeploymentgenerationmismatch"
+            "expr": |
+              kube_deployment_status_observed_generation{component="kube-state-metrics"}
+                !=
+              kube_deployment_metadata_generation{component="kube-state-metrics"}
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeDeploymentReplicasMismatch"
+            "annotations":
+              "message": "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched the expected number of replicas for longer than 15 minutes."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedeploymentreplicasmismatch"
+            "expr": |
+              kube_deployment_spec_replicas{component="kube-state-metrics"}
+                !=
+              kube_deployment_status_replicas_available{component="kube-state-metrics"}
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeStatefulSetReplicasMismatch"
+            "annotations":
+              "message": "StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} has not matched the expected number of replicas for longer than 15 minutes."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubestatefulsetreplicasmismatch"
+            "expr": |
+              kube_statefulset_status_replicas_ready{component="kube-state-metrics"}
+                !=
+              kube_statefulset_status_replicas{component="kube-state-metrics"}
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeStatefulSetGenerationMismatch"
+            "annotations":
+              "message": "StatefulSet generation for {{ $labels.namespace }}/{{ $labels.statefulset }} does not match, this indicates that the StatefulSet has failed but has not been rolled back."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubestatefulsetgenerationmismatch"
+            "expr": |
+              kube_statefulset_status_observed_generation{component="kube-state-metrics"}
+                !=
+              kube_statefulset_metadata_generation{component="kube-state-metrics"}
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeStatefulSetUpdateNotRolledOut"
+            "annotations":
+              "message": "StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} update has not been rolled out."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubestatefulsetupdatenotrolledout"
+            "expr": |
+              max without (revision) (
+                kube_statefulset_status_current_revision{component="kube-state-metrics"}
+                  unless
+                kube_statefulset_status_update_revision{component="kube-state-metrics"}
+              )
+                *
+              (
+                kube_statefulset_replicas{component="kube-state-metrics"}
+                  !=
+                kube_statefulset_status_replicas_updated{component="kube-state-metrics"}
+              )
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeDaemonSetRolloutStuck"
+            "annotations":
+              "message": "Only {{ $value | humanizePercentage }} of the desired Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are scheduled and ready."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedaemonsetrolloutstuck"
+            "expr": |
+              kube_daemonset_status_number_ready{component="kube-state-metrics"}
+                /
+              kube_daemonset_status_desired_number_scheduled{component="kube-state-metrics"} < 1.00
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeContainerWaiting"
+            "annotations":
+              "message": "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container}} has been in waiting state for longer than 1 hour."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecontainerwaiting"
+            "expr": |
+              sum by (namespace, pod, container) (kube_pod_container_status_waiting_reason{component="kube-state-metrics"}) > 0
+            "for": "1h"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeDaemonSetNotScheduled"
+            "annotations":
+              "message": "{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are not scheduled."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedaemonsetnotscheduled"
+            "expr": |
+              kube_daemonset_status_desired_number_scheduled{component="kube-state-metrics"}
+                -
+              kube_daemonset_status_current_number_scheduled{component="kube-state-metrics"} > 0
+            "for": "10m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeDaemonSetMisScheduled"
+            "annotations":
+              "message": "{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are running where they are not supposed to run."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedaemonsetmisscheduled"
+            "expr": |
+              kube_daemonset_status_number_misscheduled{component="kube-state-metrics"} > 0
+            "for": "10m"
+            "labels":
+              "severity": "warning"
+      - "name": "kubernetes-resources"
+        "rules":
+          - "alert": "KubeCPUOvercommit"
+            "annotations":
+              "message": "Cluster has overcommitted CPU resource requests for Pods and cannot tolerate node failure."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecpuovercommit"
+            "expr": |
+              sum(namespace:kube_pod_container_resource_requests_cpu_cores:sum)
+                /
+              sum(kube_node_status_allocatable_cpu_cores)
+                >
+              (count(kube_node_status_allocatable_cpu_cores)-1) / count(kube_node_status_allocatable_cpu_cores)
+            "for": "5m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeMemOvercommit"
+            "annotations":
+              "message": "Cluster has overcommitted memory resource requests for Pods and cannot tolerate node failure."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubememovercommit"
+            "expr": |
+              sum(namespace:kube_pod_container_resource_requests_memory_bytes:sum)
+                /
+              sum(kube_node_status_allocatable_memory_bytes)
+                >
+              (count(kube_node_status_allocatable_memory_bytes)-1)
+                /
+              count(kube_node_status_allocatable_memory_bytes)
+            "for": "5m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeCPUOvercommit"
+            "annotations":
+              "message": "Cluster has overcommitted CPU resource requests for Namespaces."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecpuovercommit"
+            "expr": |
+              sum(kube_resourcequota{component="kube-state-metrics", type="hard", resource="cpu"})
+                /
+              sum(kube_node_status_allocatable_cpu_cores)
+                > 1.5
+            "for": "5m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeMemOvercommit"
+            "annotations":
+              "message": "Cluster has overcommitted memory resource requests for Namespaces."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubememovercommit"
+            "expr": |
+              sum(kube_resourcequota{component="kube-state-metrics", type="hard", resource="memory"})
+                /
+              sum(kube_node_status_allocatable_memory_bytes{job="node-exporter"})
+                > 1.5
+            "for": "5m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeQuotaExceeded"
+            "annotations":
+              "message": "Namespace {{ $labels.namespace }} is using {{ $value | humanizePercentage }} of its {{ $labels.resource }} quota."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubequotaexceeded"
+            "expr": |
+              kube_resourcequota{component="kube-state-metrics", type="used"}
+                / ignoring(instance, job, type)
+              (kube_resourcequota{component="kube-state-metrics", type="hard"} > 0)
+                > 0.90
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+          - "alert": "CPUThrottlingHigh"
+            "annotations":
+              "message": "{{ $value | humanizePercentage }} throttling of CPU in namespace {{ $labels.namespace }} for container {{ $labels.container }} in pod {{ $labels.pod }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-cputhrottlinghigh"
+            "expr": |
+              sum(increase(container_cpu_cfs_throttled_periods_total{container!="", }[5m])) by (container, pod, namespace)
+                /
+              sum(increase(container_cpu_cfs_periods_total{}[5m])) by (container, pod, namespace)
+                > ( 25 / 100 )
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+      - "name": "kubernetes-storage"
+        "rules":
+          - "alert": "KubePersistentVolumeUsageCritical"
+            "annotations":
+              "message": "The PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} is only {{ $value | humanizePercentage }} free."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumeusagecritical"
+            "expr": |
+              kubelet_volume_stats_available_bytes{job="kubernetes-nodes"}
+                /
+              kubelet_volume_stats_capacity_bytes{job="kubernetes-nodes"}
+                < 0.03
+            "for": "1m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubePersistentVolumeFullInFourDays"
+            "annotations":
+              "message": "Based on recent sampling, the PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} is expected to fill up within four days. Currently {{ $value | humanizePercentage }} is available."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumefullinfourdays"
+            "expr": |
+              (
+                kubelet_volume_stats_available_bytes{job="kubernetes-nodes"}
+                  /
+                kubelet_volume_stats_capacity_bytes{job="kubernetes-nodes"}
+              ) < 0.15
+              and
+              predict_linear(kubelet_volume_stats_available_bytes{job="kubernetes-nodes"}[6h], 4 * 24 * 3600) < 0
+            "for": "1h"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubePersistentVolumeErrors"
+            "annotations":
+              "message": "The persistent volume {{ $labels.persistentvolume }} has status {{ $labels.phase }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumeerrors"
+            "expr": |
+              kube_persistentvolume_status_phase{phase=~"Failed|Pending",component="kube-state-metrics"} > 0
+            "for": "5m"
+            "labels":
+              "severity": "critical"
+      - "name": "kubernetes-system"
+        "rules":
+          - "alert": "KubeVersionMismatch"
+            "annotations":
+              "message": "There are {{ $value }} different semantic versions of Kubernetes components running."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeversionmismatch"
+            "expr": |
+              count(count by (gitVersion) (label_replace(kubernetes_build_info{job!~"kube-dns|coredns"},"gitVersion","$1","gitVersion","(v[0-9]*.[0-9]*.[0-9]*).*"))) > 1
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeClientErrors"
+            "annotations":
+              "message": "Kubernetes API server client '{{ $labels.job }}/{{ $labels.instance }}' is experiencing {{ $value | humanizePercentage }} errors.'"
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeclienterrors"
+            "expr": |
+              (sum(rate(rest_client_requests_total{code=~"5.."}[5m])) by (instance, job)
+                /
+              sum(rate(rest_client_requests_total[5m])) by (instance, job))
+              > 0.01
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+      - "name": "kubernetes-apiservers-error"
+        "rules":
+          - "alert": "ErrorBudgetBurn"
+            "annotations":
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-errorbudgetburn"
+            "expr": |
+              (
+                status_class_5xx:apiserver_request_total:ratio_rate1h{job="kubernetes-apiservers"} > (14.4*0.010000)
+                and
+                status_class_5xx:apiserver_request_total:ratio_rate5m{job="kubernetes-apiservers"} > (14.4*0.010000)
+              )
+              or
+              (
+                status_class_5xx:apiserver_request_total:ratio_rate6h{job="kubernetes-apiservers"} > (6*0.010000)
+                and
+                status_class_5xx:apiserver_request_total:ratio_rate30m{job="kubernetes-apiservers"} > (6*0.010000)
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+              "severity": "critical"
+          - "alert": "ErrorBudgetBurn"
+            "annotations":
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-errorbudgetburn"
+            "expr": |
+              (
+                status_class_5xx:apiserver_request_total:ratio_rate1d{job="kubernetes-apiservers"} > (3*0.010000)
+                and
+                status_class_5xx:apiserver_request_total:ratio_rate2h{job="kubernetes-apiservers"} > (3*0.010000)
+              )
+              or
+              (
+                status_class_5xx:apiserver_request_total:ratio_rate3d{job="kubernetes-apiservers"} > (0.010000)
+                and
+                status_class_5xx:apiserver_request_total:ratio_rate6h{job="kubernetes-apiservers"} > (0.010000)
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+              "severity": "warning"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[5m]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate5m"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[30m]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate30m"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[1h]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate1h"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[2h]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate2h"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[6h]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate6h"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[1d]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate1d"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[3d]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate3d"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate5m{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate5m{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate5m"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate30m{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate30m{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate30m"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate1h{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate1h{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate1h"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate2h{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate2h{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate2h"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate6h{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate6h{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate6h"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate1d{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate1d{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate1d"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate3d{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate3d{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate3d"
+      - "name": "kubernetes-system-apiserver"
+        "rules":
+          - "alert": "KubeAPILatencyHigh"
+            "annotations":
+              "message": "The API server has an abnormal latency of {{ $value }} seconds for {{ $labels.verb }} {{ $labels.resource }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapilatencyhigh"
+            "expr": |
+              (
+                cluster:apiserver_request_duration_seconds:mean5m{job="kubernetes-apiservers"}
+                >
+                on (verb) group_left()
+                (
+                  avg by (verb) (cluster:apiserver_request_duration_seconds:mean5m{job="kubernetes-apiservers"} >= 0)
+                  +
+                  2*stddev by (verb) (cluster:apiserver_request_duration_seconds:mean5m{job="kubernetes-apiservers"} >= 0)
+                )
+              ) > on (verb) group_left()
+              1.2 * avg by (verb) (cluster:apiserver_request_duration_seconds:mean5m{job="kubernetes-apiservers"} >= 0)
+              and on (verb,resource)
+              cluster_quantile:apiserver_request_duration_seconds:histogram_quantile{job="kubernetes-apiservers",quantile="0.99"}
+              >
+              1
+            "for": "5m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeAPILatencyHigh"
+            "annotations":
+              "message": "The API server has a 99th percentile latency of {{ $value }} seconds for {{ $labels.verb }} {{ $labels.resource }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapilatencyhigh"
+            "expr": |
+              cluster_quantile:apiserver_request_duration_seconds:histogram_quantile{job="kubernetes-apiservers",quantile="0.99"} > 4
+            "for": "10m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeAPIErrorsHigh"
+            "annotations":
+              "message": "API server is returning errors for {{ $value | humanizePercentage }} of requests."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapierrorshigh"
+            "expr": |
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers",code=~"5.."}[5m]))
+                /
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers"}[5m])) > 0.03
+            "for": "10m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeAPIErrorsHigh"
+            "annotations":
+              "message": "API server is returning errors for {{ $value | humanizePercentage }} of requests."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapierrorshigh"
+            "expr": |
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers",code=~"5.."}[5m]))
+                /
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers"}[5m])) > 0.01
+            "for": "10m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeAPIErrorsHigh"
+            "annotations":
+              "message": "API server is returning errors for {{ $value | humanizePercentage }} of requests for {{ $labels.verb }} {{ $labels.resource }} {{ $labels.subresource }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapierrorshigh"
+            "expr": |
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers",code=~"5.."}[5m])) by (resource,subresource,verb)
+                /
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers"}[5m])) by (resource,subresource,verb) > 0.10
+            "for": "10m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeAPIErrorsHigh"
+            "annotations":
+              "message": "API server is returning errors for {{ $value | humanizePercentage }} of requests for {{ $labels.verb }} {{ $labels.resource }} {{ $labels.subresource }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapierrorshigh"
+            "expr": |
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers",code=~"5.."}[5m])) by (resource,subresource,verb)
+                /
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers"}[5m])) by (resource,subresource,verb) > 0.05
+            "for": "10m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeClientCertificateExpiration"
+            "annotations":
+              "message": "A client certificate used to authenticate to the apiserver is expiring in less than 7.0 days."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeclientcertificateexpiration"
+            "expr": |
+              apiserver_client_certificate_expiration_seconds_count{job="kubernetes-apiservers"} > 0 and on(job) histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers"}[5m]))) < 604800
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeClientCertificateExpiration"
+            "annotations":
+              "message": "A client certificate used to authenticate to the apiserver is expiring in less than 24.0 hours."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeclientcertificateexpiration"
+            "expr": |
+              apiserver_client_certificate_expiration_seconds_count{job="kubernetes-apiservers"} > 0 and on(job) histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers"}[5m]))) < 86400
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeAPIDown"
+            "annotations":
+              "message": "KubeAPI has disappeared from Prometheus target discovery."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapidown"
+            "expr": |
+              absent(up{job="kubernetes-apiservers"} == 1)
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+      - "name": "kubernetes-system-kubelet"
+        "rules":
+          - "alert": "KubeNodeNotReady"
+            "annotations":
+              "message": "{{ $labels.node }} has been unready for more than 15 minutes."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubenodenotready"
+            "expr": |
+              kube_node_status_condition{component="kube-state-metrics",condition="Ready",status="true"} == 0
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeNodeUnreachable"
+            "annotations":
+              "message": "{{ $labels.node }} is unreachable and some workloads may be rescheduled."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubenodeunreachable"
+            "expr": |
+              kube_node_spec_taint{component="kube-state-metrics",key="node.kubernetes.io/unreachable",effect="NoSchedule"} == 1
+            "for": "2m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeletTooManyPods"
+            "annotations":
+              "message": "Kubelet '{{ $labels.node }}' is running at {{ $value | humanizePercentage }} of its Pod capacity."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubelettoomanypods"
+            "expr": |
+              max(max(kubelet_running_pod_count{job="kubernetes-nodes"}) by(instance) * on(instance) group_left(node) kubelet_node_name{job="kubernetes-nodes"}) by(node) / max(kube_node_status_capacity_pods{component="kube-state-metrics"}) by(node) > 0.95
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+
+  ## Records configuration
+  ## Ref: https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/
+  recording_rules.yml: {}
+
+  prometheus.yml:
+    rule_files:
+      - /etc/config/recording_rules.yml
+      - /etc/config/alerting_rules.yml
+      # - /etc/config/rules
+      # - /etc/config/alerts
+    ...
+```
+
+После применения видим алерты в чате
+```shell
+make deploy_prometheus
+```
