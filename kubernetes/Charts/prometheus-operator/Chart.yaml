@@ -1,0 +1,13 @@
+---
+apiVersion: v2
+name: prometheus-operator
+version: 0.1.0
+description: prometheus-operator by bitnami
+maintainers:
+  - name: Aleksey Koloskov
+    email: vsyscoder@gmail.com
+
+dependencies:
+  - name: prometheus-operator
+    version: 8.9.2
+    repository: https://kubernetes-charts.storage.googleapis.com/

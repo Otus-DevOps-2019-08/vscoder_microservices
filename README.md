@@ -410,6 +410,8 @@ vscoder microservices repository
       - [nginx-ingress-controller](#nginx-ingress-controller)
       - [Fix alertmanager](#fix-alertmanager)
       - [Alert rules](#alert-rules-1)
+    - [Задание со \*: Prometheus operator](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--prometheus-operator)
+      - [Install prometheus operator](#install-prometheus-operator)
 
 # Makefile
 
@@ -22844,3 +22846,132 @@ serverFiles:
 ```shell
 make deploy_prometheus
 ```
+
+### Задание со \*: Prometheus operator
+
+- Установите в кластер Prometheus Operator (можно воспользоваться [helm-чартом](https://github.com/helm/charts/tree/master/stable/prometheus-operator))
+
+- Настройте мониторинг post endpoints
+
+- Приложите используемый манифест serviceMonitor
+
+#### Install prometheus operator
+
+Создана директория 
+```log
+kubernetes/Charts/prometheus-operator
+├── Chart.yaml
+└── values.yaml
+
+0 directories, 2 files
+```
+
+`kubernetes/Charts/prometheus-operator/Chart.yaml`
+```yaml
+---
+apiVersion: v2
+name: prometheus-operator
+version: 0.1.0
+description: prometheus-operator by bitnami
+maintainers:
+  - name: Aleksey Koloskov
+    email: vsyscoder@gmail.com
+
+dependencies:
+  - name: prometheus-operator
+    version: 8.9.2
+    repository: https://kubernetes-charts.storage.googleapis.com/
+```
+
+`kubernetes/Charts/prometheus-operator/values.yaml`
+```yaml
+---
+prometheus-operator:
+  prometheus:
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+      hosts:
+        - reddit-prometheus
+
+  alertmanager:
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+      hosts:
+        - reddit-alertmanager
+
+  grafana:
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+      hosts:
+        - reddit-grafana
+```
+
+Изменён `kubernetes/Charts/Makefile`
+```makefile
+# Изменены цели установки/очистки зависимостеё
+update_deps: clean_deps
+	cd ./reddit && helm dep update
+	cd ./ingress-nginx && helm dep update
+	cd ./prometheus-operator && helm dep update
+
+clean_deps:
+	rm -rf ./reddit/charts || true
+	rm -rf ./ingress-nginx/charts || true
+	rm -rf ./prometheus-operator/charts || true
+
+...
+# Созданы цели
+# deploy prometheus operator
+deploy_prometheus_operator:
+	helm upgrade \
+		--install \
+		--namespace default \
+		prometheus-operator \
+		./prometheus-operator
+
+# uninstall prometheus operator
+uninstall_prometheus_operator:
+	helm uninstall --namespace default prometheus-operator
+```
+
+Оператор установлен
+```shell
+make update_deps
+make deploy_prometheus_operator
+```
+```log
+helm upgrade \
+        --install \
+        --namespace default \
+        prometheus-operator \
+        ./prometheus-operator
+Release "prometheus-operator" does not exist. Installing it now.
+manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
+manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
+manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
+manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
+manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
+NAME: prometheus-operator
+LAST DEPLOYED: Tue Feb 25 00:13:47 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+```
+
+Как видно из лога, не были установлены CRD, потому что helm3. В документации на эту тему есть [workaround](https://github.com/helm/charts/blob/master/stable/prometheus-operator/README.md#helm-fails-to-create-crds).
+
+TODO: реализовать workaround в Makefile
+
+Но сам оператор установлен.
+
+Смотрим дашборды графаны http://reddit-grafana (пароль по умолчанию так же есть в документации, искать или задать (`grafana.adminPassword`). Общее впечатление: восторг, минимальными усилиями имеем огромное количество информации о нашем кластере))
+
+Но на сегодня достаточно. Далее:
+- Настройте мониторинг post endpoints
+- Приложите используемый манифест serviceMonitor
