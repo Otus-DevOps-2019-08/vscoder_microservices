@@ -22966,9 +22966,40 @@ REVISION: 1
 
 Как видно из лога, не были установлены CRD, потому что helm3. В документации на эту тему есть [workaround](https://github.com/helm/charts/blob/master/stable/prometheus-operator/README.md#helm-fails-to-create-crds).
 
-TODO: реализовать workaround в Makefile
+В `kubernetes/Charts/Makefile` реализован соответствующий workaround
+```makefile
+# deploy prometheus operator
+deploy_prometheus_operator: install_prometheus_operator_crds
+	helm upgrade \
+		--install \
+		--set prometheus-operator.prometheusOperator.createCustomResource=false \
+		--namespace default \
+		prometheus-operator \
+		./prometheus-operator
 
-Но сам оператор установлен.
+# uninstall prometheus operator
+uninstall_prometheus_operator:
+	helm uninstall --namespace default prometheus-operator
+	$(MAKE) uninstall_prometheus_operator_crds
+
+# install prometheus operator CRDs
+install_prometheus_operator_crds:
+	kubectl apply -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+	kubectl apply -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+	kubectl apply -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+	kubectl apply -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+	kubectl apply -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+
+# uninstall prometheus operator CRDs
+uninstall_prometheus_operator_crds:
+	kubectl delete -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+	kubectl delete -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+	kubectl delete -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+	kubectl delete -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+	kubectl delete -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+```
+
+Оператор установлен `make deploy_prometheus_operator`
 
 Смотрим дашборды графаны http://reddit-grafana (пароль по умолчанию так же есть в документации, искать или задать (`grafana.adminPassword`). Общее впечатление: восторг, минимальными усилиями имеем огромное количество информации о нашем кластере))
 
