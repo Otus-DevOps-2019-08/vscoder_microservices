@@ -412,6 +412,8 @@ vscoder microservices repository
       - [Alert rules](#alert-rules-1)
     - [Задание со \*: Prometheus operator](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--prometheus-operator)
       - [Install prometheus operator](#install-prometheus-operator)
+      - [ServiceMonitor](#servicemonitor)
+    - [Логгирование](#%d0%9b%d0%be%d0%b3%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5)
 
 # Makefile
 
@@ -23003,6 +23005,118 @@ uninstall_prometheus_operator_crds:
 
 Смотрим дашборды графаны http://reddit-grafana (пароль по умолчанию так же есть в документации, искать или задать (`grafana.adminPassword`). Общее впечатление: восторг, минимальными усилиями имеем огромное количество информации о нашем кластере))
 
-Но на сегодня достаточно. Далее:
+Далее:
 - Настройте мониторинг post endpoints
 - Приложите используемый манифест serviceMonitor
+
+#### ServiceMonitor
+
+Очень помогла документация https://github.com/coreos/prometheus-operator/blob/master/Documentation/troubleshooting.md
+
+Итак, что было сделано для получения бизнес-метрик компонента `post` на дашборде графаны:
+
+Изменён чарт компонента `post`
+`kubernetes/Charts/post/templates/service.yaml`
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "post.fullname" . }}
+  labels:
+    app: reddit
+    component: post
+    release: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: http # Добавлено имя эндпоинта для указания в ServiceMonitor
+    port: {{ .Values.service.externalPort }}
+    protocol: TCP
+    targetPort: {{ .Values.service.internalPort }}
+  selector:
+    app: reddit
+    component: post
+    release: {{ .Release.Name }}
+...
+```
+
+Инкрементирована версия чарта `kubernetes/Charts/post/Chart.yaml`
+```yaml
+---
+name: post
+version: 1.1.0
+description: OTUS reddit application Post
+maintainers:
+  - name: Someone
+    email: my@mail.com
+appVersion: 1.0
+```
+
+Обновлена версия зависимости в `kubernetes/Charts/reddit/requirements.yaml`
+```yaml
+---
+dependencies:
+  ...
+  - name: post
+    version: 1.1.0
+    repository: "file://../post"
+```
+
+Установлены зависимости
+```shell
+helm dependency update --debug ./reddit
+```
+
+HINT: посмотреть _Service Monitor Selector_: `kubectl describe prometheus prometheus-operator-prometheus`
+
+Создан `kubernetes/reddit/post-servicemonitor.yaml`
+```yaml
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: reddit-post
+  labels:
+    app: reddit
+    release: prometheus-operator  # Обязательно должен совпадать с Service Monitor Selector: Match Labels: Release:  prometheus-operator
+spec:
+  jobLabel: component  # из какой label взять имя job
+  selector:  # selector для сервиса
+    matchLabels:  # возможно так же указать matchName
+      app: reddit
+      component: post
+  namespaceSelector:
+    matchNames:  # namespaces, можно указать any
+      - default
+      - production
+      - staging
+  endpoints:
+    - port: http  # обязательно должно совпадать с service spec.ports[].name
+      path: /metrics  # url path для получения метрик
+      scheme: http  # схема подключения, http/https
+      interval: 10s  # интервал опроса
+```
+
+После этого приложение передеплоено
+```shell
+helm upgrade reddit-test ./reddit --install
+helm upgrade staging --namespace staging ./reddit --install
+helm upgrade production --namespace production ./reddit --install
+```
+
+И создан ServiceMonitor
+```shell
+kubectl apply -f ../reddit/post-servicemonitor.yaml
+```
+
+Теперь мы видим target в http://reddit-prometheus
+```
+default/reddit-post/0 (3/3 up)
+```
+
+Далее импортируем в графану дашборд `monitoring/grafana/dashboards/Business_Logic_Monitoring.json` (да, именно прежний дашборд с лейблом `namespace` а не `kubernetes_namespace`) и видим на графике _Post count_ количество новых постов... Profit!
+
+Это заняло больше времени, чем я расчитывал... Далее - логгирование
+
+### Логгирование
