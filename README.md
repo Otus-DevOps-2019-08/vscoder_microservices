@@ -23744,4 +23744,4 @@ kubernetes.labels.component:ui
 Создайте Helm-чарт для установки стека EFK и поместите в
 директорию charts
 
-TODO: сделать.. А на сегодня хватит
+TODO: сделать.. как-нибудь потом, может бьыть - есть же уже готовые, например https://github.com/helm/charts/tree/master/stable/elastic-stack
