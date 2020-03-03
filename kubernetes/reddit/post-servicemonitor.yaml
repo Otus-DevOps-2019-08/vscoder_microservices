@@ -1,0 +1,24 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: reddit-post
+  labels:
+    app: reddit
+    release: prometheus-operator
+spec:
+  jobLabel: component
+  selector:
+    matchLabels:
+      app: reddit
+      component: post
+  namespaceSelector:
+    matchNames:
+      - default
+      - production
+      - staging
+  endpoints:
+    - port: http
+      path: /metrics
+      scheme: http
+      interval: 10s

@@ -4,12 +4,12 @@ dependencies:
   version: 1.0.0
 - name: post
   repository: file://../post
-  version: 1.0.0
+  version: 1.1.0
 - name: comment
   repository: file://../comment
   version: 1.0.0
 - name: mongodb
   repository: https://kubernetes-charts.storage.googleapis.com
   version: 7.2.8
-digest: sha256:71cec141de08052db01b6ce96f2b5e14a64f3e41370ef324beaa7f0baf9ec7aa
-generated: 2020-01-13T17:04:14.848413593+03:00
+digest: sha256:327fc1ba4314921a3d22f8b416691c8efebca537d3e95df68f2595fe2bbad6d7
+generated: "2020-02-26T00:06:50.498578849+03:00"

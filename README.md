@@ -384,6 +384,40 @@ vscoder microservices repository
         - [reddit-deploy](#reddit-deploy-1)
     - [Задание со \*: Автоматический деплой production](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--%d0%90%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b9-%d0%b4%d0%b5%d0%bf%d0%bb%d0%be%d0%b9-production)
     - [Завершение](#%d0%97%d0%b0%d0%b2%d0%b5%d1%80%d1%88%d0%b5%d0%bd%d0%b8%d0%b5)
+  - [HomeWork 23: Kubernetes. Мониторинг и логирование](#homework-23-kubernetes-%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3-%d0%b8-%d0%bb%d0%be%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5)
+    - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-6)
+      - [Настройка инфраструктуры](#%d0%9d%d0%b0%d1%81%d1%82%d1%80%d0%be%d0%b9%d0%ba%d0%b0-%d0%b8%d0%bd%d1%84%d1%80%d0%b0%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d1%8b)
+      - [Установка nginx-ingress-controller](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%ba%d0%b0-nginx-ingress-controller)
+        - [Путь ДЗ](#%d0%9f%d1%83%d1%82%d1%8c-%d0%94%d0%97)
+        - [Путь terraform](#%d0%9f%d1%83%d1%82%d1%8c-terraform)
+    - [План](#%d0%9f%d0%bb%d0%b0%d0%bd-6)
+    - [Мониторинг](#%d0%9c%d0%be%d0%bd%d0%b8%d1%82%d0%be%d1%80%d0%b8%d0%bd%d0%b3)
+      - [Стек](#%d0%a1%d1%82%d0%b5%d0%ba)
+      - [Установим Prometheus](#%d0%a3%d1%81%d1%82%d0%b0%d0%bd%d0%be%d0%b2%d0%b8%d0%bc-prometheus)
+      - [Targets](#targets-2)
+      - [Relabel config](#relabel-config)
+      - [Metrics](#metrics)
+        - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-6)
+      - [Метрики приложений](#%d0%9c%d0%b5%d1%82%d1%80%d0%b8%d0%ba%d0%b8-%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d0%b9)
+        - [Задание](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-7)
+      - [Визуализация](#%d0%92%d0%b8%d0%b7%d1%83%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f)
+        - [Урашечки, грабельки](#%d0%a3%d1%80%d0%b0%d1%88%d0%b5%d1%87%d0%ba%d0%b8-%d0%b3%d1%80%d0%b0%d0%b1%d0%b5%d0%bb%d1%8c%d0%ba%d0%b8)
+      - [Templating](#templating)
+        - [UI metrics](#ui-metrics)
+        - [Business Logic Monitoring](#business-logic-monitoring)
+      - [Смешанные графики](#%d0%a1%d0%bc%d0%b5%d1%88%d0%b0%d0%bd%d0%bd%d1%8b%d0%b5-%d0%b3%d1%80%d0%b0%d1%84%d0%b8%d0%ba%d0%b8)
+    - [Задание со \*: alertmanager](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--alertmanager)
+      - [nginx-ingress-controller](#nginx-ingress-controller)
+      - [Fix alertmanager](#fix-alertmanager)
+      - [Alert rules](#alert-rules-1)
+    - [Задание со \*: Prometheus operator](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--prometheus-operator)
+      - [Install prometheus operator](#install-prometheus-operator)
+      - [ServiceMonitor](#servicemonitor)
+    - [Логгирование](#%d0%9b%d0%be%d0%b3%d0%b3%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5)
+      - [Подготовка](#%d0%9f%d0%be%d0%b4%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b0-7)
+      - [Стек](#%d0%a1%d1%82%d0%b5%d0%ba-1)
+      - [EFK](#efk)
+    - [Задание со \*: Helm Chart EFK](#%d0%97%d0%b0%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d1%81%d0%be--helm-chart-efk)
 
 # Makefile
 
@@ -20381,3 +20415,3333 @@ fatal: Pathspec 'src/post/.gitlab-ci.yml' is in submodule 'src/post'
  git rm --cached src/post
  git add src/post
  ```
+
+## HomeWork 23: Kubernetes. Мониторинг и логирование
+
+### Подготовка
+
+#### Настройка инфраструктуры
+
+В `kubernetes/terraform/main.tf` отключены rbac, логгирование и мониторинг, а так же описано 2 node-pools
+```conf
+module "gke_cluster" {
+  ...
+  enable_legacy_abac = "true"  # отключен rbac
+  logging_service = "none"  # отключено логгирование
+  monitoring_service = "none"  # отключен мониторинг
+}
+resource "google_container_node_pool" "node_pool" {
+  node_config {
+    machine_type = "g1-small"  # тип инстанса для первого пула
+    ...
+  }
+  autoscaling {
+    min_node_count = "2"  # минимум 2 ноды
+    max_node_count = "3"
+  }
+  ...
+}
+resource "google_container_node_pool" "elastic_node_pool" {
+  initial_node_count = "1"  # количество нод, autoscaling не включен
+  node_config {
+    machine_type = "n1-standard-2"  # тип инстанса для второго пула
+    labels = {
+      elastichost = true  # добавляем лейбл
+    }
+    ...
+  }
+  ...
+}
+```
+
+Инфраструктура применена
+```shell
+cd kubernetes/terraform
+make init apply
+```
+и создана спустя примерно 15 минут
+
+Зададим контекст для kubectl
+```shell
+gcloud container clusters get-credentials reddit-public --zone us-central1-a --project docker-257914
+```
+```log
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for reddit-public.
+```
+
+#### Установка nginx-ingress-controller
+
+##### Путь ДЗ
+
+Из Helm-чарта установим ingress-контроллер nginx
+```shell
+helm install stable/nginx-ingress --name nginx
+```
+но мы пойдём другим путём
+
+##### Путь terraform
+
+Создадим файл `kubernetes/terraform/nginx-ingress-controller.tf`
+```conf
+provider "helm" {
+  kubernetes {
+    host     = module.gke_cluster.endpoint
+
+    client_certificate     = module.gke_cluster.client_certificate
+    client_key             = module.gke_cluster.client_key
+    cluster_ca_certificate = module.gke_cluster.cluster_ca_certificate
+  }
+}
+data "helm_repository" "stable" {
+  name = "stable"
+  url  = "https://kubernetes-charts.storage.googleapis.com"
+}
+resource "helm_release" "nginx" {
+  name  = "nginx"
+  chart = "stable/nginx-ingress"
+  repository = data.helm_repository.stable.metadata[0].name
+
+  cleanup_on_fail = true
+  wait = true
+}
+```
+
+Найдите IP-адрес, выданный nginx’у
+```shell
+kubectl get svc
+```
+```log
+NAME                                  TYPE           CLUSTER-IP   EXTERNAL-IP     PORT(S)                      AGE
+kubernetes                            ClusterIP      10.4.0.1     <none>          443/TCP                      39m
+nginx-nginx-ingress-controller        LoadBalancer   10.4.7.187   34.69.197.128   80:32087/TCP,443:30552/TCP   9m59s
+nginx-nginx-ingress-default-backend   ClusterIP      10.4.5.206   <none>          80/TCP                       9m59s
+```
+
+Добавьте в `/etc/hosts`
+```
+34.69.197.128 reddit reddit-prometheus reddit-grafana reddit-non-prod production reddit-kibana staging prod
+```
+
+### План
+
+- Развертывание Prometheus в k8s
+- Настройка Prometheus и Grafana для сбора метрик
+- Настройка EFK для сбора логов
+
+### Мониторинг
+
+#### Стек
+
+В задании будем использовать уже знакомые нам инструменты:
+- *prometheus* - сервер сбора метрик
+- *grafana* - сервер визуализации метрик
+- *alertmanager* - компонент prometheus для алертинга различные
+- экспортеры для метрик prometheus
+
+Prometheus отлично подходит для работы с контейнерами и динамичным размещением сервисов
+Общая схема работы представлена на следующем слайде
+
+#### Установим Prometheus
+
+Prometheus будем ставить с помощью Helm чарта
+
+Загрузим prometheus локально в `Charts` каталог
+```shell
+cd kubernetes/charts && helm fetch --untar stable/prometheus
+```
+
+Создайте внутри директории чарта файл `custom_values.yml`
+```yaml
+rbac:
+  create: false
+
+alertmanager:
+  ## If false, alertmanager will not be installed
+  ##
+  enabled: false
+
+  # Defines the serviceAccountName to use when `rbac.create=false`
+  serviceAccountName: default
+
+  ## alertmanager container name
+  ##
+  name: alertmanager
+
+  ## alertmanager container image
+  ##
+  image:
+    repository: prom/alertmanager
+    tag: v0.10.0
+    pullPolicy: IfNotPresent
+
+  ## Additional alertmanager container arguments
+  ##
+  extraArgs: {}
+
+  ## The URL prefix at which the container can be accessed. Useful in the case the '-web.external-url' includes a slug
+  ## so that the various internal URLs are still able to access as they are in the default case.
+  ## (Optional)
+  baseURL: "/"
+
+  ## Additional alertmanager container environment variable
+  ## For instance to add a http_proxy
+  ##
+  extraEnv: {}
+
+  ## ConfigMap override where fullname is {{.Release.Name}}-{{.Values.alertmanager.configMapOverrideName}}
+  ## Defining configMapOverrideName will cause templates/alertmanager-configmap.yaml
+  ## to NOT generate a ConfigMap resource
+  ##
+  configMapOverrideName: ""
+
+  ingress:
+    ## If true, alertmanager Ingress will be created
+    ##
+    enabled: false
+
+    ## alertmanager Ingress annotations
+    ##
+    annotations: {}
+    #   kubernetes.io/ingress.class: nginx
+    #   kubernetes.io/tls-acme: 'true'
+
+    ## alertmanager Ingress hostnames
+    ## Must be provided if Ingress is enabled
+    ##
+    hosts: []
+    #   - alertmanager.domain.com
+
+    ## alertmanager Ingress TLS configuration
+    ## Secrets must be manually created in the namespace
+    ##
+    tls: []
+    #   - secretName: prometheus-alerts-tls
+    #     hosts:
+    #       - alertmanager.domain.com
+
+  ## Alertmanager Deployment Strategy type
+  # strategy:
+  #   type: Recreate
+
+  ## Node labels for alertmanager pod assignment
+  ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+  ##
+  nodeSelector: {}
+
+  persistentVolume:
+    ## If true, alertmanager will create/use a Persistent Volume Claim
+    ## If false, use emptyDir
+    ##
+    enabled: true
+
+    ## alertmanager data Persistent Volume access modes
+    ## Must match those of existing PV or dynamic provisioner
+    ## Ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    accessModes:
+      - ReadWriteOnce
+
+    ## alertmanager data Persistent Volume Claim annotations
+    ##
+    annotations: {}
+
+    ## alertmanager data Persistent Volume existing claim name
+    ## Requires alertmanager.persistentVolume.enabled: true
+    ## If defined, PVC must be created manually before volume will be bound
+    existingClaim: ""
+
+    ## alertmanager data Persistent Volume mount root path
+    ##
+    mountPath: /data
+
+    ## alertmanager data Persistent Volume size
+    ##
+    size: 2Gi
+
+    ## alertmanager data Persistent Volume Storage Class
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    # storageClass: "-"
+
+    ## Subdirectory of alertmanager data Persistent Volume to mount
+    ## Useful if the volume's root directory is not empty
+    ##
+    subPath: ""
+
+  ## Annotations to be added to alertmanager pods
+  ##
+  podAnnotations: {}
+
+  replicaCount: 1
+
+  ## alertmanager resource requests and limits
+  ## Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources: {}
+    # limits:
+    #   cpu: 10m
+    #   memory: 32Mi
+    # requests:
+    #   cpu: 10m
+    #   memory: 32Mi
+
+  service:
+    annotations: {}
+    labels: {}
+    clusterIP: ""
+
+    ## List of IP addresses at which the alertmanager service is available
+    ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+    ##
+    externalIPs: []
+
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    servicePort: 80
+    # nodePort: 30000
+    type: ClusterIP
+
+## Monitors ConfigMap changes and POSTs to a URL
+## Ref: https://github.com/jimmidyson/configmap-reload
+##
+configmapReload:
+  ## configmap-reload container name
+  ##
+  name: configmap-reload
+
+  ## configmap-reload container image
+  ##
+  image:
+    repository: jimmidyson/configmap-reload
+    tag: v0.1
+    pullPolicy: IfNotPresent
+
+  ## configmap-reload resource requests and limits
+  ## Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources: {}
+
+kubeStateMetrics:
+  ## If false, kube-state-metrics will not be installed
+  ##
+  enabled: false
+
+  # Defines the serviceAccountName to use when `rbac.create=false`
+  serviceAccountName: default
+
+  ## kube-state-metrics container name
+  ##
+  name: kube-state-metrics
+
+  ## kube-state-metrics container image
+  ##
+  image:
+    repository: gcr.io/google_containers/kube-state-metrics
+    tag: v1.1.0
+    pullPolicy: IfNotPresent
+
+  ## Node labels for kube-state-metrics pod assignment
+  ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+  ##
+  nodeSelector: {}
+
+  ## Annotations to be added to kube-state-metrics pods
+  ##
+  podAnnotations: {}
+
+  replicaCount: 1
+
+  ## kube-state-metrics resource requests and limits
+  ## Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources: {}
+    # limits:
+    #   cpu: 10m
+    #   memory: 16Mi
+    # requests:
+    #   cpu: 10m
+    #   memory: 16Mi
+
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+    labels: {}
+
+    clusterIP: None
+
+    ## List of IP addresses at which the kube-state-metrics service is available
+    ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+    ##
+    externalIPs: []
+
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    servicePort: 80
+    type: ClusterIP
+
+nodeExporter:
+  ## If false, node-exporter will not be installed
+  ##
+  enabled: false
+
+  # Defines the serviceAccountName to use when `rbac.create=false`
+  serviceAccountName: default
+
+  ## node-exporter container name
+  ##
+  name: node-exporter
+
+  ## node-exporter container image
+  ##
+  image:
+    repository: prom/node-exporter
+    tag: v0.15.1
+    pullPolicy: IfNotPresent
+
+  ## Custom Update Strategy
+  ##
+  updateStrategy:
+    type: OnDelete
+
+  ## Additional node-exporter container arguments
+  ##
+  extraArgs: {}
+
+  ## Additional node-exporter hostPath mounts
+  ##
+  extraHostPathMounts: []
+    # - name: textfile-dir
+    #   mountPath: /srv/txt_collector
+    #   hostPath: /var/lib/node-exporter
+    #   readOnly: true
+
+  ## Node tolerations for node-exporter scheduling to nodes with taints
+  ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  tolerations: []
+    # - key: "key"
+    #   operator: "Equal|Exists"
+    #   value: "value"
+    #   effect: "NoSchedule|PreferNoSchedule|NoExecute(1.6 only)"
+
+  ## Node labels for node-exporter pod assignment
+  ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+  ##
+  nodeSelector: {}
+
+  ## Annotations to be added to node-exporter pods
+  ##
+  podAnnotations: {}
+
+  ## node-exporter resource limits & requests
+  ## Ref: https://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources: {}
+    # limits:
+    #   cpu: 200m
+    #   memory: 50Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 30Mi
+
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+    labels: {}
+
+    clusterIP: None
+
+    ## List of IP addresses at which the node-exporter service is available
+    ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+    ##
+    externalIPs: []
+
+    hostPort: 9100
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    servicePort: 9100
+    type: ClusterIP
+
+server:
+  ## Prometheus server container name
+  ##
+  name: server
+
+  # Defines the serviceAccountName to use when `rbac.create=false`
+  serviceAccountName: default
+
+  ## Prometheus server container image
+  ##
+  image:
+    repository: prom/prometheus
+    tag: v2.0.0
+    pullPolicy: IfNotPresent
+
+  ## (optional) alertmanager hostname
+  ## only used if alertmanager.enabled = false
+  alertmanagerHostname: ""
+
+  ## The URL prefix at which the container can be accessed. Useful in the case the '-web.external-url' includes a slug
+  ## so that the various internal URLs are still able to access as they are in the default case.
+  ## (Optional)
+  baseURL: ""
+
+  ## Additional Prometheus server container arguments
+  ##
+  extraArgs: {}
+
+  ## Additional Prometheus server hostPath mounts
+  ##
+  extraHostPathMounts: []
+    # - name: certs-dir
+    #   mountPath: /etc/kubernetes/certs
+    #   hostPath: /etc/kubernetes/certs
+    #   readOnly: true
+
+  ## ConfigMap override where fullname is {{.Release.Name}}-{{.Values.server.configMapOverrideName}}
+  ## Defining configMapOverrideName will cause templates/server-configmap.yaml
+  ## to NOT generate a ConfigMap resource
+  ##
+  configMapOverrideName: ""
+
+  ingress:
+    ## If true, Prometheus server Ingress will be created
+    ##
+    enabled: true
+
+    ## Prometheus server Ingress annotations
+    ##
+    annotations: {}
+    #   kubernetes.io/ingress.class: nginx
+    #   kubernetes.io/tls-acme: 'true'
+
+    ## Prometheus server Ingress hostnames
+    ## Must be provided if Ingress is enabled
+    ##
+    hosts:
+     - reddit-prometheus
+
+    ## Prometheus server Ingress TLS configuration
+    ## Secrets must be manually created in the namespace
+    ##
+    tls: []
+    #   - secretName: prometheus-server-tls
+    #     hosts:
+    #       - prometheus.domain.com
+
+  ## Server Deployment Strategy type
+  # strategy:
+  #   type: Recreate
+
+  ## Node tolerations for server scheduling to nodes with taints
+  ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  ##
+  tolerations: []
+    # - key: "key"
+    #   operator: "Equal|Exists"
+    #   value: "value"
+    #   effect: "NoSchedule|PreferNoSchedule|NoExecute(1.6 only)"
+
+  ## Node labels for Prometheus server pod assignment
+  ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  persistentVolume:
+    ## If true, Prometheus server will create/use a Persistent Volume Claim
+    ## If false, use emptyDir
+    ##
+    enabled: true
+
+    ## Prometheus server data Persistent Volume access modes
+    ## Must match those of existing PV or dynamic provisioner
+    ## Ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    accessModes:
+      - ReadWriteOnce
+
+    ## Prometheus server data Persistent Volume annotations
+    ##
+    annotations: {}
+
+    ## Prometheus server data Persistent Volume existing claim name
+    ## Requires server.persistentVolume.enabled: true
+    ## If defined, PVC must be created manually before volume will be bound
+    existingClaim: ""
+
+    ## Prometheus server data Persistent Volume mount root path
+    ##
+    mountPath: /data
+
+    ## Prometheus server data Persistent Volume size
+    ##
+    size: 8Gi
+
+    ## Prometheus server data Persistent Volume Storage Class
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    # storageClass: "-"
+
+    ## Subdirectory of Prometheus server data Persistent Volume to mount
+    ## Useful if the volume's root directory is not empty
+    ##
+    subPath: ""
+
+  ## Annotations to be added to Prometheus server pods
+  ##
+  podAnnotations: {}
+    # iam.amazonaws.com/role: prometheus
+
+  replicaCount: 1
+
+  ## Prometheus server resource requests and limits
+  ## Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources: {}
+    # limits:
+    #   cpu: 500m
+    #   memory: 512Mi
+    # requests:
+    #   cpu: 500m
+    #   memory: 512Mi
+
+  service:
+    annotations: {}
+    labels: {}
+    clusterIP: ""
+
+    ## List of IP addresses at which the Prometheus server service is available
+    ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+    ##
+    externalIPs: []
+
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    servicePort: 80
+    type: LoadBalancer
+
+  ## Prometheus server pod termination grace period
+  ##
+  terminationGracePeriodSeconds: 300
+
+  ## Prometheus data retention period (i.e 360h)
+  ##
+  retention: ""
+
+pushgateway:
+  ## If false, pushgateway will not be installed
+  ##
+  enabled: false
+
+  ## pushgateway container name
+  ##
+  name: pushgateway
+
+  ## pushgateway container image
+  ##
+  image:
+    repository: prom/pushgateway
+    tag: v0.4.0
+    pullPolicy: IfNotPresent
+
+  ## Additional pushgateway container arguments
+  ##
+  extraArgs: {}
+
+  ingress:
+    ## If true, pushgateway Ingress will be created
+    ##
+    enabled: false
+
+    ## pushgateway Ingress annotations
+    ##
+    annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   kubernetes.io/tls-acme: 'true'
+
+    ## pushgateway Ingress hostnames
+    ## Must be provided if Ingress is enabled
+    ##
+    hosts: []
+    #   - pushgateway.domain.com
+
+    ## pushgateway Ingress TLS configuration
+    ## Secrets must be manually created in the namespace
+    ##
+    tls: []
+    #   - secretName: prometheus-alerts-tls
+    #     hosts:
+    #       - pushgateway.domain.com
+
+  ## Node labels for pushgateway pod assignment
+  ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+  ##
+  nodeSelector: {}
+
+  ## Annotations to be added to pushgateway pods
+  ##
+  podAnnotations: {}
+
+  replicaCount: 1
+
+  ## pushgateway resource requests and limits
+  ## Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  resources: {}
+    # limits:
+    #   cpu: 10m
+    #   memory: 32Mi
+    # requests:
+    #   cpu: 10m
+    #   memory: 32Mi
+
+  service:
+    annotations:
+      prometheus.io/probe: pushgateway
+    labels: {}
+    clusterIP: ""
+
+    ## List of IP addresses at which the pushgateway service is available
+    ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+    ##
+    externalIPs: []
+
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    servicePort: 9091
+    type: ClusterIP
+
+## alertmanager ConfigMap entries
+##
+alertmanagerFiles:
+  alertmanager.yml: |-
+    global:
+      # slack_api_url: ''
+
+    receivers:
+      - name: default-receiver
+        # slack_configs:
+        #  - channel: '@you'
+        #    send_resolved: true
+
+    route:
+      group_wait: 10s
+      group_interval: 5m
+      receiver: default-receiver
+      repeat_interval: 3h
+
+## Prometheus server ConfigMap entries
+##
+serverFiles:
+  alerts: {}
+  rules: {}
+
+  prometheus.yml:
+    rule_files:
+      - /etc/config/rules
+      - /etc/config/alerts
+
+    global:
+      scrape_interval: 30s
+
+    scrape_configs:
+      - job_name: prometheus
+        static_configs:
+          - targets:
+            - localhost:9090
+
+      # A scrape configuration for running Prometheus on a Kubernetes cluster.
+      # This uses separate scrape configs for cluster components (i.e. API server, node)
+      # and services to allow each to use different authentication configs.
+      #
+      # Kubernetes labels will be added as Prometheus labels on metrics via the
+      # `labelmap` relabeling action.
+
+      # Scrape config for API servers.
+      #
+      # Kubernetes exposes API servers as endpoints to the default/kubernetes
+      # service so this uses `endpoints` role and uses relabelling to only keep
+      # the endpoints associated with the default/kubernetes service using the
+      # default named port `https`. This works for single API server deployments as
+      # well as HA API server deployments.
+      - job_name: 'kubernetes-apiservers'
+
+        kubernetes_sd_configs:
+          - role: endpoints
+
+        # Default to scraping over https. If required, just disable this or change to
+        # `http`.
+        scheme: https
+
+        # This TLS & bearer token file config is used to connect to the actual scrape
+        # endpoints for cluster components. This is separate to discovery auth
+        # configuration because discovery & scraping are two separate concerns in
+        # Prometheus. The discovery auth config is automatic if Prometheus runs inside
+        # the cluster. Otherwise, more config options have to be provided within the
+        # <kubernetes_sd_config>.
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          # If your node certificates are self-signed or use a different CA to the
+          # master CA, then disable certificate verification below. Note that
+          # certificate verification is an integral part of a secure infrastructure
+          # so this should only be disabled in a controlled environment. You can
+          # disable certificate verification by uncommenting the line below.
+          #
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+        # Keep only the default/kubernetes service endpoints for the https port. This
+        # will add targets for each API server which Kubernetes adds an endpoint to
+        # the default/kubernetes service.
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: default;kubernetes;https
+
+      - job_name: 'kubernetes-nodes'
+
+        # Default to scraping over https. If required, just disable this or change to
+        # `http`.
+        scheme: https
+
+        # This TLS & bearer token file config is used to connect to the actual scrape
+        # endpoints for cluster components. This is separate to discovery auth
+        # configuration because discovery & scraping are two separate concerns in
+        # Prometheus. The discovery auth config is automatic if Prometheus runs inside
+        # the cluster. Otherwise, more config options have to be provided within the
+        # <kubernetes_sd_config>.
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          # If your node certificates are self-signed or use a different CA to the
+          # master CA, then disable certificate verification below. Note that
+          # certificate verification is an integral part of a secure infrastructure
+          # so this should only be disabled in a controlled environment. You can
+          # disable certificate verification by uncommenting the line below.
+          #
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+
+        kubernetes_sd_configs:
+          - role: node
+
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - target_label: __address__
+            replacement: kubernetes.default.svc:443
+          - source_labels: [__meta_kubernetes_node_name]
+            regex: (.+)
+            target_label: __metrics_path__
+            replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
+      # Scrape config for service endpoints.
+      #
+      # The relabeling allows the actual service scrape endpoint to be configured
+      # via the following annotations:
+      #
+      # * `prometheus.io/scrape`: Only scrape services that have a value of `true`
+      # * `prometheus.io/scheme`: If the metrics endpoint is secured then you will need
+      # to set this to `https` & most likely set the `tls_config` of the scrape config.
+      # * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+      # * `prometheus.io/port`: If the metrics are exposed on a different port to the
+      # service then set this appropriately.
+      - job_name: 'kubernetes-service-endpoints'
+
+        kubernetes_sd_configs:
+          - role: endpoints
+
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
+            action: replace
+            target_label: __scheme__
+            regex: (https?)
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: (.+)(?::\d+);(\d+)
+            replacement: $1:$2
+          - action: labelmap
+            regex: __meta_kubernetes_service_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            action: replace
+            target_label: kubernetes_name
+
+      - job_name: 'prometheus-pushgateway'
+        honor_labels: true
+
+        kubernetes_sd_configs:
+          - role: service
+
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_probe]
+            action: keep
+            regex: pushgateway
+
+      # Example scrape config for probing services via the Blackbox Exporter.
+      #
+      # The relabeling allows the actual service scrape endpoint to be configured
+      # via the following annotations:
+      #
+      # * `prometheus.io/probe`: Only probe services that have a value of `true`
+      - job_name: 'kubernetes-services'
+
+        metrics_path: /probe
+        params:
+          module: [http_2xx]
+
+        kubernetes_sd_configs:
+          - role: service
+
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_probe]
+            action: keep
+            regex: true
+          - source_labels: [__address__]
+            target_label: __param_target
+          - target_label: __address__
+            replacement: blackbox
+          - source_labels: [__param_target]
+            target_label: instance
+          - action: labelmap
+            regex: __meta_kubernetes_service_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: kubernetes_name
+
+      # Example scrape config for pods
+      #
+      # The relabeling allows the actual pod scrape endpoint to be configured via the
+      # following annotations:
+      #
+      # * `prometheus.io/scrape`: Only scrape pods that have a value of `true`
+      # * `prometheus.io/path`: If the metrics path is not `/metrics` override this.
+      # * `prometheus.io/port`: Scrape the pod on the indicated port instead of the default of `9102`.
+      - job_name: 'kubernetes-pods'
+
+        kubernetes_sd_configs:
+          - role: pod
+
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: (.+):(?:\d+);(\d+)
+            replacement: ${1}:${2}
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name
+
+networkPolicy:
+  ## Enable creation of NetworkPolicy resources.
+  ##
+  enabled: false
+```
+
+Основные отличия от `values.yml`:
+- отключена часть устанавливаемых сервисов (pushgateway, alertmanager, kube-state-metrics)
+- включено создание Ingress’а для подключения через nginx
+- поправлен endpoint для сбора метрик cadvisor
+- уменьшен интервал сбора метрик (с 1 минуты до 30 секунд)
+
+Запустите Prometheus в k8s из `Charts/prometheus`
+```shell
+helm upgrade prom . -f custom_values.yml --install
+```
+
+Проверяем: http://reddit-prometheus успешно)
+
+
+#### Targets
+
+У нас уже присутствует ряд endpoint’ов для сбора метрик:
+- Метрики API-сервера
+- метрики нод с cadvisor’ов
+- сам prometheus
+
+Отметим, что можно собирать метрики cadvisor’а (который уже
+является частью kubelet) через проксирующий запрос в kube-apiserver
+
+Если зайти по ssh на любую из машин кластера и запросить `curl http://localhost:4194/metrics` то получим те же метрики у kubelet напрямую
+
+**Но вариант с kube-api предпочтительней, т.к. этот трафик
+шифруется TLS и требует аутентификации.**
+
+Таргеты для сбора метрик найдены с помощью service discovery
+(**SD**), настроенного в конфиге prometheus (лежит в `custom_values.yml`)
+
+`prometheus.yml`:
+```yaml
+...
+- job_name: 'kubernetes-apiservers' # kubernetes-apiservers (1/1 up)
+...
+- job_name: 'kubernetes-nodes' # kubernetes-nodes (3/3 up)
+  kubernetes_sd_configs: # Настройки Service Discovery (для поиска target’ов)
+  - role: node
+    scheme: https # Настройки подключения к target’ам (для сбора метрик)
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      insecure_skip_verify: true
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs: # Настройки различных меток, фильтрация найденных таргетов, их изменений
+```
+
+Использование SD в kubernetes позволяет нам динамично менять кластер (как сами хосты, так и сервисы и приложения)
+
+Цели для мониторинга находим c помощью запросов к k8s API:
+`prometheus.yml`
+```yaml
+...
+  scrape_configs:
+    - job_name: 'kubernetes-nodes'
+      kubernetes_sd_configs:
+        - role: node  # Role объект, который нужно найти:
+                      # - node
+                      # - endpoints
+                      # - pod
+                      # - service
+                      # - ingress
+```
+
+Т.к. сбор метрик prometheus осуществляется поверх стандартного HTTP-протокола, то могут понадобится доп. настройки для безопасного доступа к метрикам.
+
+Ниже приведены настройки для сбора метрик из k8s AP
+```yaml
+scheme: https
+tls_config:
+  ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  insecure_skip_verify: true
+bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+```
+
+1. Схема подключения - http (default) или https
+2. Конфиг TLS - коревой сертификат сервера для проверки достоверности сервера
+3. Токен для аутентификации насервере
+
+Targets:
+- gke-cluster-1-default-pool-f9c66281-kxrc
+- gke-cluster-1-default-pool-f9c66281-8gkc
+- gke-cluster-1-big-pool-b4209075-jlnq
+
+#### Relabel config
+
+https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
+
+```yaml
+#Kubernetes nodes
+relabel_configs:
+  - action: labelmap # преобразовать все k8s лейблы таргета в лейблы prometheus
+    regex: __meta_kubernetes_node_label_(.+)
+  - target_label: __address__ # Поменять лейбл для адреса сбора метрик
+    replacement: kubernetes.default.svc:443
+  - source_labels: [__meta_kubernetes_node_name] # Поменять лейбл для пути сбора метрик
+    regex: (.+)
+    target_label: __metrics_path__
+    replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+```
+
+В результате получим такие лейблы в prometheus:
+```
+beta_kubernetes_io_arch="amd64"
+beta_kubernetes_io_fluentd_ds_ready="true"
+beta_kubernetes_io_instance_type="n1-standard-2"
+beta_kubernetes_io_masq_agent_ds_ready="true"
+beta_kubernetes_io_os="linux"
+cloud_google_com_gke_nodepool="elastic-pool"
+cloud_google_com_gke_os_distribution="cos"
+elastichost="true"
+failure_domain_beta_kubernetes_io_region="us-central1"
+failure_domain_beta_kubernetes_io_zone="us-central1-a"
+instance="gke-reddit-public-elastic-pool-6fb5390b-fc8w"
+kubernetes_io_arch="amd64"
+kubernetes_io_hostname="gke-reddit-public-elastic-pool-6fb5390b-fc8w"
+kubernetes_io_os="linux"
+node_kubernetes_io_masq_agent_ds_ready="true"
+projectcalico_org_ds_ready="true"
+```
+
+#### Metrics
+
+Все найденные на эндпоинтах метрики сразу же отобразятся в списке (вкладка Graph). Метрики Cadvisor начинаются с `container_`.
+
+Cadvisor собирает лишь информацию о потреблении ресурсов и производительности отдельных docker-контейнеров. При этом он ничего не знает о сущностях k8s (деплойменты, репликасеты, ...).
+
+Для сбора этой информации будем использовать сервис `kube-state-metrics`. Он входит в чарт Prometheus. Включим его.
+
+`prometheus/custom_values.yml`
+```yaml
+kubeStateMetrics:
+  enabled: true
+```
+
+Обновим релиз
+```shell
+helm upgrade prom . -f custom_values.yml --install
+```
+```log
+coalesce.go:196: warning: cannot overwrite table with non table for annotations (map[])
+coalesce.go:196: warning: cannot overwrite table with non table for alertmanager.yml (map[global:map[] receivers:[map[name:default-receiver]] route:map[group_interval:5m group_wait:10s receiver:default-receiver repeat_interval:3h]])
+Release "prom" has been upgraded. Happy Helming!
+NAME: prom
+LAST DEPLOYED: Sun Feb 16 22:04:39 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 2
+TEST SUITE: None
+NOTES:
+The Prometheus server can be accessed via port 80 on the following DNS name from within your cluster:
+prom-prometheus-server.default.svc.cluster.local
+
+From outside the cluster, the server URL(s) are:
+http://reddit-prometheus
+
+
+#################################################################################
+######   WARNING: Pod Security Policy has been moved to a global property.  #####
+######            use .Values.podSecurityPolicy.enabled with pod-based      #####
+######            annotations                                               #####
+######            (e.g. .Values.nodeExporter.podSecurityPolicy.annotations) #####
+#################################################################################
+
+
+
+For more information on running Prometheus, visit:
+https://prometheus.io/
+```
+
+в Targets:
+| Endpoint                     | State | Labels                                                                                                                                                                                                                | Last Scrape | Error                                                                                    |
+| ---------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------- |
+| http://10.4.1.3:8080/metrics | UP    | app="prometheus" chart="prometheus-10.4.0" component="kube-state-metrics" heritage="Helm" instance="10.4.1.3:8080" kubernetes_name="prom-prometheus-kube-state-metrics" kubernetes_namespace="default" release="prom" | 5.875s ago  |                                                                                          |
+| http://10.4.1.3:8081/metrics | DOWN  | app="prometheus" chart="prometheus-10.4.0" component="kube-state-metrics" heritage="Helm" instance="10.4.1.3:8081" kubernetes_name="prom-prometheus-kube-state-metrics" kubernetes_namespace="default" release="prom" | 27.232s ago | Get http://10.4.1.3:8081/metrics: dial tcp 10.4.1.3:8081: getsockopt: connection refused |
+
+Пока оставим второй энжпоинт без внимания, на TODO:, так как необходимые метриги отдаются
+
+в Graph: `kube_...` и их много))
+
+##### Задание
+
+По аналогии с kube_state_metrics включите (enabled: true) поды node-exporter в `custom_values.yml`.
+```yaml
+nodeExporter:
+  ## If false, node-exporter will not be installed
+  ##
+  enabled: true
+```
+```shell
+helm upgrade prom . -f custom_values.yml --install
+```
+```log
+вывод в консоль аналогичен предыдущему
+```
+
+Проверьте, что метрики начали собираться с них.
+
+Появилось множество метрик `node_*`
+
+
+#### Метрики приложений
+
+Запустите приложение из helm чарта reddit (напомню, в отличие от ДЗ у нас тут helm3 ^_^)
+```shell
+cd kubernetes/Charts/
+helm upgrade reddit-test ./reddit --install
+kubectl describe namespace production || kubectl create namespace production
+helm upgrade production --namespace production ./reddit --install
+kubectl describe namespace staging || kubectl create namespace staging
+helm upgrade staging --namespace staging ./reddit --install
+```
+
+Раньше мы "хардкодили" адреса/dns-имена наших приложений для сбора метрик с них.
+
+`prometheus.yml`
+```yaml
+- job_name: 'ui'
+  static_configs:
+    - targets:
+      - 'ui:9292'
+- job_name: 'comment'
+  static_configs:
+    - targets:
+      - 'comment:9292'
+```
+
+Теперь мы можем использовать механизм ServiceDiscovery для обнаружения приложений, запущенных в k8s.
+
+Приложения будем искать так же, как и служебные сервисы k8s.
+
+Модернизируем конфиг prometheus:
+`custom_values.yml`
+```yaml
+  - job_name: "reddit-endpoints"
+    kubernetes_sd_configs:
+      - role: endpoints
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_label_app]
+        action: keep   # Используем действие keep, чтобы оставить
+        regex: reddit  # только эндпоинты сервисов с метками
+                       # “app=reddit”
+```
+
+Обновите релиз prometheus
+```shell
+cd ./prometheus
+helm upgrade prom . -f custom_values.yml --install
+```
+```log
+coalesce.go:196: warning: cannot overwrite table with non table for annotations (map[])
+coalesce.go:196: warning: cannot overwrite table with non table for alertmanager.yml (map[global:map[] receivers:[map[name:default-receiver]] route:map[group_interval:5m group_wait:10s receiver:default-receiver repeat_interval:3h]])
+Release "prom" has been upgraded. Happy Helming!
+NAME: prom
+LAST DEPLOYED: Tue Feb 18 22:15:38 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 4
+TEST SUITE: None
+NOTES:
+The Prometheus server can be accessed via port 80 on the following DNS name from within your cluster:
+prom-prometheus-server.default.svc.cluster.local
+
+From outside the cluster, the server URL(s) are:
+http://reddit-prometheus
+
+
+#################################################################################
+######   WARNING: Pod Security Policy has been moved to a global property.  #####
+######            use .Values.podSecurityPolicy.enabled with pod-based      #####
+######            annotations                                               #####
+######            (e.g. .Values.nodeExporter.podSecurityPolicy.annotations) #####
+#################################################################################
+
+
+
+For more information on running Prometheus, visit:
+https://prometheus.io/
+```
+
+Мы получили эндпоинты, но что это за поды мы не знаем. Добавим метки k8s
+
+Все лейблы и аннотации k8s изначально отображаются в prometheus в формате:
+- `__meta_kubernetes_service_label_labelname`
+- `__meta_kubernetes_service_annotation_annotationname`
+
+`custom_values.yml`
+```yaml
+relabel_configs:
+  - action: labelmap # Отобразить все совпадения групп
+    regex: __meta_kubernetes_service_label_(.+) # из regex в label’ы Prometheus
+```
+
+Обновите релиз prometheus
+```shell
+helm upgrade prom . -f custom_values.yml --install
+```
+
+Теперь мы видим лейблы k8s, присвоенные POD’ам (на примере метрики `ui_request_count`)
+
+Добавим еще label’ы для prometheus и обновим helm-релиз Т.к. метки вида `__meta*` не публикуются, то нужно создать свои, перенеся в них информацию
+```yaml
+- source_labels: [__meta_kubernetes_namespace]
+  target_label: kubernetes_namespace
+- source_labels: [__meta_kubernetes_service_name]
+  target_label: kubernetes_name
+```
+
+Обновите релиз prometheus и ...
+```shell
+helm upgrade prom . -f custom_values.yml --install
+```
+
+Сейчас мы собираем метрики со всех сервисов reddit’а в 1 группе target-ов. Мы можем отделить target-ы компонент друг от друга (по окружениям, по самим компонентам), а также выключать и включать опцию мониторинга для них с помощью все тех же labelов. Например, добавим в конфиг еще 1 job:
+```yaml
+- job_name: 'reddit-production'
+   kubernetes_sd_configs:
+     - role: endpoints
+   relabel_configs:
+     - action: labelmap
+       regex: __meta_kubernetes_service_label_(.+)
+     - source_labels: [__meta_kubernetes_service_label_app, __meta_kubernetes_namespace]
+       action: keep                         # Для разных лейблов
+       regex: reddit;(production|staging)+  # разные регекспы
+     - source_labels: [__meta_kubernetes_namespace]
+       target_label: kubernetes_namespace
+     - source_labels: [__meta_kubernetes_service_name]
+       target_label: kubernetes_name
+```
+
+Обновим релиз prometheus и посмотрим
+```shell
+helm upgrade prom . -f custom_values.yml --install
+```
+и видим соответствующие target-ы
+
+Метрики будут отображаться для всех инстансов приложений
+
+##### Задание
+
+Разбейте конфигурацию job’а reddit-endpoints (слайд 24) так,чтобы было 3 job’а для каждой из компонент приложений (post-endpoints, comment-endpoints, ui-endpoints), а reddit-endpoints уберите.
+
+easy:
+```yaml
+      - job_name: "comment-endpoints"
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_label_app]
+            action: keep
+            regex: reddit
+          - source_labels: [__meta_kubernetes_service_label_component]
+            action: keep
+            regex: comment
+          - action: labelmap # Отобразить все совпадения групп
+            regex: __meta_kubernetes_service_label_(.+) # из regex в label’ы Prometheus
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: kubernetes_name
+
+      - job_name: "ui-endpoints"
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_label_app]
+            action: keep
+            regex: reddit
+          - source_labels: [__meta_kubernetes_service_label_component]
+            action: keep
+            regex: ui
+          - action: labelmap # Отобразить все совпадения групп
+            regex: __meta_kubernetes_service_label_(.+) # из regex в label’ы Prometheus
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: kubernetes_name
+
+      - job_name: "post-endpoints"
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_label_app]
+            action: keep
+            regex: reddit
+          - source_labels: [__meta_kubernetes_service_label_component]
+            action: keep
+            regex: post
+          - action: labelmap # Отобразить все совпадения групп
+            regex: __meta_kubernetes_service_label_(.+) # из regex в label’ы Prometheus
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_service_name]
+            target_label: kubernetes_name
+```
+
+#### Визуализация
+
+Поставим же grafana с помощью helm
+```shell
+helm upgrade --install grafana stable/grafana --set "server.adminPassword=admin" \
+  --set "server.service.type=NodePort" \
+  --set "server.ingress.enabled=true" \
+  --set "server.ingress.hosts={reddit-grafana}"
+```
+
+##### Урашечки, грабельки
+
+И тут нас ждёт сюрприз: http://reddit-grafana/  возвращает `default backend - 404`
+
+Почитав немного https://github.com/helm/charts/tree/master/stable/grafana делаем вывод:
+
+В ДЗ ошибка, нужно так
+```shell
+helm upgrade --install grafana stable/grafana --set "adminPassword=admin" \
+  --set "service.type=NodePort" \
+  --set "ingress.enabled=true" \
+  --set "ingress.hosts={reddit-grafana}"
+```
+
+и получаем веб-интерфейс по ссылке http://reddit-grafana/
+
+Вошли, сменили пароль.
+
+Добавьте prometheus data-source. Адрес найдите из имени сервиса prometheus сервера
+```shell
+kubectl get svc
+```
+http://prom-prometheus-server
+
+done
+
+Добавим [самый распространённый](https://grafana.com/grafana/dashboards/315) дашборд для отслеживания
+состояния ресурсов k8s
+
+Добавьте собственные дашборды, созданные ранее (в ДЗ по мониторингу). Они должны также успешно отобразить данные.
+
+В дашборде `UI metrics` пришлось заменить параметр `job="ui"` на `component="ui"`
+
+Остальное завелось.
+
+
+#### Templating
+
+В текущий момент на графиках, относящихся к приложению, одновременно отображены значения метрик со всех источников сразу. При большом количестве сред и при их динамичном изменении имеет смысл сделать динамичной и удобно настройку наших дашбордов в Grafana.
+
+Сделать это можно в нашем случае с помощью механизма templating’а
+
+##### UI metrics
+
+Создадим новую переменную
+
+| Key                | Value                        |
+| ------------------ | ---------------------------- |
+| Name               | namespace                    |
+| Type               | Query                        |
+| Label              | env                          |
+| Datasource         | Prometheus                   |
+| Refresh            | On Dashboard Load            |
+| Query              | `label_values(namespace)`    |
+| Regex              | `/.+/` все непустые значения |
+| Sort               | Alphabetical (asc)           |
+| Multi-value        | true                         |
+| Include All option | true                         |
+
+У нас появился список со значениями переменной.
+
+Пока что они бесполезны. Чтобы их использование имело эффект нужно шаблонизировать запросы к Prometheus
+
+
+- Title: `UI http request response time 95 quantile ($namespace)`
+- Metrics: `histogram_quantile(0.95, sum(rate(ui_request_response_time_bucket{kubernetes_namespace=~"$namespace"}[5m])) by (le))`
+
+- Title: `UI http errors count ($namespace)`
+- Metrics: `rate(ui_request_count{kubernetes_namespace=~"$namespace",http_status=~"^[45].*"}[1m])`
+
+- Title: `UI http requests count ($namespace)`
+- Metrics: `rate(ui_request_count{kubernetes_namespace=~"$namespace",component="ui"}[1m])`
+
+Дашборд сохранён в [monitoring/grafana/dashboards/k8s_UI_Service_Monitoring.json](monitoring/grafana/dashboards/k8s_UI_Service_Monitoring.json)
+
+##### Business Logic Monitoring
+
+Создадим новую переменную
+
+| Key                | Value                        |
+| ------------------ | ---------------------------- |
+| Name               | namespace                    |
+| Type               | Query                        |
+| Label              | env                          |
+| Datasource         | Prometheus                   |
+| Refresh            | On Dashboard Load            |
+| Query              | `label_values(namespace)`    |
+| Regex              | `/.+/` все непустые значения |
+| Sort               | Alphabetical (asc)           |
+| Multi-value        | true                         |
+| Include All option | true                         |
+
+У нас появился список со значениями переменной.
+
+Пока что они бесполезны. Чтобы их использование имело эффект нужно шаблонизировать запросы к Prometheus
+
+- Title: `Post count ($namespace)`
+- Metrics: `rate(post_count{kubernetes_namespace=~"$namespace"}[1h])`
+
+- Title: `Comment count ($namespace)`
+- Metrics: `rate(comment_count{kubernetes_namespace=~"$namespace"}[1h])`
+
+Дашборд сохранён в [monitoring/grafana/dashboards/k8s_Business_Logic_Monitoring.json](monitoring/grafana/dashboards/k8s_Business_Logic_Monitoring.json)
+
+#### Смешанные графики
+
+Импортируйте следующий график: https://grafana.com/grafana/dashboards/741
+
+Интересная цифра `Deployment memory usage` = 119%. Довольно странная цифра.
+
+На этом графике одновременно используются метрики и шаблоны из cAdvisor, и из kube-state-metrics для отображения сводной информации по деплойментам
+
+
+### Задание со \*: alertmanager
+
+В целом, принципы работы с инструментами не поменялись. Добавились лишь особенности, поэтому мы можем использовать старые наработки и для k8s.
+
+Задание: запустить alertmanager в k8s и настроить правила для контроля за доступностью api-сервера и хостов k8s
+
+[Формат описания правил](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/)
+
+Изменим `kubernetes/Charts/prometheus/custom_values.yml`
+```yaml
+alertmanager:
+  enabled: true
+  ...
+  ingress:
+    enabled: true
+    hosts:
+      - reddit-alertmanager
+    ...
+  service:
+    type: LoadBalancer
+    ...
+```
+
+Задеплоим
+```shell
+cd kubernetes/Charts/prometheus
+helm upgrade prom . -f custom_values.yml --install
+```
+
+При попытке зайти на http://reddit-alertmanager/ видим ошибку 503: Service Temporarily Unavailable
+Причина: `Error syncing load balancer: failed to ensure load balancer: failed to ensure a static IP for load balancer (adff8df779459482fad7d84091869a95(default/prom-prometheus-alertmanager)): error creating gce static IP address: googleapi: Error 403: QUOTA_EXCEEDED - Quota 'STATIC_ADDRESSES' exceeded.  Limit: 1.0 in region us-central1.`
+
+Попробуем по-другому
+```yaml
+alertmanager:
+  service:
+    type: ClusterIP
+```
+```
+Error: UPGRADE FAILED: cannot patch "prom-prometheus-alertmanager" with kind Service: Service "prom-prometheus-alertmanager" is invalid: spec.ports[0].nodePort: Forbidden: may not be used when `type` is 'ClusterIP'
+```
+
+Значин будем делать nginx-ingress-controller
+
+#### nginx-ingress-controller
+
+Добавлен чарт `kubernetes/Charts/ingress-nginx`
+```
+ingress-nginx
+├── Chart.yaml
+└── values.yaml
+
+0 directories, 2 files
+```
+`Chart.yaml`
+```yaml
+---
+apiVersion: v2
+name: nginx-ingress
+version: 0.1.0
+description: cluster-wide nginx ingress
+maintainers:
+  - name: Aleksey Koloskov
+    email: vsyscoder@gmail.com
+
+dependencies:
+  - name: nginx-ingress
+    version: 1.30.0
+    repository: https://kubernetes-charts.storage.googleapis.com/
+```
+
+`values.yaml`
+```yaml
+---
+nginx-ingress:
+  publishService:
+    enabled: true
+  rbac:
+    create: false
+  controller:
+    service:
+      loadBalancerIP:
+    scope:
+      enabled: true
+      namespace:
+```
+
+Создан `kubernetes/Charts/Makefile`
+```makefile
+NS?=default
+
+update_deps: clean_deps
+	cd ./reddit && helm dep update
+	cd ./ingress-nginx && helm dep update
+
+clean_deps:
+	rm -rf ./reddit/charts || true
+	rm -rf ./ingress-nginx/charts || true
+
+# install nginx-ingress
+install_nginx:
+	helm upgrade \
+		--install \
+		--set nginx-ingress.controller.scope.enabled=true \
+		--set nginx-ingress.controller.scope.namespace=$(NS) \
+		--namespace $(NS) \
+		nginx-ingress-$(NS) \
+		./ingress-nginx
+```
+
+Установлен nginx-ingress-controller
+```shell
+make update_deps
+make install_nginx NS=default
+```
+```log
+helm upgrade \
+        --install \
+        --set nginx-ingress.controller.scope.enabled=true \
+        --set nginx-ingress.controller.scope.namespace=default \
+        --namespace default \
+        nginx-ingress-default \
+        ./ingress-nginx
+Release "nginx-ingress-default" does not exist. Installing it now.
+NAME: nginx-ingress-default
+LAST DEPLOYED: Fri Feb 21 22:36:03 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+```
+
+Прописываем аннотации для сервисов мониторинга
+```yaml
+alertmanager:
+  ingress:
+    annotations:
+      kubernetes.io/ingress.class: nginx
+  service:
+    type: LoadBalancer
+...
+server:
+  ingress:
+    annotations:
+      kubernetes.io/ingress.class: nginx
+```
+
+В `kubernetes/Charts/Makefile` добавили target
+```makefile
+# deploy prometheus
+deploy_prometheus:
+	helm upgrade \
+		--install \
+		-f ./prometheus/custom_values.yml \
+    --namespace default \
+		prom \
+		./prometheus
+```
+
+Деплоим prometheus
+```shell
+make deploy_prometheus
+```
+
+Тут анализ `kubectl get service` внезапно выдал наличие двух nginx-ingress-controller... Есть подозрение, что мой был лишним ^_^
+```log
+...
+nginx-ingress-default-controller        LoadBalancer   10.4.3.90     <pending>       80:31784/TCP,443:30099/TCP   27m
+nginx-ingress-default-default-backend   ClusterIP      10.4.0.73     <none>          80/TCP                       27m
+nginx-nginx-ingress-controller          LoadBalancer   10.4.7.187    34.69.197.128   80:32087/TCP,443:30552/TCP   5d6h
+nginx-nginx-ingress-default-backend     ClusterIP      10.4.5.206    <none>          80/TCP                       5d6h
+```
+
+Придётся деинсталлировать)))
+
+Добавим в `kubernetes/Charts/Makefile` target
+```makefile
+# uninstall nginx-ingress
+uninstall_nginx:
+	helm uninstall --namespace $(NS) nginx-ingress-$(NS)
+```
+
+И выполним деинсталлацию(((
+```shell
+make uninstall_nginx NS=default
+```
+```shell
+kubectl get service
+```
+```log
+kubectl get service            
+NAME                                  TYPE           CLUSTER-IP    EXTERNAL-IP     PORT(S)                      AGE
+grafana                               NodePort       10.4.7.117    <none>          80:31701/TCP                 3d
+kubernetes                            ClusterIP      10.4.0.1      <none>          443/TCP                      5d7h
+nginx-nginx-ingress-controller        LoadBalancer   10.4.7.187    34.69.197.128   80:32087/TCP,443:30552/TCP   5d6h
+nginx-nginx-ingress-default-backend   ClusterIP      10.4.5.206    <none>          80/TCP                       5d6h
+prom-prometheus-alertmanager          LoadBalancer   10.4.2.75     <pending>       80:32024/TCP                 49m
+prom-prometheus-kube-state-metrics    ClusterIP      None          <none>          80/TCP,81/TCP                5d1h
+prom-prometheus-node-exporter         ClusterIP      None          <none>          9100/TCP                     5d
+prom-prometheus-server                LoadBalancer   10.4.15.25    34.67.57.194    80:31921/TCP                 5d5h
+reddit-test-comment                   ClusterIP      10.4.7.46     <none>          9292/TCP                     3d1h
+reddit-test-mongodb                   ClusterIP      10.4.0.108    <none>          27017/TCP                    3d1h
+reddit-test-post                      ClusterIP      10.4.12.14    <none>          5000/TCP                     3d1h
+reddit-test-ui                        NodePort       10.4.14.209   <none>          9292:31304/TCP               3d1h
+```
+
+теперь всё выглядит по-приличнее)
+
+Проверим
+
+http://reddit-alertmanager
+
+А воз и ныне там... Похоже я не в ту степь поскакал(
+```shell
+kubectl describe service prom-prometheus-alertman
+```
+```log
+Error syncing load balancer: failed to ensure load balancer: failed to ensure a static IP for load balancer (adff8df779459482fad7d84091869a95(default/prom-prometheus-alertmanager)): error creating gce static IP address: googleapi: Error 403: QUOTA_EXCEEDED - Quota 'STATIC_ADDRESSES' exceeded.  Limit: 1.0 in region us-central1.
+```
+
+Хотя причём здесь static ip? Нас и динамический устроит... Попробуем ка кпередеплоиться...
+
+Добавим в `kubernetes/Charts/Makefile` target
+```makefile
+# uninstall prometheus
+uninstall_prometheus:
+	helm uninstall --namespace default prom
+```
+
+И передеплоимся
+```shell
+make uninstall_prometheus
+# ...подождём удаления
+make deploy_prometheus
+# готово
+```
+
+Не деплоится алертменеджер, ошибку выдаёт
+```shell
+kubectl logs prom-prometheus-alertmanager-5fb4dd8574-6mzfw -c prometheus-alertmanager
+```
+```log
+flag provided but not defined: -cluster.advertise-address
+...
+```
+
+видимо потому, что серис сервера всё ещё `pending`
+```log
+prom-prometheus-server                LoadBalancer   10.4.11.106   <pending>       80:30165/TCP                 5m23s
+```
+
+Что-то нехватает нам ip-адресов
+```shell
+kubectl describe service prom-prometheus-server
+```
+```log
+Normal   EnsuringLoadBalancer    43s (x7 over 6m11s)  service-controller  Ensuring load balancer
+  Warning  SyncLoadBalancerFailed  41s (x7 over 6m9s)   service-controller  Error syncing load balancer: failed to ensure load balancer: failed to ensure a static IP for load balancer (a9642f8c6a0d149c5bb046eecfd6fd9a(default/prom-prometheus-server)): error creating gce static IP address: googleapi: Error 403: QUOTA_EXCEEDED - Quota 'STATIC_ADDRESSES' exceeded.  Limit: 1.0 in region us-central1.
+```
+
+Хватит это терпеть! Установим `service.type: NodePort` для сервисов prometheus `server` и `alertmanager`, чтобы не занимать статические ip.
+
+`kubernetes/Charts/prometheus/custom_values.yml`
+```yaml
+aletrmanager:
+  service:
+    type: NodePort
+...
+server:
+  service:
+    type: NodePort
+```
+
+И после применения изменений
+```shell
+make deploy_prometheus
+```
+у нас вернулся в строй prometheus-server
+
+#### Fix alertmanager
+
+Но alert-manager морду высовывать так и не хочет ^_^
+
+nginx-ingress-controller говорит: `503 Service Temporarily Unavailable`
+
+А всё потому что... Ошибочку видим в логах
+```shell
+kubectl logs prom-prometheus-alertmanager-5fb4dd8574-5tr56 prometheus-alertmanager
+```
+```log
+flag provided but not defined: -cluster.advertise-address
+```
+
+Значение флага `-cluster.advertise-address`
+```shell
+kubectl describe pod prom-prometheus-alertmanager-5
+fb4dd8574-5tr56
+```
+```log
+...
+Containers:
+  prometheus-alertmanager:
+    ...
+    --cluster.Multi-Attach error for volume "pvc-1cba0a70-2b87-4e67-afec-f1f7b0876f93" Volume is already used by pod(s) prom-prometheus-alertmanager-5fb4dd8574-5tr56=$(POD_IP):6783
+...
+```
+
+Но у нас нет кластера alertmanager-оф, а если ему сделать `replicaCount: 1`, второй под не взлетает так как не может использовать тот же volume
+```log
+Multi-Attach error for volume "pvc-1cba0a70-2b87-4e67-afec-f1f7b0876f93" Volume is already used by pod(s) prom-prometheus-alertmanager-5fb4dd8574-5tr56
+```
+
+Имеет смысл убрать данный параметр, что мы и сделаем в `kubernetes/Charts/prometheus/templates/alertmanager-statefulset.yaml`, закомментировав строку 53
+```yaml
+...
+          args:
+            - --config.file=/etc/config/{{ .Values.alertmanager.configFileName }}
+            - --storage.path={{ .Values.alertmanager.persistentVolume.mountPath }}
+            #- --cluster.advertise-address=$(POD_IP):6783
+```
+
+но теперь получаем ту же ситуацию и что-то странное в логе
+```shell
+kubectl logs -f prom-prometheus-alertmanager-567447967c-5tgct prometheus-alertmanager
+```
+```log
+level=info ts=2020-02-23T20:41:52.492813385Z caller=main.go:155 msg="Starting Alertmanager" version="(version=0.10.0, branch=HEAD, revision=133c888ef3644b47a52acbaeffb09f4cc637df1b)"
+level=info ts=2020-02-23T20:41:52.492891792Z caller=main.go:156 build_context="(go=go1.9.2, user=root@01302b7cd08a, date=20171109-15:34:53)"
+level=info ts=2020-02-23T20:41:52.494359403Z caller=main.go:293 msg="Loading configuration file" file=/etc/config/alertmanager.yml
+level=error ts=2020-02-23T20:41:52.494481786Z caller=main.go:296 msg="Loading configuration file failed" file=/etc/config/alertmanager.yml err="yaml: unmarshal errors:\n  line 1: cannot unmarshal !!str `global:...` into config.plain"
+```
+
+Прри замене `$(POD_IP)` на `127.0.0.1`, получаем снова странный результат
+```log
+flag provided but not defined: -cluster.advertise-address
+```
+Вывод: `$(POD_IP)` возможно и не пуст, но неверным обращом передаётся параметр...
+
+Дальнейшие танцы с бубном результата не принесли, та же ошибка.
+
+После обновления alertmanager до актуальной версии `v0.20.0` (по ДЗ была `v0.10.0`), удалось добиться запуска, но начались приключения с конфигом.
+
+В итоге пришли к рабочему варианту
+```yaml
+alertmanager:
+  image:
+    tag: v0.20.0
+  baseURL: "http://reddit-alertmanager"
+  service:
+    type: NodePort
+  ...
+server:
+  service:
+    type: NodePort
+  ...
+alertmanagerFiles:
+  alertmanager.yml:
+    receivers:
+      - name: default-receiver
+        slack_configs:
+          - api_url: "https://hooks.slack.com/services/hereisasecret"
+            channel: "#vscoder-k5"
+            send_resolved: true
+
+    route:
+      group_wait: 10s
+      group_interval: 5m
+      receiver: default-receiver
+      repeat_interval: 3h
+```
+
+и наконец-то можно увидеть веб-интерфейс по адресу http://reddit-alertmanager
+
+
+#### Alert rules
+
+Добавим же пару алертов
+
+`custom-values.yml`
+```yaml
+...
+## Prometheus server ConfigMap entries
+##
+serverFiles:
+  alerts: {}
+  rules: {}
+
+  ## Alerts configuration
+  ## Ref: https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/
+  ## alerting_rules.yml: {}
+  alerting_rules.yml:
+    groups:
+      - name: Instances
+        rules:
+          - alert: InstanceDown
+            expr: up == 0
+            for: 30s
+            labels:
+              severity: page
+            annotations:
+              description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+              summary: "Instance {{ $labels.instance }} down"
+      - "name": "kubernetes-apps"
+        "rules":
+          - "alert": "KubePodCrashLooping"
+            "annotations":
+              "message": 'Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container }}) is restarting {{ printf "%.2f" $value }} times / 5 minutes.'
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepodcrashlooping"
+            "expr": |
+              rate(kube_pod_container_status_restarts_total{component="kube-state-metrics"}[15m]) * 60 * 5 > 0
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubePodNotReady"
+            "annotations":
+              "message": "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been in a non-ready state for longer than 15 minutes."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepodnotready"
+            "expr": |
+              sum by (namespace, pod) (max by(namespace, pod) (kube_pod_status_phase{component="kube-state-metrics", phase=~"Pending|Unknown"}) * on(namespace, pod) group_left(owner_kind) max by(namespace, pod, owner_kind) (kube_pod_owner{owner_kind!="Job"})) > 0
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeDeploymentGenerationMismatch"
+            "annotations":
+              "message": "Deployment generation for {{ $labels.namespace }}/{{ $labels.deployment }} does not match, this indicates that the Deployment has failed but has not been rolled back."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedeploymentgenerationmismatch"
+            "expr": |
+              kube_deployment_status_observed_generation{component="kube-state-metrics"}
+                !=
+              kube_deployment_metadata_generation{component="kube-state-metrics"}
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeDeploymentReplicasMismatch"
+            "annotations":
+              "message": "Deployment {{ $labels.namespace }}/{{ $labels.deployment }} has not matched the expected number of replicas for longer than 15 minutes."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedeploymentreplicasmismatch"
+            "expr": |
+              kube_deployment_spec_replicas{component="kube-state-metrics"}
+                !=
+              kube_deployment_status_replicas_available{component="kube-state-metrics"}
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeStatefulSetReplicasMismatch"
+            "annotations":
+              "message": "StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} has not matched the expected number of replicas for longer than 15 minutes."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubestatefulsetreplicasmismatch"
+            "expr": |
+              kube_statefulset_status_replicas_ready{component="kube-state-metrics"}
+                !=
+              kube_statefulset_status_replicas{component="kube-state-metrics"}
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeStatefulSetGenerationMismatch"
+            "annotations":
+              "message": "StatefulSet generation for {{ $labels.namespace }}/{{ $labels.statefulset }} does not match, this indicates that the StatefulSet has failed but has not been rolled back."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubestatefulsetgenerationmismatch"
+            "expr": |
+              kube_statefulset_status_observed_generation{component="kube-state-metrics"}
+                !=
+              kube_statefulset_metadata_generation{component="kube-state-metrics"}
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeStatefulSetUpdateNotRolledOut"
+            "annotations":
+              "message": "StatefulSet {{ $labels.namespace }}/{{ $labels.statefulset }} update has not been rolled out."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubestatefulsetupdatenotrolledout"
+            "expr": |
+              max without (revision) (
+                kube_statefulset_status_current_revision{component="kube-state-metrics"}
+                  unless
+                kube_statefulset_status_update_revision{component="kube-state-metrics"}
+              )
+                *
+              (
+                kube_statefulset_replicas{component="kube-state-metrics"}
+                  !=
+                kube_statefulset_status_replicas_updated{component="kube-state-metrics"}
+              )
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeDaemonSetRolloutStuck"
+            "annotations":
+              "message": "Only {{ $value | humanizePercentage }} of the desired Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are scheduled and ready."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedaemonsetrolloutstuck"
+            "expr": |
+              kube_daemonset_status_number_ready{component="kube-state-metrics"}
+                /
+              kube_daemonset_status_desired_number_scheduled{component="kube-state-metrics"} < 1.00
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeContainerWaiting"
+            "annotations":
+              "message": "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container}} has been in waiting state for longer than 1 hour."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecontainerwaiting"
+            "expr": |
+              sum by (namespace, pod, container) (kube_pod_container_status_waiting_reason{component="kube-state-metrics"}) > 0
+            "for": "1h"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeDaemonSetNotScheduled"
+            "annotations":
+              "message": "{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are not scheduled."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedaemonsetnotscheduled"
+            "expr": |
+              kube_daemonset_status_desired_number_scheduled{component="kube-state-metrics"}
+                -
+              kube_daemonset_status_current_number_scheduled{component="kube-state-metrics"} > 0
+            "for": "10m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeDaemonSetMisScheduled"
+            "annotations":
+              "message": "{{ $value }} Pods of DaemonSet {{ $labels.namespace }}/{{ $labels.daemonset }} are running where they are not supposed to run."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubedaemonsetmisscheduled"
+            "expr": |
+              kube_daemonset_status_number_misscheduled{component="kube-state-metrics"} > 0
+            "for": "10m"
+            "labels":
+              "severity": "warning"
+      - "name": "kubernetes-resources"
+        "rules":
+          - "alert": "KubeCPUOvercommit"
+            "annotations":
+              "message": "Cluster has overcommitted CPU resource requests for Pods and cannot tolerate node failure."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecpuovercommit"
+            "expr": |
+              sum(namespace:kube_pod_container_resource_requests_cpu_cores:sum)
+                /
+              sum(kube_node_status_allocatable_cpu_cores)
+                >
+              (count(kube_node_status_allocatable_cpu_cores)-1) / count(kube_node_status_allocatable_cpu_cores)
+            "for": "5m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeMemOvercommit"
+            "annotations":
+              "message": "Cluster has overcommitted memory resource requests for Pods and cannot tolerate node failure."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubememovercommit"
+            "expr": |
+              sum(namespace:kube_pod_container_resource_requests_memory_bytes:sum)
+                /
+              sum(kube_node_status_allocatable_memory_bytes)
+                >
+              (count(kube_node_status_allocatable_memory_bytes)-1)
+                /
+              count(kube_node_status_allocatable_memory_bytes)
+            "for": "5m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeCPUOvercommit"
+            "annotations":
+              "message": "Cluster has overcommitted CPU resource requests for Namespaces."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecpuovercommit"
+            "expr": |
+              sum(kube_resourcequota{component="kube-state-metrics", type="hard", resource="cpu"})
+                /
+              sum(kube_node_status_allocatable_cpu_cores)
+                > 1.5
+            "for": "5m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeMemOvercommit"
+            "annotations":
+              "message": "Cluster has overcommitted memory resource requests for Namespaces."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubememovercommit"
+            "expr": |
+              sum(kube_resourcequota{component="kube-state-metrics", type="hard", resource="memory"})
+                /
+              sum(kube_node_status_allocatable_memory_bytes{job="node-exporter"})
+                > 1.5
+            "for": "5m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeQuotaExceeded"
+            "annotations":
+              "message": "Namespace {{ $labels.namespace }} is using {{ $value | humanizePercentage }} of its {{ $labels.resource }} quota."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubequotaexceeded"
+            "expr": |
+              kube_resourcequota{component="kube-state-metrics", type="used"}
+                / ignoring(instance, job, type)
+              (kube_resourcequota{component="kube-state-metrics", type="hard"} > 0)
+                > 0.90
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+          - "alert": "CPUThrottlingHigh"
+            "annotations":
+              "message": "{{ $value | humanizePercentage }} throttling of CPU in namespace {{ $labels.namespace }} for container {{ $labels.container }} in pod {{ $labels.pod }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-cputhrottlinghigh"
+            "expr": |
+              sum(increase(container_cpu_cfs_throttled_periods_total{container!="", }[5m])) by (container, pod, namespace)
+                /
+              sum(increase(container_cpu_cfs_periods_total{}[5m])) by (container, pod, namespace)
+                > ( 25 / 100 )
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+      - "name": "kubernetes-storage"
+        "rules":
+          - "alert": "KubePersistentVolumeUsageCritical"
+            "annotations":
+              "message": "The PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} is only {{ $value | humanizePercentage }} free."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumeusagecritical"
+            "expr": |
+              kubelet_volume_stats_available_bytes{job="kubernetes-nodes"}
+                /
+              kubelet_volume_stats_capacity_bytes{job="kubernetes-nodes"}
+                < 0.03
+            "for": "1m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubePersistentVolumeFullInFourDays"
+            "annotations":
+              "message": "Based on recent sampling, the PersistentVolume claimed by {{ $labels.persistentvolumeclaim }} in Namespace {{ $labels.namespace }} is expected to fill up within four days. Currently {{ $value | humanizePercentage }} is available."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumefullinfourdays"
+            "expr": |
+              (
+                kubelet_volume_stats_available_bytes{job="kubernetes-nodes"}
+                  /
+                kubelet_volume_stats_capacity_bytes{job="kubernetes-nodes"}
+              ) < 0.15
+              and
+              predict_linear(kubelet_volume_stats_available_bytes{job="kubernetes-nodes"}[6h], 4 * 24 * 3600) < 0
+            "for": "1h"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubePersistentVolumeErrors"
+            "annotations":
+              "message": "The persistent volume {{ $labels.persistentvolume }} has status {{ $labels.phase }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumeerrors"
+            "expr": |
+              kube_persistentvolume_status_phase{phase=~"Failed|Pending",component="kube-state-metrics"} > 0
+            "for": "5m"
+            "labels":
+              "severity": "critical"
+      - "name": "kubernetes-system"
+        "rules":
+          - "alert": "KubeVersionMismatch"
+            "annotations":
+              "message": "There are {{ $value }} different semantic versions of Kubernetes components running."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeversionmismatch"
+            "expr": |
+              count(count by (gitVersion) (label_replace(kubernetes_build_info{job!~"kube-dns|coredns"},"gitVersion","$1","gitVersion","(v[0-9]*.[0-9]*.[0-9]*).*"))) > 1
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeClientErrors"
+            "annotations":
+              "message": "Kubernetes API server client '{{ $labels.job }}/{{ $labels.instance }}' is experiencing {{ $value | humanizePercentage }} errors.'"
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeclienterrors"
+            "expr": |
+              (sum(rate(rest_client_requests_total{code=~"5.."}[5m])) by (instance, job)
+                /
+              sum(rate(rest_client_requests_total[5m])) by (instance, job))
+              > 0.01
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+      - "name": "kubernetes-apiservers-error"
+        "rules":
+          - "alert": "ErrorBudgetBurn"
+            "annotations":
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-errorbudgetburn"
+            "expr": |
+              (
+                status_class_5xx:apiserver_request_total:ratio_rate1h{job="kubernetes-apiservers"} > (14.4*0.010000)
+                and
+                status_class_5xx:apiserver_request_total:ratio_rate5m{job="kubernetes-apiservers"} > (14.4*0.010000)
+              )
+              or
+              (
+                status_class_5xx:apiserver_request_total:ratio_rate6h{job="kubernetes-apiservers"} > (6*0.010000)
+                and
+                status_class_5xx:apiserver_request_total:ratio_rate30m{job="kubernetes-apiservers"} > (6*0.010000)
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+              "severity": "critical"
+          - "alert": "ErrorBudgetBurn"
+            "annotations":
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-errorbudgetburn"
+            "expr": |
+              (
+                status_class_5xx:apiserver_request_total:ratio_rate1d{job="kubernetes-apiservers"} > (3*0.010000)
+                and
+                status_class_5xx:apiserver_request_total:ratio_rate2h{job="kubernetes-apiservers"} > (3*0.010000)
+              )
+              or
+              (
+                status_class_5xx:apiserver_request_total:ratio_rate3d{job="kubernetes-apiservers"} > (0.010000)
+                and
+                status_class_5xx:apiserver_request_total:ratio_rate6h{job="kubernetes-apiservers"} > (0.010000)
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+              "severity": "warning"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[5m]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate5m"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[30m]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate30m"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[1h]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate1h"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[2h]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate2h"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[6h]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate6h"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[1d]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate1d"
+          - "expr": |
+              sum by (status_class) (
+                label_replace(
+                  rate(apiserver_request_total{job="kubernetes-apiservers"}[3d]
+                ), "status_class", "${1}xx", "code", "([0-9])..")
+              )
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class:apiserver_request_total:rate3d"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate5m{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate5m{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate5m"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate30m{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate30m{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate30m"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate1h{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate1h{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate1h"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate2h{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate2h{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate2h"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate6h{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate6h{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate6h"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate1d{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate1d{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate1d"
+          - "expr": |
+              sum(status_class:apiserver_request_total:rate3d{job="kubernetes-apiservers",status_class="5xx"})
+              /
+              sum(status_class:apiserver_request_total:rate3d{job="kubernetes-apiservers"})
+            "labels":
+              "job": "kubernetes-apiservers"
+            "record": "status_class_5xx:apiserver_request_total:ratio_rate3d"
+      - "name": "kubernetes-system-apiserver"
+        "rules":
+          - "alert": "KubeAPILatencyHigh"
+            "annotations":
+              "message": "The API server has an abnormal latency of {{ $value }} seconds for {{ $labels.verb }} {{ $labels.resource }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapilatencyhigh"
+            "expr": |
+              (
+                cluster:apiserver_request_duration_seconds:mean5m{job="kubernetes-apiservers"}
+                >
+                on (verb) group_left()
+                (
+                  avg by (verb) (cluster:apiserver_request_duration_seconds:mean5m{job="kubernetes-apiservers"} >= 0)
+                  +
+                  2*stddev by (verb) (cluster:apiserver_request_duration_seconds:mean5m{job="kubernetes-apiservers"} >= 0)
+                )
+              ) > on (verb) group_left()
+              1.2 * avg by (verb) (cluster:apiserver_request_duration_seconds:mean5m{job="kubernetes-apiservers"} >= 0)
+              and on (verb,resource)
+              cluster_quantile:apiserver_request_duration_seconds:histogram_quantile{job="kubernetes-apiservers",quantile="0.99"}
+              >
+              1
+            "for": "5m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeAPILatencyHigh"
+            "annotations":
+              "message": "The API server has a 99th percentile latency of {{ $value }} seconds for {{ $labels.verb }} {{ $labels.resource }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapilatencyhigh"
+            "expr": |
+              cluster_quantile:apiserver_request_duration_seconds:histogram_quantile{job="kubernetes-apiservers",quantile="0.99"} > 4
+            "for": "10m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeAPIErrorsHigh"
+            "annotations":
+              "message": "API server is returning errors for {{ $value | humanizePercentage }} of requests."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapierrorshigh"
+            "expr": |
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers",code=~"5.."}[5m]))
+                /
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers"}[5m])) > 0.03
+            "for": "10m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeAPIErrorsHigh"
+            "annotations":
+              "message": "API server is returning errors for {{ $value | humanizePercentage }} of requests."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapierrorshigh"
+            "expr": |
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers",code=~"5.."}[5m]))
+                /
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers"}[5m])) > 0.01
+            "for": "10m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeAPIErrorsHigh"
+            "annotations":
+              "message": "API server is returning errors for {{ $value | humanizePercentage }} of requests for {{ $labels.verb }} {{ $labels.resource }} {{ $labels.subresource }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapierrorshigh"
+            "expr": |
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers",code=~"5.."}[5m])) by (resource,subresource,verb)
+                /
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers"}[5m])) by (resource,subresource,verb) > 0.10
+            "for": "10m"
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeAPIErrorsHigh"
+            "annotations":
+              "message": "API server is returning errors for {{ $value | humanizePercentage }} of requests for {{ $labels.verb }} {{ $labels.resource }} {{ $labels.subresource }}."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapierrorshigh"
+            "expr": |
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers",code=~"5.."}[5m])) by (resource,subresource,verb)
+                /
+              sum(rate(apiserver_request_total{job="kubernetes-apiservers"}[5m])) by (resource,subresource,verb) > 0.05
+            "for": "10m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeClientCertificateExpiration"
+            "annotations":
+              "message": "A client certificate used to authenticate to the apiserver is expiring in less than 7.0 days."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeclientcertificateexpiration"
+            "expr": |
+              apiserver_client_certificate_expiration_seconds_count{job="kubernetes-apiservers"} > 0 and on(job) histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers"}[5m]))) < 604800
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeClientCertificateExpiration"
+            "annotations":
+              "message": "A client certificate used to authenticate to the apiserver is expiring in less than 24.0 hours."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeclientcertificateexpiration"
+            "expr": |
+              apiserver_client_certificate_expiration_seconds_count{job="kubernetes-apiservers"} > 0 and on(job) histogram_quantile(0.01, sum by (job, le) (rate(apiserver_client_certificate_expiration_seconds_bucket{job="kubernetes-apiservers"}[5m]))) < 86400
+            "labels":
+              "severity": "critical"
+          - "alert": "KubeAPIDown"
+            "annotations":
+              "message": "KubeAPI has disappeared from Prometheus target discovery."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapidown"
+            "expr": |
+              absent(up{job="kubernetes-apiservers"} == 1)
+            "for": "15m"
+            "labels":
+              "severity": "critical"
+      - "name": "kubernetes-system-kubelet"
+        "rules":
+          - "alert": "KubeNodeNotReady"
+            "annotations":
+              "message": "{{ $labels.node }} has been unready for more than 15 minutes."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubenodenotready"
+            "expr": |
+              kube_node_status_condition{component="kube-state-metrics",condition="Ready",status="true"} == 0
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeNodeUnreachable"
+            "annotations":
+              "message": "{{ $labels.node }} is unreachable and some workloads may be rescheduled."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubenodeunreachable"
+            "expr": |
+              kube_node_spec_taint{component="kube-state-metrics",key="node.kubernetes.io/unreachable",effect="NoSchedule"} == 1
+            "for": "2m"
+            "labels":
+              "severity": "warning"
+          - "alert": "KubeletTooManyPods"
+            "annotations":
+              "message": "Kubelet '{{ $labels.node }}' is running at {{ $value | humanizePercentage }} of its Pod capacity."
+              "runbook_url": "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubelettoomanypods"
+            "expr": |
+              max(max(kubelet_running_pod_count{job="kubernetes-nodes"}) by(instance) * on(instance) group_left(node) kubelet_node_name{job="kubernetes-nodes"}) by(node) / max(kube_node_status_capacity_pods{component="kube-state-metrics"}) by(node) > 0.95
+            "for": "15m"
+            "labels":
+              "severity": "warning"
+
+  ## Records configuration
+  ## Ref: https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/
+  recording_rules.yml: {}
+
+  prometheus.yml:
+    rule_files:
+      - /etc/config/recording_rules.yml
+      - /etc/config/alerting_rules.yml
+      # - /etc/config/rules
+      # - /etc/config/alerts
+    ...
+```
+
+После применения видим алерты в чате
+```shell
+make deploy_prometheus
+```
+
+### Задание со \*: Prometheus operator
+
+- Установите в кластер Prometheus Operator (можно воспользоваться [helm-чартом](https://github.com/helm/charts/tree/master/stable/prometheus-operator))
+
+- Настройте мониторинг post endpoints
+
+- Приложите используемый манифест serviceMonitor
+
+#### Install prometheus operator
+
+Создана директория 
+```log
+kubernetes/Charts/prometheus-operator
+├── Chart.yaml
+└── values.yaml
+
+0 directories, 2 files
+```
+
+`kubernetes/Charts/prometheus-operator/Chart.yaml`
+```yaml
+---
+apiVersion: v2
+name: prometheus-operator
+version: 0.1.0
+description: prometheus-operator by bitnami
+maintainers:
+  - name: Aleksey Koloskov
+    email: vsyscoder@gmail.com
+
+dependencies:
+  - name: prometheus-operator
+    version: 8.9.2
+    repository: https://kubernetes-charts.storage.googleapis.com/
+```
+
+`kubernetes/Charts/prometheus-operator/values.yaml`
+```yaml
+---
+prometheus-operator:
+  prometheus:
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+      hosts:
+        - reddit-prometheus
+
+  alertmanager:
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+      hosts:
+        - reddit-alertmanager
+
+  grafana:
+    ingress:
+      enabled: true
+      annotations:
+        kubernetes.io/ingress.class: nginx
+      hosts:
+        - reddit-grafana
+```
+
+Изменён `kubernetes/Charts/Makefile`
+```makefile
+# Изменены цели установки/очистки зависимостеё
+update_deps: clean_deps
+	cd ./reddit && helm dep update
+	cd ./ingress-nginx && helm dep update
+	cd ./prometheus-operator && helm dep update
+
+clean_deps:
+	rm -rf ./reddit/charts || true
+	rm -rf ./ingress-nginx/charts || true
+	rm -rf ./prometheus-operator/charts || true
+
+...
+# Созданы цели
+# deploy prometheus operator
+deploy_prometheus_operator:
+	helm upgrade \
+		--install \
+		--namespace default \
+		prometheus-operator \
+		./prometheus-operator
+
+# uninstall prometheus operator
+uninstall_prometheus_operator:
+	helm uninstall --namespace default prometheus-operator
+```
+
+Оператор установлен
+```shell
+make update_deps
+make deploy_prometheus_operator
+```
+```log
+helm upgrade \
+        --install \
+        --namespace default \
+        prometheus-operator \
+        ./prometheus-operator
+Release "prometheus-operator" does not exist. Installing it now.
+manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
+manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
+manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
+manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
+manifest_sorter.go:175: info: skipping unknown hook: "crd-install"
+NAME: prometheus-operator
+LAST DEPLOYED: Tue Feb 25 00:13:47 2020
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+```
+
+Как видно из лога, не были установлены CRD, потому что helm3. В документации на эту тему есть [workaround](https://github.com/helm/charts/blob/master/stable/prometheus-operator/README.md#helm-fails-to-create-crds).
+
+В `kubernetes/Charts/Makefile` реализован соответствующий workaround
+```makefile
+# deploy prometheus operator
+deploy_prometheus_operator: install_prometheus_operator_crds
+	helm upgrade \
+		--install \
+		--set prometheus-operator.prometheusOperator.createCustomResource=false \
+		--namespace default \
+		prometheus-operator \
+		./prometheus-operator
+
+# uninstall prometheus operator
+uninstall_prometheus_operator:
+	helm uninstall --namespace default prometheus-operator
+	$(MAKE) uninstall_prometheus_operator_crds
+
+# install prometheus operator CRDs
+install_prometheus_operator_crds:
+	kubectl apply -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+	kubectl apply -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+	kubectl apply -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+	kubectl apply -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+	kubectl apply -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+
+# uninstall prometheus operator CRDs
+uninstall_prometheus_operator_crds:
+	kubectl delete -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+	kubectl delete -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+	kubectl delete -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+	kubectl delete -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+	kubectl delete -n default -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.35/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+```
+
+Оператор установлен `make deploy_prometheus_operator`
+
+Смотрим дашборды графаны http://reddit-grafana (пароль по умолчанию так же есть в документации, искать или задать (`grafana.adminPassword`). Общее впечатление: восторг, минимальными усилиями имеем огромное количество информации о нашем кластере))
+
+Далее:
+- Настройте мониторинг post endpoints
+- Приложите используемый манифест serviceMonitor
+
+#### ServiceMonitor
+
+Очень помогла документация https://github.com/coreos/prometheus-operator/blob/master/Documentation/troubleshooting.md
+
+Итак, что было сделано для получения бизнес-метрик компонента `post` на дашборде графаны:
+
+Изменён чарт компонента `post`
+`kubernetes/Charts/post/templates/service.yaml`
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "post.fullname" . }}
+  labels:
+    app: reddit
+    component: post
+    release: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: http # Добавлено имя эндпоинта для указания в ServiceMonitor
+    port: {{ .Values.service.externalPort }}
+    protocol: TCP
+    targetPort: {{ .Values.service.internalPort }}
+  selector:
+    app: reddit
+    component: post
+    release: {{ .Release.Name }}
+...
+```
+
+Инкрементирована версия чарта `kubernetes/Charts/post/Chart.yaml`
+```yaml
+---
+name: post
+version: 1.1.0
+description: OTUS reddit application Post
+maintainers:
+  - name: Someone
+    email: my@mail.com
+appVersion: 1.0
+```
+
+Обновлена версия зависимости в `kubernetes/Charts/reddit/requirements.yaml`
+```yaml
+---
+dependencies:
+  ...
+  - name: post
+    version: 1.1.0
+    repository: "file://../post"
+```
+
+Установлены зависимости
+```shell
+helm dependency update --debug ./reddit
+```
+
+HINT: посмотреть _Service Monitor Selector_: `kubectl describe prometheus prometheus-operator-prometheus`
+
+Создан `kubernetes/reddit/post-servicemonitor.yaml`
+```yaml
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: reddit-post
+  labels:
+    app: reddit
+    release: prometheus-operator  # Обязательно должен совпадать с Service Monitor Selector: Match Labels: Release:  prometheus-operator
+spec:
+  jobLabel: component  # из какой label взять имя job
+  selector:  # selector для сервиса
+    matchLabels:  # возможно так же указать matchName
+      app: reddit
+      component: post
+  namespaceSelector:
+    matchNames:  # namespaces, можно указать any
+      - default
+      - production
+      - staging
+  endpoints:
+    - port: http  # обязательно должно совпадать с service spec.ports[].name
+      path: /metrics  # url path для получения метрик
+      scheme: http  # схема подключения, http/https
+      interval: 10s  # интервал опроса
+```
+
+После этого приложение передеплоено
+```shell
+helm upgrade reddit-test ./reddit --install
+helm upgrade staging --namespace staging ./reddit --install
+helm upgrade production --namespace production ./reddit --install
+```
+
+И создан ServiceMonitor
+```shell
+kubectl apply -f ../reddit/post-servicemonitor.yaml
+```
+
+Теперь мы видим target в http://reddit-prometheus
+```
+default/reddit-post/0 (3/3 up)
+```
+
+Далее импортируем в графану дашборд `monitoring/grafana/dashboards/Business_Logic_Monitoring.json` (да, именно прежний дашборд с лейблом `namespace` а не `kubernetes_namespace`) и видим на графике _Post count_ количество новых постов... Profit!
+
+Это заняло больше времени, чем я расчитывал... Далее - логгирование
+
+### Логгирование
+
+#### Подготовка
+
+1. Данную часть ДЗ рекомендуется выполянять уже после выполения ДЗ No 25 (по логированию), наработки из которого используюстя в данной работе
+2. Выполнение данной части ДЗ не является обязательным
+3. Добавьте label самой мощной ноде в кластере (уже сделано ранее при создании инфраструктуры)
+
+
+#### Стек
+
+Логирование в k8s будем выстраивать с помощью уже известного стека EFK:
+
+- ElasticSearch - база данных + поисковый движок
+- Fluentd - шипер (отправитель) и агрегатор логов
+- Kibana - веб-интерфейс для запросов в хранилище и отображения их результатов
+
+
+#### EFK
+
+Создайте файлы в новой папке `kubernetes/efk/`
+
+`fluentd-ds.yaml`
+```yaml
+---
+apiVersion: apps/v1beta2
+kind: DaemonSet
+metadata:
+  name: fluentd-es-v2.0.2
+  labels:
+    k8s-app: fluentd-es
+    version: v2.0.2
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+spec:
+  selector:
+    matchLabels:
+      k8s-app: fluentd-es
+      version: v2.0.2
+  template:
+    metadata:
+      labels:
+        k8s-app: fluentd-es
+        kubernetes.io/cluster-service: "true"
+        version: v2.0.2
+      # This annotation ensures that fluentd does not get evicted if the node
+      # supports critical pod annotation based priority scheme.
+      # Note that this does not guarantee admission on the nodes (#40573).
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      containers:
+      - name: fluentd-es
+        image: gcr.io/google-containers/fluentd-elasticsearch:v2.0.2
+        env:
+        - name: FLUENTD_ARGS
+          value: --no-supervisor -q
+        resources:
+          limits:
+            memory: 500Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - name: varlog
+          mountPath: /var/log
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        - name: libsystemddir
+          mountPath: /host/lib
+          readOnly: true
+        - name: config-volume
+          mountPath: /etc/fluent/config.d
+      nodeSelector:
+        beta.kubernetes.io/fluentd-ds-ready: "true"
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
+      # It is needed to copy systemd library to decompress journals
+      - name: libsystemddir
+        hostPath:
+          path: /usr/lib64
+      - name: config-volume
+        configMap:
+          name: fluentd-es-config-v0.1.1
+```
+
+`fluentd-configmap.yaml`
+```yaml
+kind: ConfigMap
+apiVersion: v1
+data:
+  containers.input.conf: |-
+    # This configuration file for Fluentd / td-agent is used
+    # to watch changes to Docker log files. The kubelet creates symlinks that
+    # capture the pod name, namespace, container name & Docker container ID
+    # to the docker logs for pods in the /var/log/containers directory on the host.
+    # If running this fluentd configuration in a Docker container, the /var/log
+    # directory should be mounted in the container.
+    #
+    # These logs are then submitted to Elasticsearch which assumes the
+    # installation of the fluent-plugin-elasticsearch & the
+    # fluent-plugin-kubernetes_metadata_filter plugins.
+    # See https://github.com/uken/fluent-plugin-elasticsearch &
+    # https://github.com/fabric8io/fluent-plugin-kubernetes_metadata_filter for
+    # more information about the plugins.
+    #
+    # Example
+    # =======
+    # A line in the Docker log file might look like this JSON:
+    #
+    # {"log":"2014/09/25 21:15:03 Got request with path wombat\n",
+    #  "stream":"stderr",
+    #   "time":"2014-09-25T21:15:03.499185026Z"}
+    #
+    # The time_format specification below makes sure we properly
+    # parse the time format produced by Docker. This will be
+    # submitted to Elasticsearch and should appear like:
+    # $ curl 'http://elasticsearch-logging:9200/_search?pretty'
+    # ...
+    # {
+    #      "_index" : "logstash-2014.09.25",
+    #      "_type" : "fluentd",
+    #      "_id" : "VBrbor2QTuGpsQyTCdfzqA",
+    #      "_score" : 1.0,
+    #      "_source":{"log":"2014/09/25 22:45:50 Got request with path wombat\n",
+    #                 "stream":"stderr","tag":"docker.container.all",
+    #                 "@timestamp":"2014-09-25T22:45:50+00:00"}
+    #    },
+    # ...
+    #
+    # The Kubernetes fluentd plugin is used to write the Kubernetes metadata to the log
+    # record & add labels to the log record if properly configured. This enables users
+    # to filter & search logs on any metadata.
+    # For example a Docker container's logs might be in the directory:
+    #
+    #  /var/lib/docker/containers/997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b
+    #
+    # and in the file:
+    #
+    #  997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b-json.log
+    #
+    # where 997599971ee6... is the Docker ID of the running container.
+    # The Kubernetes kubelet makes a symbolic link to this file on the host machine
+    # in the /var/log/containers directory which includes the pod name and the Kubernetes
+    # container name:
+    #
+    #    synthetic-logger-0.25lps-pod_default_synth-lgr-997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b.log
+    #    ->
+    #    /var/lib/docker/containers/997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b/997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b-json.log
+    #
+    # The /var/log directory on the host is mapped to the /var/log directory in the container
+    # running this instance of Fluentd and we end up collecting the file:
+    #
+    #   /var/log/containers/synthetic-logger-0.25lps-pod_default_synth-lgr-997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b.log
+    #
+    # This results in the tag:
+    #
+    #  var.log.containers.synthetic-logger-0.25lps-pod_default_synth-lgr-997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b.log
+    #
+    # The Kubernetes fluentd plugin is used to extract the namespace, pod name & container name
+    # which are added to the log message as a kubernetes field object & the Docker container ID
+    # is also added under the docker field object.
+    # The final tag is:
+    #
+    #   kubernetes.var.log.containers.synthetic-logger-0.25lps-pod_default_synth-lgr-997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b.log
+    #
+    # And the final log record look like:
+    #
+    # {
+    #   "log":"2014/09/25 21:15:03 Got request with path wombat\n",
+    #   "stream":"stderr",
+    #   "time":"2014-09-25T21:15:03.499185026Z",
+    #   "kubernetes": {
+    #     "namespace": "default",
+    #     "pod_name": "synthetic-logger-0.25lps-pod",
+    #     "container_name": "synth-lgr"
+    #   },
+    #   "docker": {
+    #     "container_id": "997599971ee6366d4a5920d25b79286ad45ff37a74494f262e3bc98d909d0a7b"
+    #   }
+    # }
+    #
+    # This makes it easier for users to search for logs by pod name or by
+    # the name of the Kubernetes container regardless of how many times the
+    # Kubernetes pod has been restarted (resulting in a several Docker container IDs).
+
+    # Json Log Example:
+    # {"log":"[info:2016-02-16T16:04:05.930-08:00] Some log text here\n","stream":"stdout","time":"2016-02-17T00:04:05.931087621Z"}
+    # CRI Log Example:
+    # 2016-02-17T00:04:05.931087621Z stdout F [info:2016-02-16T16:04:05.930-08:00] Some log text here
+    <source>
+      type tail
+      path /var/log/containers/*.log
+      pos_file /var/log/es-containers.log.pos
+      time_format %Y-%m-%dT%H:%M:%S.%NZ
+      tag kubernetes.*
+      read_from_head true
+      format multi_format
+      <pattern>
+        format json
+        time_key time
+        time_format %Y-%m-%dT%H:%M:%S.%NZ
+      </pattern>
+      <pattern>
+        format /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/
+        time_format %Y-%m-%dT%H:%M:%S.%N%:z
+      </pattern>
+    </source>
+  system.input.conf: |-
+    # Example:
+    # 2015-12-21 23:17:22,066 [salt.state       ][INFO    ] Completed state [net.ipv4.ip_forward] at time 23:17:22.066081
+    <source>
+      type tail
+      format /^(?<time>[^ ]* [^ ,]*)[^\[]*\[[^\]]*\]\[(?<severity>[^ \]]*) *\] (?<message>.*)$/
+      time_format %Y-%m-%d %H:%M:%S
+      path /var/log/salt/minion
+      pos_file /var/log/es-salt.pos
+      tag salt
+    </source>
+
+    # Example:
+    # Dec 21 23:17:22 gke-foo-1-1-4b5cbd14-node-4eoj startupscript: Finished running startup script /var/run/google.startup.script
+    <source>
+      type tail
+      format syslog
+      path /var/log/startupscript.log
+      pos_file /var/log/es-startupscript.log.pos
+      tag startupscript
+    </source>
+
+    # Examples:
+    # time="2016-02-04T06:51:03.053580605Z" level=info msg="GET /containers/json"
+    # time="2016-02-04T07:53:57.505612354Z" level=error msg="HTTP Error" err="No such image: -f" statusCode=404
+    <source>
+      type tail
+      format /^time="(?<time>[^)]*)" level=(?<severity>[^ ]*) msg="(?<message>[^"]*)"( err="(?<error>[^"]*)")?( statusCode=($<status_code>\d+))?/
+      path /var/log/docker.log
+      pos_file /var/log/es-docker.log.pos
+      tag docker
+    </source>
+
+    # Example:
+    # 2016/02/04 06:52:38 filePurge: successfully removed file /var/etcd/data/member/wal/00000000000006d0-00000000010a23d1.wal
+    <source>
+      type tail
+      # Not parsing this, because it doesn't have anything particularly useful to
+      # parse out of it (like severities).
+      format none
+      path /var/log/etcd.log
+      pos_file /var/log/es-etcd.log.pos
+      tag etcd
+    </source>
+
+    # Multi-line parsing is required for all the kube logs because very large log
+    # statements, such as those that include entire object bodies, get split into
+    # multiple lines by glog.
+
+    # Example:
+    # I0204 07:32:30.020537    3368 server.go:1048] POST /stats/container/: (13.972191ms) 200 [[Go-http-client/1.1] 10.244.1.3:40537]
+    <source>
+      type tail
+      format multiline
+      multiline_flush_interval 5s
+      format_firstline /^\w\d{4}/
+      format1 /^(?<severity>\w)(?<time>\d{4} [^\s]*)\s+(?<pid>\d+)\s+(?<source>[^ \]]+)\] (?<message>.*)/
+      time_format %m%d %H:%M:%S.%N
+      path /var/log/kubelet.log
+      pos_file /var/log/es-kubelet.log.pos
+      tag kubelet
+    </source>
+
+    # Example:
+    # I1118 21:26:53.975789       6 proxier.go:1096] Port "nodePort for kube-system/default-http-backend:http" (:31429/tcp) was open before and is still needed
+    <source>
+      type tail
+      format multiline
+      multiline_flush_interval 5s
+      format_firstline /^\w\d{4}/
+      format1 /^(?<severity>\w)(?<time>\d{4} [^\s]*)\s+(?<pid>\d+)\s+(?<source>[^ \]]+)\] (?<message>.*)/
+      time_format %m%d %H:%M:%S.%N
+      path /var/log/kube-proxy.log
+      pos_file /var/log/es-kube-proxy.log.pos
+      tag kube-proxy
+    </source>
+
+    # Example:
+    # I0204 07:00:19.604280       5 handlers.go:131] GET /api/v1/nodes: (1.624207ms) 200 [[kube-controller-manager/v1.1.3 (linux/amd64) kubernetes/6a81b50] 127.0.0.1:38266]
+    <source>
+      type tail
+      format multiline
+      multiline_flush_interval 5s
+      format_firstline /^\w\d{4}/
+      format1 /^(?<severity>\w)(?<time>\d{4} [^\s]*)\s+(?<pid>\d+)\s+(?<source>[^ \]]+)\] (?<message>.*)/
+      time_format %m%d %H:%M:%S.%N
+      path /var/log/kube-apiserver.log
+      pos_file /var/log/es-kube-apiserver.log.pos
+      tag kube-apiserver
+    </source>
+
+    # Example:
+    # I0204 06:55:31.872680       5 servicecontroller.go:277] LB already exists and doesn't need update for service kube-system/kube-ui
+    <source>
+      type tail
+      format multiline
+      multiline_flush_interval 5s
+      format_firstline /^\w\d{4}/
+      format1 /^(?<severity>\w)(?<time>\d{4} [^\s]*)\s+(?<pid>\d+)\s+(?<source>[^ \]]+)\] (?<message>.*)/
+      time_format %m%d %H:%M:%S.%N
+      path /var/log/kube-controller-manager.log
+      pos_file /var/log/es-kube-controller-manager.log.pos
+      tag kube-controller-manager
+    </source>
+
+    # Example:
+    # W0204 06:49:18.239674       7 reflector.go:245] pkg/scheduler/factory/factory.go:193: watch of *api.Service ended with: 401: The event in requested index is outdated and cleared (the requested history has been cleared [2578313/2577886]) [2579312]
+    <source>
+      type tail
+      format multiline
+      multiline_flush_interval 5s
+      format_firstline /^\w\d{4}/
+      format1 /^(?<severity>\w)(?<time>\d{4} [^\s]*)\s+(?<pid>\d+)\s+(?<source>[^ \]]+)\] (?<message>.*)/
+      time_format %m%d %H:%M:%S.%N
+      path /var/log/kube-scheduler.log
+      pos_file /var/log/es-kube-scheduler.log.pos
+      tag kube-scheduler
+    </source>
+
+    # Example:
+    # I1104 10:36:20.242766       5 rescheduler.go:73] Running Rescheduler
+    <source>
+      type tail
+      format multiline
+      multiline_flush_interval 5s
+      format_firstline /^\w\d{4}/
+      format1 /^(?<severity>\w)(?<time>\d{4} [^\s]*)\s+(?<pid>\d+)\s+(?<source>[^ \]]+)\] (?<message>.*)/
+      time_format %m%d %H:%M:%S.%N
+      path /var/log/rescheduler.log
+      pos_file /var/log/es-rescheduler.log.pos
+      tag rescheduler
+    </source>
+
+    # Example:
+    # I0603 15:31:05.793605       6 cluster_manager.go:230] Reading config from path /etc/gce.conf
+    <source>
+      type tail
+      format multiline
+      multiline_flush_interval 5s
+      format_firstline /^\w\d{4}/
+      format1 /^(?<severity>\w)(?<time>\d{4} [^\s]*)\s+(?<pid>\d+)\s+(?<source>[^ \]]+)\] (?<message>.*)/
+      time_format %m%d %H:%M:%S.%N
+      path /var/log/glbc.log
+      pos_file /var/log/es-glbc.log.pos
+      tag glbc
+    </source>
+
+    # Example:
+    # I0603 15:31:05.793605       6 cluster_manager.go:230] Reading config from path /etc/gce.conf
+    <source>
+      type tail
+      format multiline
+      multiline_flush_interval 5s
+      format_firstline /^\w\d{4}/
+      format1 /^(?<severity>\w)(?<time>\d{4} [^\s]*)\s+(?<pid>\d+)\s+(?<source>[^ \]]+)\] (?<message>.*)/
+      time_format %m%d %H:%M:%S.%N
+      path /var/log/cluster-autoscaler.log
+      pos_file /var/log/es-cluster-autoscaler.log.pos
+      tag cluster-autoscaler
+    </source>
+
+    # Logs from systemd-journal for interesting services.
+    <source>
+      type systemd
+      filters [{ "_SYSTEMD_UNIT": "docker.service" }]
+      pos_file /var/log/gcp-journald-docker.pos
+      read_from_head true
+      tag docker
+    </source>
+
+    <source>
+      type systemd
+      filters [{ "_SYSTEMD_UNIT": "kubelet.service" }]
+      pos_file /var/log/gcp-journald-kubelet.pos
+      read_from_head true
+      tag kubelet
+    </source>
+
+    <source>
+      type systemd
+      filters [{ "_SYSTEMD_UNIT": "node-problem-detector.service" }]
+      pos_file /var/log/gcp-journald-node-problem-detector.pos
+      read_from_head true
+      tag node-problem-detector
+    </source>
+  forward.input.conf: |-
+    # Takes the messages sent over TCP
+    <source>
+      type forward
+    </source>
+  monitoring.conf: |-
+    # Prometheus Exporter Plugin
+    # input plugin that exports metrics
+    <source>
+      @type prometheus
+    </source>
+
+    <source>
+      @type monitor_agent
+    </source>
+
+    # input plugin that collects metrics from MonitorAgent
+    <source>
+      @type prometheus_monitor
+      <labels>
+        host ${hostname}
+      </labels>
+    </source>
+
+    # input plugin that collects metrics for output plugin
+    <source>
+      @type prometheus_output_monitor
+      <labels>
+        host ${hostname}
+      </labels>
+    </source>
+
+    # input plugin that collects metrics for in_tail plugin
+    <source>
+      @type prometheus_tail_monitor
+      <labels>
+        host ${hostname}
+      </labels>
+    </source>
+  output.conf: |-
+    # Enriches records with Kubernetes metadata
+    <filter kubernetes.**>
+      type kubernetes_metadata
+    </filter>
+
+    <match **>
+       type elasticsearch
+       log_level info
+       include_tag_key true
+       host elasticsearch-logging
+       port 9200
+       logstash_format true
+       logstash_prefix fluentd
+       # Set the chunk limits.
+       buffer_chunk_limit 2M
+       buffer_queue_limit 8
+       flush_interval 5s
+       # Never wait longer than 5 minutes between retries.
+       max_retry_wait 30
+       # Disable the limit on the number of retries (retry forever).
+       disable_retry_limit
+       # Use multiple threads for processing.
+       num_threads 2
+    </match>
+metadata:
+  name: fluentd-es-config-v0.1.1
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+```
+
+`es-service.yaml`
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-logging
+  labels:
+    k8s-app: elasticsearch-logging
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/name: "Elasticsearch"
+spec:
+  ports:
+  - port: 9200
+    protocol: TCP
+    targetPort: db
+  selector:
+    k8s-app: elasticsearch-logging
+```
+
+`es-statefulSet.yaml`
+```yaml
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: elasticsearch-logging
+  labels:
+    k8s-app: elasticsearch-logging
+    version: v5.6.4
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+spec:
+  serviceName: elasticsearch-logging
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: elasticsearch-logging
+      version: v5.6.4
+  template:
+    metadata:
+      labels:
+        k8s-app: elasticsearch-logging
+        version: v5.6.4
+        kubernetes.io/cluster-service: "true"
+    spec:
+      nodeSelector:
+        elastichost: "true"
+      containers:
+      - image: k8s.gcr.io/elasticsearch:v5.6.4
+        name: elasticsearch-logging
+        resources:
+          # need more cpu upon initialization, therefore burstable class
+          limits:
+            cpu: 1000m
+          requests:
+            cpu: 100m
+        ports:
+        - containerPort: 9200
+          name: db
+          protocol: TCP
+        - containerPort: 9300
+          name: transport
+          protocol: TCP
+        volumeMounts:
+        - name: es-pvc-volume
+          mountPath: /data
+        env:
+        - name: MINIMUM_MASTER_NODES
+          value: "1"
+        - name: "NAMESPACE"
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+      volumes:
+      - name: es-pvc-volume
+        persistentVolumeClaim:
+          claimName: elasticsearch-logging-claim
+      # Elasticsearch requires vm.max_map_count to be at least 262144.
+      # If your OS already sets up this number to a higher value, feel free
+      # to remove this init container.
+      initContainers:
+      - image: alpine:3.6
+        command: ["/sbin/sysctl", "-w", "vm.max_map_count=262144"]
+        name: elasticsearch-logging-init
+        securityContext:
+          privileged: true
+```
+
+`es-pvc.yaml`
+```yaml
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: elasticsearch-logging-claim
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+```
+
+Запустите стек в вашем k8s
+```shell
+kubectl apply -f ./efk
+```
+
+Kibana поставим из helm чарта
+
+```shell
+helm upgrade --install kibana stable/kibana \
+  --set "ingress.enabled=true" \
+  --set "ingress.hosts={reddit-kibana}" \
+  --set "env.ELASTICSEARCH_URL=http://elasticsearch-logging:9200" \
+  --version 0.1.1
+```
+
+```shell
+kubectl --namespace=default get pods -l "app=kibana"
+```
+```log
+NAME                      READY   STATUS    RESTARTS   AGE
+kibana-65f8986c64-tpgb2   1/1     Running   0          4m24s
+```
+
+Запустилось всё успешно с первого раза О_о
+
+Интерфейс доступен по адресу http://reddit-kibana
+
+Создаём index pattern `fluentd-*`
+
+Откройте вкладку Discover в Kibana и введите в строку поиска выражение
+```
+kubernetes.labels.component:post OR kubernetes.labels.component:comment OR
+kubernetes.labels.component:ui
+```
+и видим логи наших компонентов =)
+
+Откройте любой из рез-тов поиска - в нем видно множество инфы о k8s
+
+1. Особенность работы fluentd в k8s состоит в том, что его задача помимо сбора самих логов приложений, сервисов и хостов, также распознать дополнительные метаданные (как правило это дополнительные поля с лейблами)
+2. Откуда и какие логи собирает fluentd - видно в его `fluentd-configmap.yaml` и в `fluentd-ds.yaml`
+3. Общая схема работы fluentd представлена на след. слайде
+
+### Задание со \*: Helm Chart EFK
+
+Создайте Helm-чарт для установки стека EFK и поместите в
+директорию charts
+
+TODO: сделать.. как-нибудь потом, может бьыть - есть же уже готовые, например https://github.com/helm/charts/tree/master/stable/elastic-stack

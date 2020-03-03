@@ -52,6 +52,8 @@ module "gke_cluster" {
   alternative_default_service_account = var.override_default_node_pool_service_account ? module.gke_service_account.email : null
 
   enable_legacy_abac = "true"
+  logging_service = "none"
+  monitoring_service = "none"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -68,10 +70,10 @@ resource "google_container_node_pool" "node_pool" {
   location = var.location
   cluster  = module.gke_cluster.name
 
-  initial_node_count = "1"
+  initial_node_count = "2"
 
   autoscaling {
-    min_node_count = "1"
+    min_node_count = "2"
     max_node_count = "3"
   }
 
@@ -82,10 +84,10 @@ resource "google_container_node_pool" "node_pool" {
 
   node_config {
     image_type   = "COS"
-    machine_type = "n1-standard-1"
+    machine_type = "g1-small"
 
     labels = {
-      all-pools-example = "true"
+      main-pool = true
     }
 
     # Add a public tag to the instances. See the network access tier table for full details:
@@ -121,12 +123,12 @@ resource "google_container_node_pool" "node_pool" {
 # CREATE A NODE POOL FOR GITLAB
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "google_container_node_pool" "gitlab_node_pool" {
+resource "google_container_node_pool" "elastic_node_pool" {
   provider = google-beta
 
   count = 1
 
-  name     = "gitlab-pool"
+  name     = "elastic-pool"
   project  = var.project
   location = var.location
   cluster  = module.gke_cluster.name
@@ -148,7 +150,7 @@ resource "google_container_node_pool" "gitlab_node_pool" {
     machine_type = "n1-standard-2"
 
     labels = {
-      app = "gitlab"
+      elastichost = true
     }
 
     # Add a public tag to the instances. See the network access tier table for full details:
